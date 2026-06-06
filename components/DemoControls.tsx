@@ -2,9 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Zap, FileText, MessageCircle } from "lucide-react";
+import { RotateCcw, Zap, FileText, MessageCircle, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useApp } from "@/components/AppProvider";
 import { api } from "@/lib/api";
 
@@ -56,26 +63,29 @@ export function DemoControls() {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-border bg-card p-1.5">
-      <span className="px-1.5 text-xs font-medium text-muted-foreground">Demo</span>
-      <Button variant="outline" size="sm" onClick={resetDemo} disabled={busy} className="gap-1.5">
-        <RotateCcw className="size-4" /> Reset
-      </Button>
-      <Button variant="outline" size="sm" onClick={sendCheckin} disabled={busy} className="gap-1.5">
-        <MessageCircle className="size-4" /> Daily check-in
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={summary}
-        disabled={busy || genBusy}
-        className="gap-1.5"
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />
+        }
       >
-        <FileText className="size-4" /> Generate summary
-      </Button>
-      <Button size="sm" onClick={risky} disabled={busy} className="gap-1.5">
-        <Zap className="size-4" /> Run risky check-in
-      </Button>
-    </div>
+        Demo tools <ChevronDown className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onClick={risky} disabled={busy} className="font-medium text-foreground">
+          <Zap className="text-primary!" /> Run risky check-in
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={resetDemo} disabled={busy}>
+          <RotateCcw /> Reset demo
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={sendCheckin} disabled={busy}>
+          <MessageCircle /> Daily check-in (all)
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={summary} disabled={busy || genBusy}>
+          <FileText /> Generate summary
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

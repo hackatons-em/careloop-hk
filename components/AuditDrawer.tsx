@@ -14,9 +14,23 @@ import { useApp } from "@/components/AppProvider";
 import { AUDIT_LABEL } from "@/lib/auditLabels";
 import { formatDateTime } from "@/lib/format";
 
-export function AuditDrawer({ patientId }: { patientId: string }) {
+export function AuditDrawer({
+  patientId,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger = false,
+}: {
+  patientId: string;
+  /** Controlled open state. When omitted, the component manages its own. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the built-in trigger button (e.g. when opened from a menu). */
+  hideTrigger?: boolean;
+}) {
   const { audit } = useApp();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
 
   const events = audit.filter(
     (e) => e.target_id === patientId || e.metadata?.patient_id === patientId,
@@ -24,11 +38,13 @@ export function AuditDrawer({ patientId }: { patientId: string }) {
 
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
-        <History className="size-4" />
-        Audit trail
-        <span className="rounded-full bg-muted px-1.5 text-xs">{events.length}</span>
-      </Button>
+      {!hideTrigger && (
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+          <History className="size-4" />
+          Audit trail
+          <span className="rounded-full bg-muted px-1.5 text-xs">{events.length}</span>
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

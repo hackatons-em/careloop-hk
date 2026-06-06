@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, Stethoscope } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/AppProvider";
 import { AlertStatusBadge, RiskBadge } from "@/components/RiskBadge";
@@ -27,9 +27,17 @@ const STATUSES: AlertStatus[] = [
   "resolved",
 ];
 
+type AlertView = "unopened" | "open" | "all";
+
+const VIEWS: { key: AlertView; label: string }[] = [
+  { key: "unopened", label: "Unopened" },
+  { key: "open", label: "Open" },
+  { key: "all", label: "All" },
+];
+
 export function AlertQueue() {
   const { alerts, rows, refresh } = useApp();
-  const [view, setView] = useState<"open" | "all">("open");
+  const [view, setView] = useState<AlertView>("open");
 
   const patientById = useMemo(() => {
     const map = new Map<string, PatientRow>();
@@ -37,8 +45,22 @@ export function AlertQueue() {
     return map;
   }, [rows]);
 
+  const counts = useMemo(
+    () => ({
+      unopened: alerts.filter((a) => a.status === "new").length,
+      open: alerts.filter((a) => a.status !== "resolved").length,
+      all: alerts.length,
+    }),
+    [alerts],
+  );
+
   const visible = useMemo(() => {
-    const filtered = view === "open" ? alerts.filter((a) => a.status !== "resolved") : alerts;
+    const filtered =
+      view === "unopened"
+        ? alerts.filter((a) => a.status === "new")
+        : view === "open"
+          ? alerts.filter((a) => a.status !== "resolved")
+          : alerts;
     return [...filtered].sort((a, b) => {
       const d = SEVERITY_ORDER[b.severity] - SEVERITY_ORDER[a.severity];
       return d !== 0 ? d : b.created_at.localeCompare(a.created_at);
@@ -48,19 +70,30 @@ export function AlertQueue() {
   return (
     <div className="space-y-4">
       <div className="flex rounded-lg border border-border p-0.5 text-sm w-fit">
-        {(["open", "all"] as const).map((v) => (
-          <button
-            key={v}
-            onClick={() => setView(v)}
-            aria-pressed={view === v}
-            className={cn(
-              "rounded-md px-3 py-1 font-medium capitalize transition-colors",
-              view === v ? "bg-primary text-primary-foreground" : "text-muted-foreground",
-            )}
-          >
-            {v} {v === "open" && `(${alerts.filter((a) => a.status !== "resolved").length})`}
-          </button>
-        ))}
+        {VIEWS.map((v) => {
+          const active = view === v.key;
+          return (
+            <button
+              key={v.key}
+              onClick={() => setView(v.key)}
+              aria-pressed={active}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition-colors",
+                active ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+              )}
+            >
+              {v.label}
+              <span
+                className={cn(
+                  "rounded-full px-1.5 text-xs",
+                  active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground",
+                )}
+              >
+                {counts[v.key]}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {visible.length === 0 && (
@@ -72,6 +105,8 @@ export function AlertQueue() {
           </p>
         </div>
       )}
+
+      {visible.length > 0 && <SafetyNote />}
 
       <div className="space-y-3">
         {visible.map((alert) => (
@@ -138,39 +173,23 @@ function AlertCard({
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {alert.matched_rules.map((code) => (
-          <span
-            key={code}
-            className="rounded-md border border-border bg-muted px-1.5 py-0.5 font-mono text-xs font-semibold"
-          >
-            {code}
-          </span>
-        ))}
-      </div>
-
       <p className="mt-2 text-sm">{alert.reason}</p>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-3">
-        <Field label="Suggested owner">
-          <span className="inline-flex items-center gap-1.5 text-sm">
-            <Stethoscope className="size-3.5 text-primary" />
-            {alert.assigned_to}
-          </span>
-        </Field>
-        <Field label="Latest weight">
-          <span className="text-sm">
-            {patient?.latest_weight != null ? `${patient.latest_weight} kg` : "—"}
-          </span>
-        </Field>
-        <Field label="Last check-in">
-          <span className="text-sm">{formatDay(patient?.last_checkin_date)}</span>
-        </Field>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <Stethoscope className="size-3.5 text-primary" />
+          {alert.assigned_to}
+        </span>
+        <span aria-hidden>·</span>
+        <span>{patient?.latest_weight != null ? `${patient.latest_weight} kg` : "—"}</span>
+        <span aria-hidden>·</span>
+        <span>Last check-in {formatDay(patient?.last_checkin_date)}</span>
       </div>
 
-      <div className="mt-3 rounded-lg border border-border bg-muted/30 p-3">
-        <p className="text-sm font-medium">{alert.recommended_action}</p>
-      </div>
+      <p className="mt-2 flex items-start gap-1.5 text-sm">
+        <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-primary" />
+        <span className="font-medium">{alert.recommended_action}</span>
+      </p>
 
       {/* nurse action row */}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -206,17 +225,6 @@ function AlertCard({
           </Button>
         </div>
       </div>
-
-      <SafetyNote className="mt-3" />
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="mt-0.5">{children}</div>
     </div>
   );
 }

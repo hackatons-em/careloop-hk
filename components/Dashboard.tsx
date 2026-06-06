@@ -123,11 +123,9 @@ export function Dashboard() {
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
               <TableHead>Patient</TableHead>
-              <TableHead>Condition</TableHead>
               <TableHead>Last check-in</TableHead>
               <TableHead>Risk</TableHead>
               <TableHead>Reason</TableHead>
-              <TableHead>Owner</TableHead>
               <TableHead>Next action</TableHead>
               <TableHead className="w-8" />
             </TableRow>
@@ -135,7 +133,7 @@ export function Dashboard() {
           <TableBody>
             {visible.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="py-10 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                   No patients in this view.
                 </TableCell>
               </TableRow>
@@ -144,7 +142,7 @@ export function Dashboard() {
               <TableRow
                 key={row.patient.id}
                 onClick={() => router.push(`/patients/${row.patient.id}`)}
-                className={cn("cursor-pointer", severityStyle(row.risk.severity).tint)}
+                className="cursor-pointer hover:bg-muted/40"
               >
                 <TableCell>
                   <Link
@@ -155,11 +153,8 @@ export function Dashboard() {
                     {row.patient.name}
                   </Link>
                   <div className="text-xs text-muted-foreground">
-                    {row.patient.age} · {row.patient.gender}
+                    {row.patient.age} · {row.patient.conditions[0] ?? row.patient.gender}
                   </div>
-                </TableCell>
-                <TableCell className="max-w-[170px] whitespace-normal text-muted-foreground">
-                  {row.patient.conditions.join(", ")}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {formatDay(row.last_checkin_date)}
@@ -168,9 +163,8 @@ export function Dashboard() {
                   <RiskBadge severity={row.risk.severity} />
                 </TableCell>
                 <TableCell className="max-w-[200px] whitespace-normal">
-                  <ReasonTags tags={row.risk.reason_tags} />
+                  <ReasonTags tags={row.risk.reason_tags} max={2} />
                 </TableCell>
-                <TableCell className="text-muted-foreground">{row.patient.assigned_nurse}</TableCell>
                 <TableCell className="text-foreground">{NEXT_ACTION[row.risk.severity]}</TableCell>
                 <TableCell>
                   <ChevronRight aria-hidden className="size-4 text-muted-foreground" />

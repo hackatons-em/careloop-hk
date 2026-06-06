@@ -4,10 +4,6 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import {
   ChevronLeft,
-  Phone,
-  Stethoscope,
-  Home,
-  Languages,
   Scale,
   HeartPulse,
   Footprints,
@@ -15,6 +11,9 @@ import {
   Activity,
   CheckCircle2,
   MessageCircle,
+  MoreHorizontal,
+  Upload,
+  History,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TrendChart, type ChartRow } from "@/components/charts/TrendChart";
@@ -27,6 +26,12 @@ import { ConversationPanel } from "@/components/ConversationPanel";
 import { WeeklySummaryPanel } from "@/components/WeeklySummaryPanel";
 import { FhirExportPanel } from "@/components/FhirExportPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -51,6 +56,8 @@ export function PatientDetail({
 }) {
   const { refresh } = useApp();
   const [timeline, setTimeline] = useState<PatientTimeline>(initialTimeline);
+  const [csvOpen, setCsvOpen] = useState(false);
+  const [auditOpen, setAuditOpen] = useState(false);
 
   const reload = useCallback(async () => {
     try {
@@ -120,18 +127,52 @@ export function PatientDetail({
             <Button variant="outline" size="sm" onClick={sendCheckin} className="gap-1.5">
               <MessageCircle className="size-4" /> Send check-in
             </Button>
-            <CsvImport patientId={patientId} onImported={handleChanged} />
-            <AuditDrawer patientId={patientId} />
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button variant="outline" size="icon-sm" aria-label="More actions" />
+                }
+              >
+                <MoreHorizontal className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setCsvOpen(true)}>
+                  <Upload /> Import CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAuditOpen(true)}>
+                  <History /> Audit trail
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-          <Info icon={Stethoscope} label="Assigned nurse" value={patient.assigned_nurse} />
-          <Info icon={Phone} label="Caregiver" value={patient.caregiver_name} sub={patient.caregiver_phone} />
-          <Info icon={Home} label="Living" value={patient.living_status} />
-          <Info icon={Languages} label="Language" value={patient.language} />
-        </div>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Nurse <span className="font-medium text-foreground">{patient.assigned_nurse}</span>
+          {" · "}Caregiver{" "}
+          <span className="font-medium text-foreground">{patient.caregiver_name}</span>
+          {patient.caregiver_phone ? ` (${patient.caregiver_phone})` : ""}
+          {" · "}
+          {patient.living_status}
+          {" · "}
+          {patient.language}
+        </p>
       </div>
+
+      {/* Dialogs opened from the More menu (kept mounted outside the menu) */}
+      <CsvImport
+        patientId={patientId}
+        onImported={handleChanged}
+        open={csvOpen}
+        onOpenChange={setCsvOpen}
+        hideTrigger
+      />
+      <AuditDrawer
+        patientId={patientId}
+        open={auditOpen}
+        onOpenChange={setAuditOpen}
+        hideTrigger
+      />
 
       {/* Lead: why flagged + human impact */}
       <div className="cl-rise grid gap-4 lg:grid-cols-3" style={{ animationDelay: "100ms" }}>
@@ -187,30 +228,39 @@ export function PatientDetail({
                 unit="mmHg"
               />
             </ChartCard>
-            <ChartCard icon={Footprints} title="Activity (steps)">
-              <TrendChart
-                data={rows("steps")}
-                series={[{ key: "steps", name: "Steps", color: "var(--chart-2)" }]}
-                unit="steps"
-                refLines={[
-                  { y: patient.baseline_steps, label: "baseline" },
-                  { y: stepsThreshold, label: "-40%", color: "var(--destructive)" },
-                ]}
-              />
-            </ChartCard>
-            <AdherenceStrip checkins={checkins} />
           </div>
-          <div className="mt-4">
-            <ChartCard icon={Activity} title="Risk level over time">
-              <TrendChart
-                data={trendRows}
-                series={[{ key: "score", name: "Risk", color: "var(--chart-3)" }]}
-                domain={[0, 3]}
-                step
-                yTickFormatter={(v) => ["Stable", "Watch", "Review", "Escalate"][v] ?? ""}
-              />
-            </ChartCard>
-          </div>
+
+          <details className="group mt-4">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+              <ChevronLeft className="size-4 -rotate-90 transition-transform group-open:-rotate-180" />
+              More trends — activity, medication adherence, risk over time
+            </summary>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <ChartCard icon={Footprints} title="Activity (steps)">
+                <TrendChart
+                  data={rows("steps")}
+                  series={[{ key: "steps", name: "Steps", color: "var(--chart-2)" }]}
+                  unit="steps"
+                  refLines={[
+                    { y: patient.baseline_steps, label: "baseline" },
+                    { y: stepsThreshold, label: "-40%", color: "var(--destructive)" },
+                  ]}
+                />
+              </ChartCard>
+              <AdherenceStrip checkins={checkins} />
+              <div className="sm:col-span-2">
+                <ChartCard icon={Activity} title="Risk level over time">
+                  <TrendChart
+                    data={trendRows}
+                    series={[{ key: "score", name: "Risk", color: "var(--chart-3)" }]}
+                    domain={[0, 3]}
+                    step
+                    yTickFormatter={(v) => ["Stable", "Watch", "Review", "Escalate"][v] ?? ""}
+                  />
+                </ChartCard>
+              </div>
+            </div>
+          </details>
         </TabsContent>
 
         <TabsContent value="checkins" className="cl-fade pt-4">
@@ -231,29 +281,6 @@ export function PatientDetail({
           </div>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-function Info({
-  icon: Icon,
-  label,
-  value,
-  sub,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  sub?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-muted/30 px-3 py-2">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className="size-3.5" />
-        {label}
-      </div>
-      <div className="mt-0.5 font-medium">{value}</div>
-      {sub && <div className="text-xs text-muted-foreground">{sub}</div>}
     </div>
   );
 }
