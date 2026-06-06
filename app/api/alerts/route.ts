@@ -4,5 +4,5 @@ export const dynamic = "force-dynamic";
 
 // GET /api/alerts — nurse review queue
 export async function GET() {
-  return Response.json(getAlerts());
+  return Response.json(await getAlerts());
 }

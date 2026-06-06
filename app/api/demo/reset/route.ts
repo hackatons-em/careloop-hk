@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 // POST /api/demo/reset — restore deterministic seed data for a clean demo
 export async function POST() {
-  resetDemo();
-  resetConversations();
-  return Response.json({ ok: true, rows: getPatientRows() });
+  await resetDemo();
+  await resetConversations();
+  return Response.json({ ok: true, rows: await getPatientRows() });
 }

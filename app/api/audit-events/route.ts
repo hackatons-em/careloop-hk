@@ -6,5 +6,5 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const raw = Number(new URL(req.url).searchParams.get("limit"));
   const limit = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : undefined;
-  return Response.json(getAuditEvents(limit));
+  return Response.json(await getAuditEvents(limit));
 }

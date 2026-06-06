@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const timeline = getTimeline(id);
+  const timeline = await getTimeline(id);
 
   if (!timeline) {
     return (

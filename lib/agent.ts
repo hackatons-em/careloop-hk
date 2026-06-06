@@ -29,10 +29,10 @@ export interface DailyCheckInResult {
 }
 
 export async function sendDailyCheckIn(patientId: string): Promise<DailyCheckInResult> {
-  const patient = getPatient(patientId);
+  const patient = await getPatient(patientId);
   if (!patient) return { ok: false, error: "Patient not found" };
 
-  const to = getPatientPhone(patientId) ?? process.env.CARELOOP_DEMO_PATIENT_PHONE;
+  const to = (await getPatientPhone(patientId)) ?? process.env.CARELOOP_DEMO_PATIENT_PHONE;
   if (!to) {
     return {
       ok: false,
@@ -49,8 +49,8 @@ export async function sendDailyCheckIn(patientId: string): Promise<DailyCheckInR
   const sent = await sendWhatsApp(to, prompt);
   if (!sent.ok) return { ok: false, error: sent.error };
 
-  beginSession(patientId, WEEK_END);
-  appendMessage({
+  await beginSession(patientId, WEEK_END);
+  await appendMessage({
     patient_id: patientId,
     direction: "outbound",
     channel: "whatsapp",
@@ -69,7 +69,11 @@ export async function sendDailyCheckInRound(): Promise<{
   total: number;
   results: (DailyCheckInResult & { patientId: string })[];
 }> {
-  const targets = getPatients().filter((p) => getPatientPhone(p.id));
+  const patients = await getPatients();
+  const targets: typeof patients = [];
+  for (const p of patients) {
+    if (await getPatientPhone(p.id)) targets.push(p);
+  }
   const results: (DailyCheckInResult & { patientId: string })[] = [];
   for (const p of targets) {
     results.push({ patientId: p.id, ...(await sendDailyCheckIn(p.id)) });

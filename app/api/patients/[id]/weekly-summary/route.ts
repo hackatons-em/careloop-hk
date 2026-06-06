@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // reworded by Claude (falls back to the template if no key / on error).
 export async function POST(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const timeline = getTimeline(id);
+  const timeline = await getTimeline(id);
   if (!timeline) return Response.json({ error: "Patient not found" }, { status: 404 });
 
   const partial = await generateWeeklySummary(timeline);
@@ -19,6 +19,6 @@ export async function POST(_req: Request, ctx: { params: Promise<{ id: string }>
     created_at: new Date().toISOString(),
     ...partial,
   };
-  saveWeeklySummary(summary);
+  await saveWeeklySummary(summary);
   return Response.json(summary);
 }

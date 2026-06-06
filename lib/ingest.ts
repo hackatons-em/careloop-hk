@@ -16,6 +16,7 @@ import {
   mergeExtraction,
   missingFields,
   questionFor,
+  saveSession,
   type Lang,
 } from "./conversation";
 import { generateConfirmation, generateFollowUp } from "./followup";
@@ -50,7 +51,7 @@ function detectLang(text: string): Lang {
 }
 
 export async function ingestCheckInMessage(input: IngestInput): Promise<IngestResult | null> {
-  const patient = getPatient(input.patientId);
+  const patient = await getPatient(input.patientId);
   if (!patient) return null;
   const date = WEEK_END;
 
@@ -73,14 +74,14 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   const language = detectLang(transcript);
 
   // 2. session + context-aware extraction (knows what we last asked)
-  const session = getOrCreateSession(input.patientId, date);
+  const session = await getOrCreateSession(input.patientId, date);
   const context = session.pending_field ? questionFor(session.pending_field, language) : undefined;
   const extracted = await extractSymptoms(transcript, context);
   mergeExtraction(session, extracted);
 
   // 3. derive the structured check-in from the accumulated session, run engine
   const c = session.collected;
-  const result = submitCheckIn(
+  const result = await submitCheckIn(
     input.patientId,
     {
       date,
@@ -99,7 +100,7 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   if (!result) return null;
 
   // 4. log the inbound message (with what was extracted + the resulting risk)
-  appendMessage({
+  await appendMessage({
     patient_id: input.patientId,
     direction: "inbound",
     channel: "whatsapp",
@@ -132,8 +133,9 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
     }
   }
 
-  // 6. log the outbound reply
-  appendMessage({
+  // 6. persist the updated session, then log the outbound reply
+  await saveSession(session);
+  await appendMessage({
     patient_id: input.patientId,
     direction: "outbound",
     channel: "whatsapp",

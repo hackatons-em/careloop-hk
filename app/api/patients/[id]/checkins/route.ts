@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => ({}))) as CheckInInput;
-  const result = submitCheckIn(id, body, "patient");
+  const result = await submitCheckIn(id, body, "patient");
   if (!result) return Response.json({ error: "Patient not found" }, { status: 404 });
   return Response.json(result, { status: 201 });
 }

@@ -9,11 +9,11 @@ export const runtime = "nodejs";
 // recent generated summary text if one exists, else the deterministic draft.
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const timeline = getTimeline(id);
+  const timeline = await getTimeline(id);
   if (!timeline) return new Response("Patient not found", { status: 404 });
 
   const stats = summaryStats(timeline);
-  const latest = getLatestSummary(id);
+  const latest = await getLatestSummary(id);
   const narrative = latest?.generated_text ?? buildClinicianDraft(timeline, stats);
   const generatedBy = latest?.generated_by ?? "template";
 
@@ -23,7 +23,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     narrative,
     generatedBy,
   });
-  recordAudit("pdf_exported", "nurse", "patient", id, {});
+  await recordAudit("pdf_exported", "nurse", "patient", id, {});
 
   return new Response(new Uint8Array(buffer), {
     headers: {

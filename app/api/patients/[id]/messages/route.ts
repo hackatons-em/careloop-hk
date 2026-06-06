@@ -7,5 +7,5 @@ export const dynamic = "force-dynamic";
 // conversation panel for a live view.
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  return Response.json({ messages: getThread(id) });
+  return Response.json({ messages: await getThread(id) });
 }

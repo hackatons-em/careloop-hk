@@ -24,7 +24,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (!body.type || typeof body.value !== "number") {
     return Response.json({ error: "type and numeric value are required" }, { status: 400 });
   }
-  const risk = addVital(id, body.type, body.value, body.unit ?? DEFAULT_UNIT[body.type], body.date);
+  const risk = await addVital(id, body.type, body.value, body.unit ?? DEFAULT_UNIT[body.type], body.date);
   if (!risk) return Response.json({ error: "Patient not found" }, { status: 404 });
   return Response.json({ risk }, { status: 201 });
 }

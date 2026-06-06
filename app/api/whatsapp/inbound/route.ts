@@ -37,8 +37,8 @@ export async function POST(req: Request) {
   // Map the sender to a patient (sticky), and remember the number so the agent
   // can message them first next time.
   const from = form.get("From")?.toString() ?? "";
-  const patientId = assignPatientForSender(from);
-  if (from) setPatientPhone(patientId, from);
+  const patientId = await assignPatientForSender(from);
+  if (from) await setPatientPhone(patientId, from);
 
   let audioUrl: string | null = null;
   let audioContentType: string | null = null;

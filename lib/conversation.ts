@@ -1,12 +1,18 @@
-// Conversational daily check-in agent — state + policy (server-only).
+// Conversational daily check-in agent — state + policy (server-only, Supabase).
 //
-// Holds the WhatsApp message thread and the in-progress check-in "session" per
-// patient/day. The agent POLICY (which fields are required, when the check-in is
-// complete, when to escalate) is DETERMINISTIC. AI is used only for language
-// (symptom extraction + follow-up wording). The risk engine is untouched — it
-// still only ever sees structured check-ins.
+// Holds the WhatsApp message thread, the in-progress check-in "session" per
+// patient/day, and the phone <-> patient links — all persisted in Supabase
+// (careloop_messages / careloop_sessions / careloop_links) so they survive
+// serverless cold starts and span instances (the inbound webhook and a page
+// render hit different instances in production).
+//
+// The agent POLICY (which fields are required, when the check-in is complete,
+// when to escalate) stays DETERMINISTIC and PURE — requiredFields/missingFields/
+// mergeExtraction don't touch the DB. AI is used only for language. The risk
+// engine is untouched — it still only ever sees structured check-ins.
 
 import { getPatient } from "./store";
+import { supa } from "./supabase";
 import type { ExtractedCheckIn } from "./symptomExtraction";
 import type { Severity } from "./types";
 
@@ -49,31 +55,45 @@ export interface CheckInSession {
   updated_at: string;
 }
 
-interface ConvoState {
-  sessions: Record<string, CheckInSession>;
-  messages: Message[];
-  phones: Record<string, string>; // patientId -> last-seen WhatsApp number
-  senders: Record<string, string>; // WhatsApp number -> assigned patientId
+// --- helpers --------------------------------------------------------------
+
+function nowIso(): string {
+  return new Date().toISOString();
+}
+function genId(prefix: string): string {
+  const rand =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
+  return `${prefix}-${rand}`;
+}
+function emptyCollected(): Collected {
+  return {
+    mood: null,
+    shortness_of_breath: null,
+    swelling: null,
+    dizziness: null,
+    chest_discomfort: null,
+    medication_taken: null,
+    weight_kg: null,
+  };
 }
 
-const g = globalThis as unknown as { __careloopConvo?: ConvoState };
-function state(): ConvoState {
-  if (!g.__careloopConvo)
-    g.__careloopConvo = { sessions: {}, messages: [], phones: {}, senders: {} };
-  return g.__careloopConvo;
+/** Clear conversation state for a clean demo. The careloop_truncate_conversations
+ * RPC truncates messages + sessions but KEEPS careloop_links, so captured phone
+ * numbers (and the sticky sender->patient mapping) survive a reset and the
+ * outbound "send check-in" still works afterwards. */
+export async function resetConversations(): Promise<void> {
+  const { error } = await supa().rpc("careloop_truncate_conversations");
+  if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
-/** Clear conversation state for a clean demo. Keeps captured phone numbers so
- * the outbound "send check-in" still works after a reset. */
-export function resetConversations(): void {
-  const phones = g.__careloopConvo?.phones ?? {};
-  g.__careloopConvo = { sessions: {}, messages: [], phones, senders: {} };
-}
+// --- phone <-> patient links (careloop_links) -----------------------------
 
 // Map an inbound WhatsApp number to a patient. If CARELOOP_WHATSAPP_PATIENT is
 // set, everyone maps to it (focused presenter demo). Otherwise each new sender
 // is stickily assigned to a different demo patient — judge self-serve, no
-// collisions.
+// collisions — and the mapping is persisted so replies always route back.
 const ASSIGN_POOL = [
   "patient-mrs-chan",
   "patient-mr-lee",
@@ -81,20 +101,70 @@ const ASSIGN_POOL = [
   "patient-mr-ho",
   "patient-mrs-lam",
 ];
-export function assignPatientForSender(from: string): string {
+
+async function linkPatientForPhone(phone: string): Promise<string | null> {
+  const { data, error } = await supa()
+    .from("careloop_links")
+    .select("patient_id")
+    .eq("phone", phone)
+    .maybeSingle();
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data?.patient_id as string | undefined) ?? null;
+}
+
+/** Insert/overwrite a phone -> patient link (used for outbound capture + fixed
+ * presenter mode). phone is the PK; on conflict we update the patient. */
+async function linkUpsert(phone: string, patientId: string): Promise<void> {
+  const { error } = await supa()
+    .from("careloop_links")
+    .upsert({ phone, patient_id: patientId }, { onConflict: "phone" });
+  if (error) throw new Error(`Supabase: ${error.message}`);
+}
+
+export async function assignPatientForSender(from: string): Promise<string> {
   const fixed = process.env.CARELOOP_WHATSAPP_PATIENT;
-  if (fixed) return fixed;
-  const s = state();
-  if (from && s.senders[from]) return s.senders[from];
-  const used = new Set(Object.values(s.senders));
+  if (fixed) {
+    if (from) await linkUpsert(from, fixed);
+    return fixed;
+  }
+  if (from) {
+    const existing = await linkPatientForPhone(from);
+    if (existing) return existing;
+  }
+  const { data, error } = await supa().from("careloop_links").select("patient_id");
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  const links = (data ?? []) as { patient_id: string }[];
+  const used = new Set(links.map((l) => l.patient_id));
   const next =
-    ASSIGN_POOL.find((p) => !used.has(p)) ??
-    ASSIGN_POOL[Object.keys(s.senders).length % ASSIGN_POOL.length];
-  if (from) s.senders[from] = next;
+    ASSIGN_POOL.find((p) => !used.has(p)) ?? ASSIGN_POOL[links.length % ASSIGN_POOL.length];
+  if (from) {
+    // Don't clobber a concurrent assignment to the same number.
+    const { error: insErr } = await supa()
+      .from("careloop_links")
+      .upsert({ phone: from, patient_id: next }, { onConflict: "phone", ignoreDuplicates: true });
+    if (insErr) throw new Error(`Supabase: ${insErr.message}`);
+    // Re-read in case a racing request won the insert first.
+    return (await linkPatientForPhone(from)) ?? next;
+  }
   return next;
 }
 
-// --- field metadata -------------------------------------------------------
+export async function setPatientPhone(patientId: string, phone: string): Promise<void> {
+  if (phone) await linkUpsert(phone, patientId);
+}
+
+export async function getPatientPhone(patientId: string): Promise<string | undefined> {
+  const { data, error } = await supa()
+    .from("careloop_links")
+    .select("phone")
+    .eq("patient_id", patientId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data?.[0]?.phone as string | undefined) ?? undefined;
+}
+
+// --- field metadata (pure) ------------------------------------------------
 
 const CONDITION_SYMPTOMS: Record<string, FieldKey[]> = {
   "heart failure": ["sob", "swelling"],
@@ -140,54 +210,9 @@ export function questionFor(field: FieldKey, lang: Lang): string {
   return FIELD_QUESTION[field][lang];
 }
 
-// --- sessions -------------------------------------------------------------
-
-function nowIso(): string {
-  return new Date().toISOString();
-}
-function genId(prefix: string): string {
-  const rand =
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2);
-  return `${prefix}-${rand}`;
-}
-function emptyCollected(): Collected {
-  return {
-    mood: null,
-    shortness_of_breath: null,
-    swelling: null,
-    dizziness: null,
-    chest_discomfort: null,
-    medication_taken: null,
-    weight_kg: null,
-  };
-}
-
-export function getOrCreateSession(patientId: string, date: string): CheckInSession {
-  const s = state();
-  const key = `${patientId}:${date}`;
-  if (!s.sessions[key]) {
-    const patient = getPatient(patientId);
-    s.sessions[key] = {
-      patient_id: patientId,
-      date,
-      status: "in_progress",
-      collected: emptyCollected(),
-      required: requiredFields(patient?.conditions ?? []),
-      pending_field: null,
-      updated_at: nowIso(),
-    };
-  }
-  return s.sessions[key];
-}
-
-export function getSession(patientId: string, date: string): CheckInSession | undefined {
-  return state().sessions[`${patientId}:${date}`];
-}
-
 /** Merge an extraction into the session — only fields the patient actually
- * mentioned (non-null) update; nothing previously reported is erased. */
+ * mentioned (non-null) update; nothing previously reported is erased. Pure
+ * (mutates the in-memory session); persist with saveSession afterwards. */
 export function mergeExtraction(session: CheckInSession, ex: ExtractedCheckIn): void {
   const c = session.collected;
   if (ex.mood !== null) c.mood = ex.mood;
@@ -204,36 +229,79 @@ export function missingFields(session: CheckInSession): FieldKey[] {
   return session.required.filter((f) => session.collected[COLLECTED_KEY[f]] === null);
 }
 
-// --- message log ----------------------------------------------------------
+// --- sessions (careloop_sessions) -----------------------------------------
 
-export function appendMessage(m: Omit<Message, "id" | "created_at">): Message {
-  const msg: Message = { ...m, id: genId("msg"), created_at: nowIso() };
-  state().messages.push(msg);
-  return msg;
+function rowToSession(r: Record<string, unknown>): CheckInSession {
+  return {
+    patient_id: r.patient_id as string,
+    date: r.date as string,
+    status: r.status as CheckInSession["status"],
+    collected: { ...emptyCollected(), ...(r.collected as Partial<Collected> | null) },
+    required: (r.required as FieldKey[]) ?? [],
+    pending_field: (r.pending_field as FieldKey | null) ?? null,
+    updated_at: r.updated_at as string,
+  };
 }
 
-export function getThread(patientId: string): Message[] {
-  return state().messages.filter((m) => m.patient_id === patientId);
+/** Persist a session (upsert by patient_id+date). Call after mutating a session
+ * via mergeExtraction or status/pending_field changes. */
+export async function saveSession(session: CheckInSession): Promise<void> {
+  session.updated_at = nowIso();
+  const { error } = await supa()
+    .from("careloop_sessions")
+    .upsert(
+      {
+        patient_id: session.patient_id,
+        date: session.date,
+        status: session.status,
+        collected: session.collected,
+        required: session.required,
+        pending_field: session.pending_field,
+        updated_at: session.updated_at,
+      },
+      { onConflict: "patient_id,date" },
+    );
+  if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
-export function getAllMessages(): Message[] {
-  return [...state().messages];
+export async function getSession(
+  patientId: string,
+  date: string,
+): Promise<CheckInSession | undefined> {
+  const { data, error } = await supa()
+    .from("careloop_sessions")
+    .select("*")
+    .eq("patient_id", patientId)
+    .eq("date", date)
+    .maybeSingle();
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return data ? rowToSession(data as Record<string, unknown>) : undefined;
 }
 
-// --- patient phone capture + agent-initiated session ----------------------
-
-export function setPatientPhone(patientId: string, phone: string): void {
-  if (phone) state().phones[patientId] = phone;
-}
-export function getPatientPhone(patientId: string): string | undefined {
-  return state().phones[patientId];
+export async function getOrCreateSession(
+  patientId: string,
+  date: string,
+): Promise<CheckInSession> {
+  const existing = await getSession(patientId, date);
+  if (existing) return existing;
+  const patient = await getPatient(patientId);
+  const session: CheckInSession = {
+    patient_id: patientId,
+    date,
+    status: "in_progress",
+    collected: emptyCollected(),
+    required: requiredFields(patient?.conditions ?? []),
+    pending_field: null,
+    updated_at: nowIso(),
+  };
+  await saveSession(session);
+  return session;
 }
 
 /** Start a fresh daily check-in session — used when the agent sends the morning
  * prompt. Resets today's collected data and waits on the mood answer. */
-export function beginSession(patientId: string, date: string): CheckInSession {
-  const s = state();
-  const patient = getPatient(patientId);
+export async function beginSession(patientId: string, date: string): Promise<CheckInSession> {
+  const patient = await getPatient(patientId);
   const session: CheckInSession = {
     patient_id: patientId,
     date,
@@ -243,6 +311,67 @@ export function beginSession(patientId: string, date: string): CheckInSession {
     pending_field: "mood",
     updated_at: nowIso(),
   };
-  s.sessions[`${patientId}:${date}`] = session;
+  await saveSession(session);
   return session;
+}
+
+// --- message log (careloop_messages) --------------------------------------
+
+function rowToMessage(r: Record<string, unknown>): Message {
+  const m: Message = {
+    id: r.id as string,
+    patient_id: r.patient_id as string,
+    created_at: r.created_at as string,
+    direction: r.direction as Direction,
+    channel: "whatsapp",
+    kind: r.kind as MessageKind,
+    body: r.body as string,
+    language: r.language as Lang,
+  };
+  if (r.transcript_source) m.transcript_source = r.transcript_source as Message["transcript_source"];
+  if (r.extracted) m.extracted = r.extracted as ExtractedCheckIn;
+  if (r.severity_after) m.severity_after = r.severity_after as Severity;
+  return m;
+}
+
+export async function appendMessage(m: Omit<Message, "id" | "created_at">): Promise<Message> {
+  const msg: Message = { ...m, id: genId("msg"), created_at: nowIso() };
+  const { error } = await supa()
+    .from("careloop_messages")
+    .insert({
+      id: msg.id,
+      patient_id: msg.patient_id,
+      created_at: msg.created_at,
+      direction: msg.direction,
+      channel: msg.channel,
+      kind: msg.kind,
+      body: msg.body,
+      language: msg.language,
+      transcript_source: msg.transcript_source ?? null,
+      extracted: msg.extracted ?? null,
+      severity_after: msg.severity_after ?? null,
+    });
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return msg;
+}
+
+export async function getThread(patientId: string): Promise<Message[]> {
+  const { data, error } = await supa()
+    .from("careloop_messages")
+    .select("*")
+    .eq("patient_id", patientId)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true }); // stable tiebreaker for same-millisecond inserts
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data ?? []).map((r) => rowToMessage(r as Record<string, unknown>));
+}
+
+export async function getAllMessages(): Promise<Message[]> {
+  const { data, error } = await supa()
+    .from("careloop_messages")
+    .select("*")
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true });
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  return (data ?? []).map((r) => rowToMessage(r as Record<string, unknown>));
 }

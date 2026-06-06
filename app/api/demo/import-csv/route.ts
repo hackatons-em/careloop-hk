@@ -16,7 +16,7 @@ export async function POST(req: Request) {
   if (rows.length === 0) {
     return Response.json({ error: "No rows to import (provide csv or rows)" }, { status: 400 });
   }
-  const risk = importCsv(patientId, rows, "nurse");
+  const risk = await importCsv(patientId, rows, "nurse");
   if (!risk) return Response.json({ error: "Patient not found" }, { status: 404 });
   return Response.json({ ok: true, imported: rows.length, risk }, { status: 201 });
 }

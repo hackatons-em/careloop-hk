@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 // move the active alert to "family contacted".
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
-  const timeline = getTimeline(id);
+  const timeline = await getTimeline(id);
   if (!timeline) return Response.json({ error: "Patient not found" }, { status: 404 });
 
   const body = (await req.json().catch(() => ({}))) as { notify_family?: boolean };
@@ -18,15 +18,15 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     timeline.checkins,
     timeline.risk.severity,
   );
-  recordAudit("caregiver_alert_generated", "nurse", "patient", id, {
+  await recordAudit("caregiver_alert_generated", "nurse", "patient", id, {
     severity: timeline.risk.severity,
   });
 
   let alertStatus: string | null = null;
   if (body.notify_family) {
-    const active = getActiveAlert(id);
+    const active = await getActiveAlert(id);
     if (active) {
-      updateAlert(active.id, { status: "family_contacted" }, "nurse");
+      await updateAlert(active.id, { status: "family_contacted" }, "nurse");
       alertStatus = "family_contacted";
     }
   }

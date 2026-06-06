@@ -2,21 +2,24 @@ import { readFileSync } from "node:fs";
 import { beforeEach, describe, expect, it } from "vitest";
 import { buildFhirBundle } from "./fhirService";
 import { parseVitalsCsv } from "./csv";
+import { evaluateRisk, riskTrend } from "./riskEngine";
 import { buildSeed } from "./seed";
 import {
   getAlerts,
   getAuditEvents,
   getPatientRows,
-  getTimeline,
   resetDemo,
   runRiskyCheckIn,
   updateAlert,
 } from "./store";
-import type { VitalType } from "./types";
+import type { PatientTimeline, VitalType } from "./types";
 import { toDailyVitals } from "./vitals";
 
-// The store is a globalThis singleton — start every test from a clean seed.
-beforeEach(() => resetDemo());
+// The store now lives in Supabase. Tests that hit it are gated on the database
+// being configured, so `npm test` stays green locally/CI without a DB (the pure
+// seed / CSV / FHIR coverage below always runs). When SUPABASE_* is set, the
+// gated block runs against the project and doubles as the persistence smoke.
+const HAS_DB = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 const VITAL_TYPES: VitalType[] = [
   "weight",
@@ -41,6 +44,24 @@ interface FhirBundle {
   type: string;
   timestamp: string;
   entry: { fullUrl: string; resource: FhirResource }[];
+}
+
+/** Build a patient timeline directly from the deterministic seed — no store /
+ * database needed, so the FHIR structure stays unit-testable offline. */
+function seedTimeline(patientId: string): PatientTimeline {
+  const seed = buildSeed();
+  const patient = seed.patients.find((p) => p.id === patientId)!;
+  const vitals = seed.vitals.filter((v) => v.patient_id === patientId);
+  const checkins = seed.checkins
+    .filter((c) => c.patient_id === patientId)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return {
+    patient,
+    daily: toDailyVitals(vitals),
+    checkins,
+    risk: evaluateRisk(patient, vitals, checkins),
+    risk_trend: riskTrend(patient, vitals, checkins),
+  };
 }
 
 describe("seed integrity", () => {
@@ -92,49 +113,6 @@ describe("seed integrity", () => {
   });
 });
 
-describe("demo reset is deterministic and reproducible", () => {
-  it("restores the same dashboard state every time", () => {
-    resetDemo();
-    const a = getPatientRows().map((r) => [r.patient.id, r.risk.severity]);
-    resetDemo();
-    const b = getPatientRows().map((r) => [r.patient.id, r.risk.severity]);
-    expect(b).toEqual(a);
-
-    const sev = Object.fromEntries(getPatientRows().map((r) => [r.patient.id, r.risk.severity]));
-    expect(sev["patient-mrs-chan"]).toBe("escalate");
-    expect(sev["patient-mr-lee"]).toBe("watch");
-    expect(sev["patient-mrs-wong"]).toBe("stable");
-    expect(sev["patient-mr-ho"]).toBe("watch");
-    expect(sev["patient-mrs-lam"]).toBe("stable");
-  });
-
-  it("shows 4 check-ins today (Mr. Lee missed his)", () => {
-    const rows = getPatientRows();
-    const dates = rows.map((r) => r.last_checkin_date).filter(Boolean).sort() as string[];
-    const latest = dates[dates.length - 1];
-    expect(rows.filter((r) => r.last_checkin_date === latest)).toHaveLength(4);
-    const lee = rows.find((r) => r.patient.id === "patient-mr-lee")!;
-    expect(lee.last_checkin_date).not.toBe(latest);
-  });
-});
-
-describe("risky check-in replay", () => {
-  it("escalates Mrs. Chan with HF-001 + HF-002 and creates an alert", () => {
-    const res = runRiskyCheckIn();
-    expect(res).not.toBeNull();
-    expect(res!.risk.severity).toBe("escalate");
-    const codes = res!.risk.matched_rules.map((m) => m.code);
-    expect(codes).toContain("HF-001");
-    expect(codes).toContain("HF-002");
-    expect(res!.checkin.shortness_of_breath).toBe(true);
-    expect(res!.checkin.swelling).toBe(true);
-    expect(res!.checkin.medication_taken).toBe(false);
-    expect(
-      getAlerts().some((a) => a.patient_id === "patient-mrs-chan" && a.severity === "escalate"),
-    ).toBe(true);
-  });
-});
-
 describe("sample CSV round-trips to the seed", () => {
   it("reproduces Mrs. Chan's seeded vitals and symptoms", () => {
     const csv = readFileSync("sample_data/mrs_chan_vitals.csv", "utf8");
@@ -168,7 +146,7 @@ describe("sample CSV round-trips to the seed", () => {
 
 describe("FHIR-style export", () => {
   it("builds a credible, structurally consistent bundle", () => {
-    const timeline = getTimeline("patient-mrs-chan")!;
+    const timeline = seedTimeline("patient-mrs-chan");
     const bundle = buildFhirBundle(timeline) as unknown as FhirBundle;
 
     expect(bundle.resourceType).toBe("Bundle");
@@ -199,25 +177,78 @@ describe("FHIR-style export", () => {
   });
 });
 
-describe("audit events", () => {
-  it("emits the required actions with the correct shape", () => {
-    runRiskyCheckIn();
-    const actions = getAuditEvents().map((e) => e.action);
-    expect(actions).toContain("risk_evaluated");
-    expect(actions).toContain("alert_created"); // from the reset/seed
-    expect(actions).toContain("checkin_submitted");
-    expect(actions).toContain("risky_checkin_replayed");
-
-    const event = getAuditEvents()[0];
-    for (const key of ["id", "actor", "action", "target_type", "target_id", "metadata", "created_at"]) {
-      expect(event).toHaveProperty(key);
-    }
+// --- store-backed flows: gated on a configured Supabase project --------------
+describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
+  beforeEach(async () => {
+    await resetDemo();
   });
 
-  it("logs alert_acknowledged when a nurse acknowledges", () => {
-    const chanAlert = getAlerts().find((a) => a.patient_id === "patient-mrs-chan");
-    expect(chanAlert).toBeTruthy();
-    updateAlert(chanAlert!.id, { status: "acknowledged" });
-    expect(getAuditEvents().map((e) => e.action)).toContain("alert_acknowledged");
+  describe("demo reset is deterministic and reproducible", () => {
+    it("restores the same dashboard state every time", async () => {
+      await resetDemo();
+      const a = (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]);
+      await resetDemo();
+      const b = (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]);
+      expect(b).toEqual(a);
+
+      const sev = Object.fromEntries(
+        (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]),
+      );
+      expect(sev["patient-mrs-chan"]).toBe("escalate");
+      expect(sev["patient-mr-lee"]).toBe("watch");
+      expect(sev["patient-mrs-wong"]).toBe("stable");
+      expect(sev["patient-mr-ho"]).toBe("watch");
+      expect(sev["patient-mrs-lam"]).toBe("stable");
+    });
+
+    it("shows 4 check-ins today (Mr. Lee missed his)", async () => {
+      const rows = await getPatientRows();
+      const dates = rows.map((r) => r.last_checkin_date).filter(Boolean).sort() as string[];
+      const latest = dates[dates.length - 1];
+      expect(rows.filter((r) => r.last_checkin_date === latest)).toHaveLength(4);
+      const lee = rows.find((r) => r.patient.id === "patient-mr-lee")!;
+      expect(lee.last_checkin_date).not.toBe(latest);
+    });
+  });
+
+  describe("risky check-in replay", () => {
+    it("escalates Mrs. Chan with HF-001 + HF-002 and creates an alert", async () => {
+      const res = await runRiskyCheckIn();
+      expect(res).not.toBeNull();
+      expect(res!.risk.severity).toBe("escalate");
+      const codes = res!.risk.matched_rules.map((m) => m.code);
+      expect(codes).toContain("HF-001");
+      expect(codes).toContain("HF-002");
+      expect(res!.checkin.shortness_of_breath).toBe(true);
+      expect(res!.checkin.swelling).toBe(true);
+      expect(res!.checkin.medication_taken).toBe(false);
+      const alerts = await getAlerts();
+      expect(
+        alerts.some((a) => a.patient_id === "patient-mrs-chan" && a.severity === "escalate"),
+      ).toBe(true);
+    });
+  });
+
+  describe("audit events", () => {
+    it("emits the required actions with the correct shape", async () => {
+      await runRiskyCheckIn();
+      const actions = (await getAuditEvents()).map((e) => e.action);
+      expect(actions).toContain("risk_evaluated");
+      expect(actions).toContain("alert_created"); // from the reset/seed
+      expect(actions).toContain("checkin_submitted");
+      expect(actions).toContain("risky_checkin_replayed");
+
+      const event = (await getAuditEvents())[0];
+      for (const key of ["id", "actor", "action", "target_type", "target_id", "metadata", "created_at"]) {
+        expect(event).toHaveProperty(key);
+      }
+    });
+
+    it("logs alert_acknowledged when a nurse acknowledges", async () => {
+      const chanAlert = (await getAlerts()).find((a) => a.patient_id === "patient-mrs-chan");
+      expect(chanAlert).toBeTruthy();
+      await updateAlert(chanAlert!.id, { status: "acknowledged" });
+      expect((await getAuditEvents()).map((e) => e.action)).toContain("alert_acknowledged");
+    });
   });
 });
