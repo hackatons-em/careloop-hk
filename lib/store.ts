@@ -307,7 +307,36 @@ async function upsertAlertFor(
     nurse_note: null,
   };
   const { error } = await supa().from("careloop_alerts").insert(alert);
-  if (error) throw new Error(`Supabase: ${error.message}`);
+  if (error) {
+    // 23505 = unique_violation on the careloop_alerts_one_open partial index: a
+    // concurrent request already opened an alert for this patient in the race
+    // window. Re-read that open alert and refresh it in place instead of
+    // creating a duplicate.
+    if ((error as { code?: string }).code === "23505") {
+      const openRows = rows(
+        await supa()
+          .from("careloop_alerts")
+          .select("*")
+          .eq("patient_id", patientId)
+          .neq("status", "resolved")
+          .order("created_at", { ascending: false })
+          .limit(1),
+      );
+      if (openRows.length) {
+        const open = rowToAlert(openRows[0] as Record<string, unknown>);
+        const patch = {
+          severity: risk.severity,
+          matched_rules: risk.matched_rules.map((m) => m.code),
+          reason: risk.reason,
+          recommended_action: risk.recommended_action,
+        };
+        const { error: updErr } = await supa().from("careloop_alerts").update(patch).eq("id", open.id);
+        if (updErr) throw new Error(`Supabase: ${updErr.message}`);
+        return { risk, alert: { ...open, ...patch } };
+      }
+    }
+    throw new Error(`Supabase: ${error.message}`);
+  }
   await pushAudit("alert_created", actor, "alert", alert.id, {
     severity: alert.severity,
     matched_rules: alert.matched_rules,

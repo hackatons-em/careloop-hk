@@ -135,14 +135,14 @@ function AlertCard({
   const [note, setNote] = useState(alert.nurse_note ?? "");
   const [busy, setBusy] = useState(false);
 
-  async function save(nextStatus?: AlertStatus) {
+  async function save(nextStatus?: AlertStatus, opts?: { quiet?: boolean }) {
     setBusy(true);
     try {
       const finalStatus = nextStatus ?? status;
       await api.patchAlert(alert.id, { status: finalStatus, nurse_note: note || null, actor: "Nurse" });
       setStatus(finalStatus);
       await onChanged();
-      toast.success(`Alert ${ALERT_STATUS_LABEL[finalStatus].toLowerCase()}`);
+      if (!opts?.quiet) toast.success(`Alert ${ALERT_STATUS_LABEL[finalStatus].toLowerCase()}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not update alert");
     } finally {
@@ -198,6 +198,9 @@ function AlertCard({
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
+            onBlur={() => {
+              if (!busy && note !== (alert.nurse_note ?? "")) void save(undefined, { quiet: true });
+            }}
             placeholder="Add a note (e.g. called daughter, booked clinic follow-up)…"
             className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
           />

@@ -5,6 +5,8 @@
 // the sandbox. Credentials come from env; if they're missing, this returns a
 // clear error instead of throwing.
 
+import crypto from "node:crypto";
+
 export interface SendResult {
   ok: boolean;
   sid?: string;
@@ -33,4 +35,31 @@ export async function sendWhatsApp(to: string, body: string): Promise<SendResult
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "send failed" };
   }
+}
+
+/** Verify Twilio's X-Twilio-Signature on an inbound webhook: HMAC-SHA1 of the
+ * request URL followed by the alphabetically-sorted POST params (key+value),
+ * base64-encoded. Timing-safe compare; false on any mismatch or missing header.
+ * See Twilio "Validating Requests". */
+export function verifyTwilioSignature(opts: {
+  signature: string | null;
+  url: string;
+  params: Record<string, string>;
+  authToken: string;
+}): boolean {
+  const { signature, url, params, authToken } = opts;
+  if (!signature) return false;
+  const data =
+    url +
+    Object.keys(params)
+      .sort()
+      .map((k) => k + params[k])
+      .join("");
+  const expected = crypto
+    .createHmac("sha1", authToken)
+    .update(Buffer.from(data, "utf-8"))
+    .digest("base64");
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
