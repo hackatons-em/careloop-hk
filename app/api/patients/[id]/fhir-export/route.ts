@@ -1,0 +1,25 @@
+import { buildFhirBundle } from "@/lib/fhirService";
+import { getTimeline, recordAudit } from "@/lib/store";
+
+export const dynamic = "force-dynamic";
+
+// GET /api/patients/:id/fhir-export  → FHIR-style Bundle JSON.
+// Add ?download=1 to receive it as a downloadable .json attachment.
+export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  const timeline = getTimeline(id);
+  if (!timeline) return Response.json({ error: "Patient not found" }, { status: 404 });
+
+  const bundle = buildFhirBundle(timeline);
+  recordAudit("fhir_exported", "nurse", "patient", id, {});
+
+  if (new URL(req.url).searchParams.get("download")) {
+    return new Response(JSON.stringify(bundle, null, 2), {
+      headers: {
+        "Content-Type": "application/fhir+json",
+        "Content-Disposition": `attachment; filename="careloop-${id}-fhir.json"`,
+      },
+    });
+  }
+  return Response.json(bundle);
+}

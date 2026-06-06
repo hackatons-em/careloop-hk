@@ -1,0 +1,92 @@
+"use client";
+
+import { useState } from "react";
+import { Upload } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { api } from "@/lib/api";
+
+export function CsvImport({
+  patientId,
+  onImported,
+}: {
+  patientId: string;
+  onImported?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (file) setText(await file.text());
+  }
+
+  async function importNow() {
+    if (!text.trim()) {
+      toast.error("Choose a CSV file or paste rows first");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await api.importCsv(patientId, text);
+      toast.success(`Imported ${res.imported} row${res.imported === 1 ? "" : "s"}`);
+      setOpen(false);
+      setText("");
+      onImported?.();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Import failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <>
+      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+        <Upload className="size-4" /> Import CSV
+      </Button>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Import vital / wearable CSV</DialogTitle>
+            <DialogDescription>
+              Columns: date, weight_kg, systolic_bp, diastolic_bp, heart_rate, steps, sleep_hours,
+              medication_taken, shortness_of_breath, swelling. Rows are imported for this patient and
+              re-evaluated by the rule engine.
+            </DialogDescription>
+          </DialogHeader>
+          <input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={onFile}
+            aria-label="Choose CSV file"
+            className="text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1 file:text-sm"
+          />
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            rows={7}
+            placeholder="…or paste CSV rows here"
+            className="w-full rounded-lg border border-border bg-card p-2 font-mono text-xs outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+          />
+          <div className="flex justify-end gap-2 border-t border-border pt-3">
+            <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={busy}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={importNow} disabled={busy}>
+              {busy ? "Importing…" : "Import"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
