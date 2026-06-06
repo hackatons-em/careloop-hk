@@ -29,7 +29,7 @@ export default function Landing() {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <HeartPulse className="size-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">CareLoop HK</span>
+          <span className="text-lg font-semibold tracking-tight">CareLoop</span>
         </div>
         <Link
           href="/honesty"
@@ -41,7 +41,7 @@ export default function Landing() {
 
       {/* hero split */}
       <section className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 pb-16 pt-10 lg:grid-cols-2 lg:gap-16 lg:pt-16">
-        <div>
+        <div className="cl-rise">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
             <HeartPulse className="size-3.5" /> Hong Kong elderly chronic-care monitoring
           </span>
@@ -79,7 +79,7 @@ export default function Landing() {
           </div>
         </div>
 
-        <div className="lg:pl-6">
+        <div className="cl-rise lg:pl-6" style={{ animationDelay: "120ms" }}>
           <PreviewCard />
         </div>
       </section>
@@ -87,8 +87,12 @@ export default function Landing() {
       {/* proof cards */}
       <section className="mx-auto max-w-[1180px] px-6 pb-20">
         <div className="grid gap-4 sm:grid-cols-3">
-          {PROOF.map((card) => (
-            <div key={card.title} className="rounded-2xl border border-border bg-card p-6">
+          {PROOF.map((card, i) => (
+            <div
+              key={card.title}
+              className="cl-rise cl-card rounded-2xl border border-border bg-card p-6"
+              style={{ animationDelay: `${200 + i * 80}ms` }}
+            >
               <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
                 <card.icon className="size-5" />
               </span>

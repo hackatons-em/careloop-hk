@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CareLoop HK — Remote chronic-care monitoring",
+  title: "CareLoop — Remote chronic-care monitoring",
   description:
-    "CareLoop HK turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
+    "CareLoop turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
 };
 
 export default function RootLayout({

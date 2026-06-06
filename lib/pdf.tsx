@@ -104,14 +104,14 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
   const sev = SEVERITY_STYLE[stats.endSeverity];
   return (
     <Document
-      title={`CareLoop HK weekly summary — ${patient.name}`}
-      author="CareLoop HK"
+      title={`CareLoop weekly summary — ${patient.name}`}
+      author="CareLoop"
       subject="Weekly chronic-care monitoring summary"
     >
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brand}>CareLoop HK</Text>
+            <Text style={styles.brand}>CareLoop</Text>
             <Text style={styles.brandSub}>Remote chronic-care monitoring · Hong Kong</Text>
           </View>
           <View>
@@ -252,7 +252,7 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
         </View>
 
         <Text style={styles.disclaimer}>
-          CareLoop HK flags monitoring risks for professional review. It does not diagnose,
+          CareLoop flags monitoring risks for professional review. It does not diagnose,
           prescribe, or replace clinical judgement. Risk severity is determined by deterministic
           rules; AI is used only for wording. All data shown is synthetic demo data.
         </Text>

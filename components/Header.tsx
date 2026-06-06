@@ -26,7 +26,7 @@ export function Header() {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <HeartPulse className="size-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">CareLoop HK</span>
+          <span className="text-lg font-semibold tracking-tight">CareLoop</span>
         </Link>
 
         <nav className="ml-2 hidden items-center gap-1 md:flex">

@@ -1,6 +1,6 @@
 import { Users, TrendingUp, Target, AlertTriangle, ShieldCheck } from "lucide-react";
 
-export const metadata = { title: "Business case — CareLoop HK" };
+export const metadata = { title: "Business case — CareLoop" };
 
 const SECTIONS: { icon: React.ElementType; title: string; items: string[]; tone?: "warn" }[] = [
   {
@@ -79,10 +79,11 @@ export default function BusinessPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {SECTIONS.map((s) => (
+        {SECTIONS.map((s, i) => (
           <section
             key={s.title}
-            className="rounded-2xl border border-border bg-card p-6 last:sm:col-span-2"
+            className="cl-rise cl-card rounded-2xl border border-border bg-card p-6 last:sm:col-span-2"
+            style={{ animationDelay: `${i * 70}ms` }}
           >
             <div className="flex items-center gap-2">
               <span

@@ -74,10 +74,10 @@ export function Dashboard() {
     <div className="space-y-5">
       {/* summary row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Users} label="Monitored patients" value={stats.monitored} />
-        <Stat icon={AlertTriangle} label="Escalate" value={stats.escalate} tone="escalate" />
-        <Stat icon={Eye} label="Watch / review" value={stats.watchReview} tone="watch" />
-        <Stat icon={ClipboardCheck} label="Check-ins today" value={stats.checkinsToday} />
+        <Stat icon={Users} label="Monitored patients" value={stats.monitored} delayMs={0} />
+        <Stat icon={AlertTriangle} label="Escalate" value={stats.escalate} tone="escalate" delayMs={60} />
+        <Stat icon={Eye} label="Watch / review" value={stats.watchReview} tone="watch" delayMs={120} />
+        <Stat icon={ClipboardCheck} label="Check-ins today" value={stats.checkinsToday} delayMs={180} />
       </div>
 
       {/* focused high-risk patient */}
@@ -115,7 +115,10 @@ export function Dashboard() {
         })}
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div
+        className="cl-rise overflow-hidden rounded-2xl border border-border bg-card"
+        style={{ animationDelay: "270ms" }}
+      >
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -186,16 +189,21 @@ function Stat({
   label,
   value,
   tone,
+  delayMs = 0,
 }: {
   icon: React.ElementType;
   label: string;
   value: number;
   tone?: "escalate" | "watch";
+  delayMs?: number;
 }) {
   const toneCls =
     tone === "escalate" ? "text-red-600" : tone === "watch" ? "text-blue-600" : "text-foreground";
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div
+      className="cl-rise cl-card rounded-2xl border border-border bg-card p-4"
+      style={{ animationDelay: `${delayMs}ms` }}
+    >
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         <Icon className={cn("size-4", tone ? toneCls : "text-muted-foreground")} />
@@ -208,7 +216,10 @@ function Stat({
 function FocusedCard({ row }: { row: PatientRow }) {
   const s = severityStyle(row.risk.severity);
   return (
-    <div className={cn("rounded-2xl border border-border bg-card p-5", s.tint)}>
+    <div
+      className={cn("cl-rise rounded-2xl border border-border bg-card p-5", s.tint)}
+      style={{ animationDelay: "210ms" }}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

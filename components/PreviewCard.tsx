@@ -16,7 +16,7 @@ export function PreviewCard() {
   return (
     <div className="rounded-3xl border border-border bg-card p-2 shadow-xl shadow-slate-900/[0.04]">
       <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-xs font-medium text-muted-foreground">Patient · CareLoop HK</span>
+        <span className="text-xs font-medium text-muted-foreground">Patient · CareLoop</span>
         <RiskBadge severity="escalate" />
       </div>
 

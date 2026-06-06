@@ -167,7 +167,7 @@ export function buildFhirBundle(timeline: PatientTimeline): Json {
       subject: { reference: ref },
       reasonCode: [{ text: risk.reason }],
       note: [{ text: risk.recommended_action }],
-      requester: { display: "CareLoop HK monitoring" },
+      requester: { display: "CareLoop monitoring" },
       performer: [{ display: patient.assigned_nurse }],
     },
   });

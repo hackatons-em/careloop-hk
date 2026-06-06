@@ -1,4 +1,4 @@
-// CareLoop HK — Deterministic Risk Engine (CORE)
+// CareLoop — Deterministic Risk Engine (CORE)
 //
 // This is the heart of CareLoop. Risk severity is decided HERE by explicit,
 // auditable rules — never by an LLM. AI is used elsewhere only to reword the

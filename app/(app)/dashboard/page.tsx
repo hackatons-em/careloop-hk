@@ -2,7 +2,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { DemoControls } from "@/components/DemoControls";
 import { SafetyLabels } from "@/components/SafetyLabels";
 
-export const metadata = { title: "Nurse dashboard — CareLoop HK" };
+export const metadata = { title: "Nurse dashboard — CareLoop" };
 
 export default function DashboardPage() {
   return (

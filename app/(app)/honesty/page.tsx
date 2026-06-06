@@ -1,7 +1,7 @@
 import { Check, X, ShieldAlert, Sparkles, Database, FileJson } from "lucide-react";
 import { SafetyBanner } from "@/components/SafetyLabels";
 
-export const metadata = { title: "Honesty — CareLoop HK" };
+export const metadata = { title: "Honesty — CareLoop" };
 
 const REAL = [
   "Nurse dashboard, filters, and risk/reason badges",
@@ -43,8 +43,8 @@ export default function HonestyPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Honesty</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          What is real, what is mocked, and the safety boundaries. CareLoop HK is a hackathon
-          prototype — monitoring support, not diagnosis.
+          What is real, what is mocked, and the safety boundaries. CareLoop is monitoring
+          support — not diagnosis.
         </p>
       </div>
 
@@ -146,7 +146,7 @@ export default function HonestyPage() {
       <section className="rounded-xl border border-destructive/20 bg-destructive/5 p-4">
         <h2 className="font-semibold text-destructive">Safety boundaries</h2>
         <p className="mt-2 text-sm">
-          CareLoop HK is not a medical device. It does not diagnose disease or prescribe treatment,
+          CareLoop is not a medical device. It does not diagnose disease or prescribe treatment,
           and does not replace a doctor, nurse, pharmacist, or emergency service. All alerts are
           monitoring prompts for professional review. If a patient has severe symptoms, they should
           seek urgent medical care according to local emergency guidance.

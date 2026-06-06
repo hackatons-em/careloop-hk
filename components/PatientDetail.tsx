@@ -84,7 +84,7 @@ export function PatientDetail({
       </Link>
 
       {/* Header */}
-      <div className="rounded-2xl border border-border bg-card p-5">
+      <div className="cl-rise rounded-2xl border border-border bg-card p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
@@ -114,7 +114,7 @@ export function PatientDetail({
       </div>
 
       {/* Lead: why flagged + human impact */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="cl-rise grid gap-4 lg:grid-cols-3" style={{ animationDelay: "100ms" }}>
         <div className="lg:col-span-2">
           <RiskCard risk={risk} />
         </div>
@@ -135,14 +135,14 @@ export function PatientDetail({
       </div>
 
       {/* Secondary detail behind tabs */}
-      <Tabs defaultValue="trends" className="w-full">
+      <Tabs defaultValue="trends" className="cl-rise w-full">
         <TabsList>
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="checkins">Check-ins</TabsTrigger>
           <TabsTrigger value="export">Export &amp; audit</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="trends" className="pt-4">
+        <TabsContent value="trends" className="cl-fade pt-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <ChartCard icon={Scale} title="Weight (kg)">
               <TrendChart
@@ -188,14 +188,14 @@ export function PatientDetail({
           </div>
         </TabsContent>
 
-        <TabsContent value="checkins" className="pt-4">
+        <TabsContent value="checkins" className="cl-fade pt-4">
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="mb-2 text-sm font-medium">Daily check-in responses</h2>
             <CheckInTable checkins={checkins} />
           </div>
         </TabsContent>
 
-        <TabsContent value="export" className="pt-4">
+        <TabsContent value="export" className="cl-fade pt-4">
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <WeeklySummaryPanel patientId={patientId} onChanged={handleChanged} />

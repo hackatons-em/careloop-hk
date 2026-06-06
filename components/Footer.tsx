@@ -7,7 +7,7 @@ export function Footer() {
       <div className="mx-auto flex max-w-[1180px] flex-col gap-3 px-6 py-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <HeartPulse className="size-4 text-primary" />
-          <span className="font-medium text-foreground">CareLoop HK</span>
+          <span className="font-medium text-foreground">CareLoop</span>
           <span className="hidden sm:inline">— remote chronic-care monitoring, Hong Kong.</span>
         </div>
         <div className="flex items-center gap-4">

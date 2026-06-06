@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const metadata = { title: "Presentation — CareLoop HK" };
+export const metadata = { title: "Presentation — CareLoop" };
 
 interface Slide {
   n: number;
@@ -12,7 +12,7 @@ interface Slide {
 const SLIDES: Slide[] = [
   {
     n: 1,
-    title: "CareLoop HK",
+    title: "CareLoop",
     subtitle: "Remote chronic-care monitoring for elderly patients between visits",
     lines: ["Daily check-ins, vital signals, rule-based escalation, and nurse review."],
   },
@@ -70,7 +70,7 @@ const SLIDES: Slide[] = [
 const VIDEO_SCRIPT = [
   "Hong Kong's population is ageing, and chronic disease management is becoming a system-level pressure. But many elderly patients are only reviewed months later, unless they deteriorate badly enough to seek urgent care.",
   "The dangerous part is the gap between visits.",
-  "CareLoop HK monitors that gap. It combines daily Cantonese check-ins, wearable or vital-sign data, and deterministic escalation rules into a nurse dashboard.",
+  "CareLoop monitors that gap. It combines daily Cantonese check-ins, wearable or vital-sign data, and deterministic escalation rules into a nurse dashboard.",
   "It is not an AI doctor. It does not diagnose or prescribe. It flags monitoring risks for nurse or clinician review.",
   "In our demo, Mrs. Chan is a 78-year-old heart-failure and hypertension patient. She reports shortness of breath and swelling, her weight has increased by more than 2 kg in three days, and she missed medication.",
   "CareLoop matches explainable rules, creates an alert, and moves her into the nurse review queue.",
@@ -94,7 +94,7 @@ const DEMO_FLOW = [
 ];
 
 const DEMO_SCRIPT = [
-  "CareLoop HK is a remote chronic-care monitoring platform for elderly Hong Kong patients. We are focusing first on heart-failure and hypertension patients between clinic visits.",
+  "CareLoop is a remote chronic-care monitoring platform for elderly Hong Kong patients. We are focusing first on heart-failure and hypertension patients between clinic visits.",
   "This is the nurse dashboard. It shows elderly patients, their latest check-in, risk state, and the top reason for review.",
   "Mrs. Chan is flagged because her recent monitoring data suggests possible deterioration.",
   "The product is not waiting for one dramatic emergency event. It combines small signals over time: weight, symptoms, medication adherence, and activity.",
@@ -113,7 +113,7 @@ const QA: { q: string; a: string }[] = [
   },
   {
     q: "What is real?",
-    a: "The dashboard, check-in simulation, rule engine, alert queue, summary generation, PDF export, and FHIR-style export are real. Hospital/eHealth integration is mocked for the hackathon.",
+    a: "The dashboard, check-in simulation, rule engine, alert queue, summary generation, PDF export, and FHIR-style export are real. Hospital/eHealth integration is mocked.",
   },
   {
     q: "Who pays?",
@@ -156,10 +156,10 @@ export default function PresentationPage() {
           <TabsTrigger value="qa">Judge Q&amp;A</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="pitch" className="pt-4">
+        <TabsContent value="pitch" className="cl-fade pt-4">
           <div className="grid gap-4 sm:grid-cols-2">
             {SLIDES.map((s) => (
-              <div key={s.n} className="rounded-2xl border border-border bg-card p-5">
+              <div key={s.n} className="cl-card rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2">
                   <span className="flex size-7 items-center justify-center rounded-lg bg-primary/10 text-xs font-semibold text-primary">
                     {s.n}
@@ -177,7 +177,7 @@ export default function PresentationPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="video" className="pt-4">
+        <TabsContent value="video" className="cl-fade pt-4">
           <article className="mx-auto max-w-2xl space-y-3 rounded-2xl border border-border bg-card p-6">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
               ~2 minutes · read at a calm pace
@@ -190,7 +190,7 @@ export default function PresentationPage() {
           </article>
         </TabsContent>
 
-        <TabsContent value="demo" className="pt-4">
+        <TabsContent value="demo" className="cl-fade pt-4">
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="text-sm font-semibold">Flow</h2>
@@ -220,10 +220,10 @@ export default function PresentationPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="qa" className="pt-4">
+        <TabsContent value="qa" className="cl-fade pt-4">
           <div className="grid gap-4 sm:grid-cols-2">
             {QA.map((item) => (
-              <div key={item.q} className="rounded-2xl border border-border bg-card p-5">
+              <div key={item.q} className="cl-card rounded-2xl border border-border bg-card p-5">
                 <h3 className="font-semibold">{item.q}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
               </div>

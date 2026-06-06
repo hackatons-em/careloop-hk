@@ -1,4 +1,4 @@
-// CareLoop HK — in-memory demo store (server-only)
+// CareLoop — in-memory demo store (server-only)
 //
 // Single source of truth for the running demo. Cached on globalThis so it
 // survives dev hot-reloads and warm serverless instances. Seeded
