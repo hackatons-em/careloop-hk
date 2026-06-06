@@ -9,9 +9,6 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/alerts", label: "Alerts" },
-  { href: "/business", label: "Business" },
-  { href: "/presentation", label: "Presentation" },
-  { href: "/honesty", label: "Honesty" },
 ];
 
 export function Header() {

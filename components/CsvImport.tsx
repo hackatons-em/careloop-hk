@@ -16,11 +16,21 @@ import { api } from "@/lib/api";
 export function CsvImport({
   patientId,
   onImported,
+  open: controlledOpen,
+  onOpenChange,
+  hideTrigger = false,
 }: {
   patientId: string;
   onImported?: () => void;
+  /** Controlled open state. When omitted, the component manages its own. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the built-in trigger button (e.g. when opened from a menu). */
+  hideTrigger?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -50,9 +60,11 @@ export function CsvImport({
 
   return (
     <>
-      <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
-        <Upload className="size-4" /> Import CSV
-      </Button>
+      {!hideTrigger && (
+        <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setOpen(true)}>
+          <Upload className="size-4" /> Import CSV
+        </Button>
+      )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
