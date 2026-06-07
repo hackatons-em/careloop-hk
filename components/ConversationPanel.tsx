@@ -42,9 +42,11 @@ function chips(ex?: Extracted): string[] {
 export function ConversationPanel({
   patientId,
   onActivity,
+  className,
 }: {
   patientId: string;
   onActivity?: () => void;
+  className?: string;
 }) {
   const [messages, setMessages] = useState<ConvoMessage[]>([]);
   const seen = useRef(0);
@@ -82,7 +84,12 @@ export function ConversationPanel({
   }, [messages]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
+    <div
+      className={cn(
+        "flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card",
+        className,
+      )}
+    >
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <MessageCircle className="size-4 text-primary" />
         <h2 className="font-semibold">WhatsApp check-in</h2>

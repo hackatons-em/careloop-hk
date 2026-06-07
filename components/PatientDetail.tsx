@@ -266,11 +266,15 @@ export function PatientDetail({
           </Tabs>
         </div>
 
-        {/* RIGHT: WhatsApp (fills + scrolls) with the caregiver alert under it */}
-        <aside className="flex min-h-0 flex-col gap-4">
-          <div className="min-h-0 flex-1">
-            <ConversationPanel patientId={patientId} onActivity={handleChanged} />
-          </div>
+        {/* RIGHT: WhatsApp chat stays prominent (min height, fills, scrolls
+            internally); the column scrolls so the caregiver alert never
+            collides with or squeezes the chat. */}
+        <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto pb-1 pl-0.5">
+          <ConversationPanel
+            patientId={patientId}
+            onActivity={handleChanged}
+            className="min-h-[18rem] flex-1"
+          />
           <div className="shrink-0">
             {risk.severity !== "stable" ? (
               <CaregiverAlert timeline={timeline} onNotified={handleChanged} />
