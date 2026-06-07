@@ -24,7 +24,7 @@ export default function GlobalError({
       <h1 className="mt-4 text-xl font-semibold">Something went wrong</h1>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">
         An unexpected error occurred. Your demo data is safe — try again, or reset the demo from the
-        header.
+        dashboard.
       </p>
       <div className="mt-5 flex gap-2">
         <Button size="sm" onClick={() => reset()}>

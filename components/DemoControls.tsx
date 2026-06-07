@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Zap, FileText, MessageCircle, ChevronDown } from "lucide-react";
+import { Zap, FileText, MessageCircle, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,7 @@ const DEMO_PATIENT = "patient-mrs-chan";
 /** Polished demo-reliability controls (not debug buttons). */
 export function DemoControls() {
   const router = useRouter();
-  const { busy, resetDemo, runRiskyCheckIn } = useApp();
+  const { busy, runRiskyCheckIn } = useApp();
   const [genBusy, setGenBusy] = useState(false);
 
   async function risky() {
@@ -62,16 +62,6 @@ export function DemoControls() {
     }
   }
 
-  function confirmReset() {
-    if (
-      window.confirm(
-        "Reset wipes ALL demo data (patients, vitals, check-ins, alerts, conversations) for everyone currently viewing and restores the clean seed. Continue?",
-      )
-    ) {
-      void resetDemo();
-    }
-  }
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -86,9 +76,6 @@ export function DemoControls() {
           <Zap className="text-primary!" /> Run risky check-in
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={confirmReset} disabled={busy}>
-          <RotateCcw /> Reset demo
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={sendCheckin} disabled={busy}>
           <MessageCircle /> Daily check-in (all)
         </DropdownMenuItem>

@@ -100,7 +100,7 @@ export function PatientDetail({
   }
 
   return (
-    <div className="space-y-5">
+    <div className="flex flex-col gap-4 lg:h-[calc(100dvh-12rem)]">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -174,28 +174,13 @@ export function PatientDetail({
         hideTrigger
       />
 
-      {/* Main content (left) + sticky WhatsApp (right) */}
-      <div className="gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(340px,400px)] lg:items-start">
-        <div className="space-y-5">
+      {/* Dashboard-style: fixed viewport, each column scrolls internally */}
+      <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
+        {/* LEFT: risk + detail tabs, scrolls internally */}
+        <div className="min-h-0 space-y-4 overflow-y-auto pb-1 pr-0.5">
           {/* Why flagged */}
           <div className="cl-rise" style={{ animationDelay: "100ms" }}>
             <RiskCard risk={risk} />
-          </div>
-
-          {/* Caregiver alert / all-clear */}
-          <div className="cl-rise" style={{ animationDelay: "120ms" }}>
-            {risk.severity !== "stable" ? (
-              <CaregiverAlert timeline={timeline} onNotified={handleChanged} />
-            ) : (
-              <div className="rounded-2xl border border-border bg-card p-5">
-                <div className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="size-4 text-green-600" /> No active alert
-                </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Monitoring is within the expected range. Continue daily check-ins.
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Secondary detail behind tabs */}
@@ -281,10 +266,24 @@ export function PatientDetail({
           </Tabs>
         </div>
 
-        {/* WhatsApp — fixed size, scrollable, sticky on the right */}
-        <aside className="mt-5 lg:mt-0 lg:sticky lg:top-[5.5rem]">
-          <div className="h-[min(640px,75vh)]">
+        {/* RIGHT: WhatsApp (fills + scrolls) with the caregiver alert under it */}
+        <aside className="flex min-h-0 flex-col gap-4">
+          <div className="min-h-0 flex-1">
             <ConversationPanel patientId={patientId} onActivity={handleChanged} />
+          </div>
+          <div className="shrink-0">
+            {risk.severity !== "stable" ? (
+              <CaregiverAlert timeline={timeline} onNotified={handleChanged} />
+            ) : (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 font-semibold">
+                  <CheckCircle2 className="size-4 text-green-600" /> No active alert
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Monitoring is within the expected range. Continue daily check-ins.
+                </p>
+              </div>
+            )}
           </div>
         </aside>
       </div>

@@ -20,6 +20,7 @@ import {
   WEEK_END,
   WEEK_START,
 } from "./seed";
+import { MOCK_NAMES } from "./names";
 import { supa } from "./supabase";
 import type {
   AlertStatus,
@@ -744,8 +745,24 @@ export async function recordAudit(
  * direct re-seed is safe and won't duplicate them), then compute each patient's
  * alert deterministically. Normally reached via resetDemo() which truncates
  * first, so the append-only audit rows don't accumulate in practice. */
+// Only this subset is pre-seeded as the starting "nurse queue" (the Sockel).
+// Every other profile in lib/seed is a clone template that appears only when a
+// new WhatsApp number onboards (createPatientFromMock).
+const BASELINE_IDS = new Set([
+  "patient-mrs-chan",
+  "patient-mr-lee",
+  "patient-mrs-wong",
+  "patient-mr-ho",
+  "patient-mrs-lam",
+]);
+
 export async function seedDatabase(seedAudit = true): Promise<void> {
-  const seed = buildSeed();
+  const all = buildSeed();
+  const seed = {
+    patients: all.patients.filter((p) => BASELINE_IDS.has(p.id)),
+    vitals: all.vitals.filter((v) => BASELINE_IDS.has(v.patient_id)),
+    checkins: all.checkins.filter((c) => BASELINE_IDS.has(c.patient_id)),
+  };
   const db = supa();
 
   const e1 = (await db.from("careloop_patients").upsert(seed.patients, { onConflict: "id" })).error;
@@ -787,6 +804,10 @@ export async function seedDatabase(seedAudit = true): Promise<void> {
 export async function resetDemo(): Promise<void> {
   const { error } = await supa().rpc("careloop_truncate_core");
   if (error) throw new Error(`Supabase: ${error.message}`);
+  // Clear phone->patient links too: after truncating patients every link would
+  // dangle (create-per-number model), so we start from a clean slate.
+  const { error: linkErr } = await supa().from("careloop_links").delete().not("phone", "is", null);
+  if (linkErr) throw new Error(`Supabase: ${linkErr.message}`);
   await seedDatabase(false);
   await pushAudit("demo_data_reset", "demo", "dataset", "demo", {});
 }
@@ -801,11 +822,13 @@ export async function createPatientFromMock(): Promise<string> {
 
   const { data: existing } = await db.from("careloop_patients").select("id").like("id", "demo-%");
   const count = existing?.length ?? 0;
-  const tpl = seed.patients[count % seed.patients.length];
+  // random clinical profile + next name from the pool (unique until it wraps)
+  const tpl = seed.patients[Math.floor(Math.random() * seed.patients.length)];
   const tplId = tpl.id;
   const newId = `demo-${Math.random().toString(36).slice(2, 8)}`;
+  const name = MOCK_NAMES[count % MOCK_NAMES.length];
 
-  const patient = { ...tpl, id: newId };
+  const patient = { ...tpl, id: newId, name };
   const e1 = (await db.from("careloop_patients").insert(patient)).error;
   if (e1) throw new Error(`Supabase: ${e1.message}`);
 

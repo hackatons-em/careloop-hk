@@ -40,9 +40,12 @@ export async function POST(req: Request) {
   // create a fresh mock Hong Kong patient, so every number that messages in gets
   // its own patient that fills live from their WhatsApp replies.
   const fixed = process.env.CARELOOP_WHATSAPP_PATIENT || undefined;
-  const existing = !fixed && from ? await getPatientForPhone(from) : null;
-  const patientId = fixed ?? existing ?? (await createPatientFromMock());
-  const isNewPatient = !fixed && !existing;
+  let linked = !fixed && from ? await getPatientForPhone(from) : null;
+  // a link pointing at a patient that no longer exists (e.g. after a demo reset)
+  // is treated as a new number — recreate rather than dead-end.
+  if (linked && !(await getPatient(linked))) linked = null;
+  const isNewPatient = !fixed && !linked;
+  const patientId = fixed ?? linked ?? (await createPatientFromMock());
   if (from) await setPatientPhone(patientId, from);
 
   let audioUrl: string | null = null;

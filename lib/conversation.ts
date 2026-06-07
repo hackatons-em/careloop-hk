@@ -90,18 +90,9 @@ export async function resetConversations(): Promise<void> {
 
 // --- phone <-> patient links (careloop_links) -----------------------------
 
-// Map an inbound WhatsApp number to a patient. If CARELOOP_WHATSAPP_PATIENT is
-// set, everyone maps to it (focused presenter demo). Otherwise each new sender
-// is stickily assigned to a different demo patient — judge self-serve, no
-// collisions — and the mapping is persisted so replies always route back.
-const ASSIGN_POOL = [
-  "patient-mrs-chan",
-  "patient-mr-lee",
-  "patient-mrs-wong",
-  "patient-mr-ho",
-  "patient-mrs-lam",
-];
-
+// The webhook creates a fresh mock patient per new number (lib/store
+// createPatientFromMock); these helpers manage the persisted phone <-> patient
+// links so replies and outbound check-ins always route back.
 async function linkPatientForPhone(phone: string): Promise<string | null> {
   const { data, error } = await supa()
     .from("careloop_links")
@@ -124,34 +115,6 @@ async function linkUpsert(phone: string, patientId: string): Promise<void> {
 /** The patient a phone is already linked to, or null (no new assignment). */
 export async function getPatientForPhone(phone: string): Promise<string | null> {
   return phone ? linkPatientForPhone(phone) : null;
-}
-
-export async function assignPatientForSender(from: string): Promise<string> {
-  const fixed = process.env.CARELOOP_WHATSAPP_PATIENT;
-  if (fixed) {
-    if (from) await linkUpsert(from, fixed);
-    return fixed;
-  }
-  if (from) {
-    const existing = await linkPatientForPhone(from);
-    if (existing) return existing;
-  }
-  const { data, error } = await supa().from("careloop_links").select("patient_id");
-  if (error) throw new Error(`Supabase: ${error.message}`);
-  const links = (data ?? []) as { patient_id: string }[];
-  const used = new Set(links.map((l) => l.patient_id));
-  const next =
-    ASSIGN_POOL.find((p) => !used.has(p)) ?? ASSIGN_POOL[links.length % ASSIGN_POOL.length];
-  if (from) {
-    // Don't clobber a concurrent assignment to the same number.
-    const { error: insErr } = await supa()
-      .from("careloop_links")
-      .upsert({ phone: from, patient_id: next }, { onConflict: "phone", ignoreDuplicates: true });
-    if (insErr) throw new Error(`Supabase: ${insErr.message}`);
-    // Re-read in case a racing request won the insert first.
-    return (await linkPatientForPhone(from)) ?? next;
-  }
-  return next;
 }
 
 export async function setPatientPhone(patientId: string, phone: string): Promise<void> {
@@ -198,14 +161,12 @@ export const FIELD_QUESTION: Record<FieldKey, { zh: string; en: string }> = {
   meds: { zh: "今日食咗藥未？", en: "Have you taken your medicine today?" },
 };
 
-/** Condition-aware required field set: mood + condition symptoms + medication. */
+/** Required field set: mood + BREATHING are asked of every patient (breathing is
+ * a core red-flag worth a daily check regardless of condition) + each condition's
+ * specific symptoms + medication adherence. */
 export function requiredFields(conditions: string[]): FieldKey[] {
-  const set = new Set<FieldKey>(["mood"]);
+  const set = new Set<FieldKey>(["mood", "sob"]);
   for (const c of conditions) (CONDITION_SYMPTOMS[c] ?? []).forEach((k) => set.add(k));
-  if (set.size === 1) {
-    set.add("sob");
-    set.add("swelling");
-  }
   set.add("meds");
   const order: FieldKey[] = ["mood", "sob", "swelling", "dizziness", "chest", "meds"];
   return order.filter((k) => set.has(k));

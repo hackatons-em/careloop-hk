@@ -68,8 +68,8 @@ describe("seed integrity", () => {
   const seed = buildSeed();
   const byId = Object.fromEntries(seed.patients.map((p) => [p.id, p]));
 
-  it("has 5 patients with the exact baselines, nurses, and conditions", () => {
-    expect(seed.patients).toHaveLength(5);
+  it("has 13 patients with the exact baselines, nurses, and conditions", () => {
+    expect(seed.patients).toHaveLength(13);
 
     const chan = byId["patient-mrs-chan"];
     expect(chan.age).toBe(78);
