@@ -10,8 +10,8 @@ function ensureInit() {
     startOnLoad: false,
     theme: "neutral",
     securityLevel: "loose",
-    themeVariables: { fontSize: "20px" },
-    flowchart: { htmlLabels: true, curve: "basis", padding: 22, nodeSpacing: 80, rankSpacing: 100 },
+    themeVariables: { fontSize: "18px" },
+    flowchart: { htmlLabels: true, curve: "basis", padding: 12, nodeSpacing: 45, rankSpacing: 50 },
   });
   initialized = true;
 }
@@ -37,7 +37,7 @@ export function Mermaid({ chart }: { chart: string }) {
 
   return (
     <div
-      className="[&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-w-full"
+      className="flex justify-center [&_svg]:!h-auto [&_svg]:!w-auto [&_svg]:!max-h-[62vh] [&_svg]:!max-w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />
   );

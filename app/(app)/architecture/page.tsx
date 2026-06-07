@@ -37,11 +37,11 @@ flowchart TB
 
 export default function ArchitecturePage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12">
-      <h1 className="mb-2 text-center text-2xl font-semibold tracking-tight">
+    <div className="mx-auto max-w-5xl px-4 py-6">
+      <h1 className="mb-1 text-center text-xl font-semibold tracking-tight">
         CareLoop — Architecture
       </h1>
-      <p className="mb-10 text-center text-sm text-muted-foreground">
+      <p className="mb-5 text-center text-sm text-muted-foreground">
         Patient on WhatsApp → Twilio → our app → Claude &amp; Whisper, persisted in Postgres.
       </p>
       <Mermaid chart={CHART} />
