@@ -4,29 +4,32 @@ import { SafetyBanner } from "@/components/SafetyLabels";
 export const metadata = { title: "Honesty — CareLoop" };
 
 const REAL = [
-  "Nurse dashboard, filters, and risk/reason badges",
-  "Patient timeline — weight, BP, heart rate, activity charts",
-  "Daily check-in simulation (Cantonese + English)",
+  "Real WhatsApp integration via Twilio — inbound webhook + outbound send",
+  "Text and Cantonese voice notes (Whisper speech-to-text)",
+  "AI symptom extraction: free text / transcript → structured check-in",
+  "Conversational agent: AI-written follow-ups, deterministic escalation",
+  "Personalized WhatsApp onboarding (per-patient QR)",
+  "Persistent backend — Supabase Postgres (RLS; service-role server-only)",
   "Deterministic, rule-based risk engine (unit-tested)",
   "Matched-rule explanations with data evidence",
   "Nurse review queue: acknowledge, status, notes",
+  "Patient timeline — weight, BP, heart rate, activity charts",
   "Bilingual caregiver alert (English + 繁體中文)",
   "Weekly clinician summary + PDF export",
   "FHIR-style JSON export",
-  "Audit events for every action",
-  "Demo reset + risky check-in replay + CSV import",
+  "Audit events for every action; demo reset + risky replay + CSV import",
 ];
 
 const MOCKED = [
-  "Real Twilio phone calls (simulated on-screen flow)",
+  "Production WhatsApp Business API (uses the Twilio sandbox — daily message cap)",
   "Real Apple Health / Fitbit / Garmin integration (sample CSV)",
   "Real Hong Kong eHealth+ integration",
   "Real hospital EHR integration",
   "Real clinical validation of thresholds",
   "Real Cantonese clinical review",
   "Real emergency escalation & nurse staffing",
-  "Production identity, access control, security review",
-  "In-memory demo store (resets on restart — not a database)",
+  "Nurse-side authentication / access control (open dashboard, synthetic data)",
+  "Real patient identity proofing & clinical consent",
 ];
 
 const RULES = [
@@ -35,6 +38,7 @@ const RULES = [
   ["MED-001", "Medication missed 2 days in a row", "Review today"],
   ["BP-001", "Systolic > 180 or diastolic > 110 mmHg", "Escalate"],
   ["ACT-001", "Activity > 40% below baseline for 3 days", "Watch"],
+  ["SYM-001", "Reports breathlessness / swelling / chest discomfort", "Review today"],
 ];
 
 export default function HonestyPage() {
@@ -85,11 +89,13 @@ export default function HonestyPage() {
           <Sparkles className="size-4 text-primary" /> AI usage
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          AI (Anthropic Claude) is used <strong>only</strong> to reword the weekly clinician summary
-          into plainer prose, gated behind <code className="rounded bg-muted px-1">ANTHROPIC_API_KEY</code>.
-          With no key, or on any error, CareLoop returns a deterministic template — so the product
-          never depends on AI to function. AI never decides severity, diagnoses, or recommends
-          treatment.
+          AI (Anthropic Claude + a Whisper speech-to-text provider) powers the <strong>language
+          layer only</strong>: transcribing voice notes, extracting structured symptoms from natural
+          language, and wording the agent&apos;s follow-up questions, confirmations, and the weekly
+          summary. Every step is gated behind its API key — with no key, or on any error, CareLoop
+          falls back to fixed templates / a pinned transcript, so the product never depends on AI to
+          function. AI never decides severity, diagnoses, or recommends treatment — risk is always
+          the deterministic engine.
         </p>
       </section>
 
@@ -129,7 +135,9 @@ export default function HonestyPage() {
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             All demo patient data is synthetic. No real patient, hospital, or eHealth+ data is
-            included. No secrets are committed; AI is configured via environment variables.
+            included. It is stored in Supabase Postgres with Row-Level Security (no public policies;
+            the service-role key stays server-side). No secrets are committed; keys are configured
+            via environment variables.
           </p>
         </section>
         <section className="rounded-xl border border-border bg-card p-4">

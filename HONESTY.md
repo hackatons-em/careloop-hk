@@ -42,6 +42,13 @@ or replace clinical judgement.**
 - Weekly clinician summary + server-rendered PDF export.
 - FHIR-style JSON export (Patient, Observations, QuestionnaireResponse, ServiceRequest).
 - Append-only audit events; demo reset and a one-click "risky check-in" replay.
+- **Persistent backend (Supabase Postgres):** patients, vitals, check-ins,
+  alerts, audit, weekly summaries, and the full WhatsApp conversation (messages,
+  check-in sessions, and phone↔patient links) are stored in Postgres — so state
+  survives restarts and is shared across serverless instances, and the agent
+  runs on normal multi-instance Vercel. Row-Level Security is enabled with no
+  public policies; the server uses a service-role key that never reaches the
+  browser.
 
 The rule engine is covered by unit tests (`lib/riskEngine.test.ts`) — severity is
 computed, never hard-coded.
@@ -49,23 +56,31 @@ computed, never hard-coded.
 ## What is mocked / simulated / limited
 
 - **WhatsApp delivery is the Twilio sandbox**, not the production WhatsApp
-  Business API. Each tester must first send the sandbox join code; inbound
-  numbers are mapped to demo patients (sticky round-robin). No real patient
-  identity, consent, or onboarding.
+  Business API. Each tester first sends the sandbox join code, and the trial
+  sandbox has a daily message cap. A demo onboarding flow lets you add a patient
+  and scan its QR to bind your phone to it (a `careloop-link:` registration
+  message); otherwise inbound numbers are mapped to demo patients by sticky
+  round-robin. There is no real identity proofing or clinical consent.
 - **No STT key configured → a voice note falls back to a pinned demo transcript**
   (flagged as `pinned` in the message log). With a key, real transcription runs.
 - **Cantonese STT is not clinically validated** — it's good enough for the demo,
   not for production clinical use.
-- **In-memory data store.** Seeded deterministically; resets on server restart
-  and is **not shared across serverless instances** — so the live agent runs from
-  a single instance (local `next start` + a tunnel), not multi-instance Vercel.
-  Production would use a real database. The deterministic reset makes the demo
-  reproducible.
+- **Single shared demo dataset.** All testers act on the same five synthetic
+  patients (plus any added through the demo onboarding); a one-click reset
+  reseeds the database to a known state for everyone, so the demo stays
+  reproducible. A real deployment would isolate data per clinic and add
+  authentication.
 - **No real device integration** (Apple Health / Fitbit / scale / BP cuff) — CSV
   / seed data stands in for wearable vitals.
 - **No real eHealth+ / hospital EHR integration.** FHIR export is illustrative.
-- **No production identity, access control, or security review.** The inbound
-  webhook is not signature-validated in the demo.
+- **No nurse-side authentication or access control.** The dashboard and the
+  demo / agent endpoints are open (synthetic data only). The database itself is
+  locked down — Row-Level Security with no public policies, and a server-only
+  service-role key that never reaches the browser — and inbound media fetches
+  are host-allowlisted to Twilio. The inbound webhook's Twilio-signature
+  verification is currently disabled for the demo and the cron secret is
+  optional; a production deployment would add auth, enable signature checks, and
+  set the cron secret.
 - Photo / short-video replies are part of the vision but are **not processed**
   yet (text + voice are).
 
@@ -115,8 +130,10 @@ conservative 180/110). MED-001, ACT-001 and SYM-001 are operational heuristics.
 ## Data & secrets
 
 All demo patient data is **synthetic** — no real patient, hospital, or eHealth+
-data. API keys and Twilio credentials are configured via `.env.local`
-(gitignored). **Never commit real keys** (including in `.env.example`).
+data. API keys, Twilio credentials, and the Supabase service-role key are
+configured via `.env.local` (gitignored) locally and the Vercel project's
+encrypted environment variables in production. **Never commit real keys**
+(including in `.env.example`).
 
 ## Why this is still useful
 
