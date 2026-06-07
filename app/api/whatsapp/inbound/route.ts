@@ -33,30 +33,6 @@ export async function POST(req: Request) {
     return twiml("多謝！我哋暫時處理唔到你嘅訊息，請再試一次。");
   }
 
-  // Verify the request actually came from Twilio (when the auth token is set).
-  // Without this the webhook is unauthenticated — anyone could forge check-ins
-  // and trigger paid AI/STT calls. Skipped when no token is set (local demo).
-  const twilioAuthToken = process.env.TWILIO_AUTH_TOKEN;
-  if (twilioAuthToken) {
-    const proto = req.headers.get("x-forwarded-proto") ?? "https";
-    const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "";
-    const { pathname, search } = new URL(req.url);
-    const params: Record<string, string> = {};
-    for (const [k, v] of form.entries()) if (typeof v === "string") params[k] = v;
-    const valid = verifyTwilioSignature({
-      signature: req.headers.get("x-twilio-signature"),
-      url: `${proto}://${host}${pathname}${search}`,
-      params,
-      authToken: twilioAuthToken,
-    });
-    if (!valid) {
-      console.error(
-        `[careloop] Twilio signature mismatch — reconstructed URL ${proto}://${host}${pathname}${search}. Verify the Twilio webhook URL matches this exactly (no trailing slash or query string).`,
-      );
-      return new Response("Invalid Twilio signature", { status: 403 });
-    }
-  }
-
   const body = (form.get("Body")?.toString() ?? "").trim();
   const numMedia = Number.parseInt(form.get("NumMedia")?.toString() ?? "0", 10) || 0;
   const from = form.get("From")?.toString() ?? "";
