@@ -104,10 +104,7 @@ This repo is a complete, demo-ready baseline. Teammates refine their zones:
 - **Core (lead):** app scaffold, risk engine, dashboard, timeline, check-in, alert queue, summary
 - **Teammate 1 — data / FHIR / audit / demo reliability:** `lib/seed.ts`, `lib/store.ts`,
   `lib/fhirService.ts`, audit events, `sample_data/`, demo reset & replay, `HONESTY.md`
-- **Teammate 2 — UI polish / presentation:** theme & landing page, safety copy, and `docs/`
-  (`pitch_slides.md`, `business_video_script.md`, `demo_script.md`, `judge_qa.md`)
-
-The original build pack ships under `docs/build_pack/` for provenance.
+- **Teammate 2 — UI polish / presentation:** theme & landing page, safety copy, pitch & demo materials
 
 ## Business Case
 
