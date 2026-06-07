@@ -90,7 +90,6 @@ const DEMO_FLOW = [
   "Show caregiver alert.",
   "Generate weekly summary.",
   "Export FHIR JSON.",
-  "Open HONESTY.md.",
 ];
 
 const DEMO_SCRIPT = [
@@ -103,7 +102,6 @@ const DEMO_SCRIPT = [
   "The alert enters the nurse queue with the matched rules, evidence, and suggested operational action.",
   "The family gets a plain-language alert. It does not recommend treatment; it tells them what changed and that nurse review is recommended.",
   "At the end of the week, CareLoop generates a clinician-ready summary and exports a FHIR-style bundle. This is designed to fit into healthcare workflows, not become another isolated app.",
-  "Our HONESTY.md explains what is real, what is mocked, and the safety boundaries. This is monitoring support, not diagnosis.",
 ];
 
 const QA: { q: string; a: string }[] = [

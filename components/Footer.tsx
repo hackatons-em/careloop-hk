@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { HeartPulse } from "lucide-react";
 
 export function Footer() {
@@ -15,9 +14,6 @@ export function Footer() {
             CareLoop flags monitoring risks for professional review. It does not diagnose or
             prescribe. Demo data only.
           </span>
-          <Link href="/honesty" className="font-medium text-primary underline-offset-4 hover:underline">
-            View HONESTY.md
-          </Link>
         </div>
       </div>
     </footer>

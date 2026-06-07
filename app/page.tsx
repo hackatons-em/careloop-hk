@@ -31,12 +31,6 @@ export default function Landing() {
           </span>
           <span className="text-lg font-semibold tracking-tight">CareLoop</span>
         </div>
-        <Link
-          href="/honesty"
-          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-        >
-          View HONESTY.md
-        </Link>
       </header>
 
       {/* hero split */}
@@ -69,12 +63,6 @@ export default function Landing() {
               className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
             >
               Start demo <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              href="/honesty"
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-border bg-card px-6 text-sm font-semibold transition-colors hover:bg-muted"
-            >
-              View HONESTY.md
             </Link>
           </div>
         </div>
