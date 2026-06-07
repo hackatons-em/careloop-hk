@@ -1,7 +1,6 @@
 import { assignPatientForSender, getPatientPhone, setPatientPhone } from "@/lib/conversation";
 import { ingestCheckInMessage } from "@/lib/ingest";
 import { getPatient } from "@/lib/store";
-import { verifyTwilioSignature } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
 
