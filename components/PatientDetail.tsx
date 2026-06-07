@@ -14,6 +14,7 @@ import {
   MoreHorizontal,
   Upload,
   History,
+  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TrendChart, type ChartRow } from "@/components/charts/TrendChart";
@@ -127,6 +128,12 @@ export function PatientDetail({
             <Button variant="outline" size="sm" onClick={sendCheckin} className="gap-1.5">
               <MessageCircle className="size-4" /> Send check-in
             </Button>
+            <Link
+              href={`/onboard/${patientId}`}
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted"
+            >
+              <QrCode className="size-4" /> Onboarding QR
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -174,34 +181,32 @@ export function PatientDetail({
         hideTrigger
       />
 
-      {/* Lead: why flagged + human impact */}
-      <div className="cl-rise grid gap-4 lg:grid-cols-3" style={{ animationDelay: "100ms" }}>
-        <div className="lg:col-span-2">
-          <RiskCard risk={risk} />
-        </div>
-        <div>
-          {risk.severity !== "stable" ? (
-            <CaregiverAlert timeline={timeline} onNotified={handleChanged} />
-          ) : (
-            <div className="rounded-2xl border border-border bg-card p-5">
-              <div className="flex items-center gap-2 font-semibold">
-                <CheckCircle2 className="size-4 text-green-600" /> No active alert
+      {/* Main content (left) + sticky WhatsApp (right) */}
+      <div className="gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(340px,400px)] lg:items-start">
+        <div className="space-y-5">
+          {/* Why flagged */}
+          <div className="cl-rise" style={{ animationDelay: "100ms" }}>
+            <RiskCard risk={risk} />
+          </div>
+
+          {/* Caregiver alert / all-clear */}
+          <div className="cl-rise" style={{ animationDelay: "120ms" }}>
+            {risk.severity !== "stable" ? (
+              <CaregiverAlert timeline={timeline} onNotified={handleChanged} />
+            ) : (
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <div className="flex items-center gap-2 font-semibold">
+                  <CheckCircle2 className="size-4 text-green-600" /> No active alert
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Monitoring is within the expected range. Continue daily check-ins.
+                </p>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Monitoring is within the expected range. Continue daily check-ins.
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </div>
 
-      {/* WhatsApp conversation — live thread + extraction */}
-      <div className="cl-rise" style={{ animationDelay: "150ms" }}>
-        <ConversationPanel patientId={patientId} onActivity={handleChanged} />
-      </div>
-
-      {/* Secondary detail behind tabs */}
-      <Tabs defaultValue="trends" className="cl-rise w-full">
+          {/* Secondary detail behind tabs */}
+          <Tabs defaultValue="trends" className="cl-rise w-full">
         <TabsList>
           <TabsTrigger value="trends">Trends</TabsTrigger>
           <TabsTrigger value="checkins">Check-ins</TabsTrigger>
@@ -280,7 +285,16 @@ export function PatientDetail({
             </div>
           </div>
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </div>
+
+        {/* WhatsApp — fixed size, scrollable, sticky on the right */}
+        <aside className="mt-5 lg:mt-0 lg:sticky lg:top-[5.5rem]">
+          <div className="h-[min(640px,75vh)]">
+            <ConversationPanel patientId={patientId} onActivity={handleChanged} />
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

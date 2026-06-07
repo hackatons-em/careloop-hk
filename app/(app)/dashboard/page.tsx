@@ -1,6 +1,7 @@
 import { Dashboard } from "@/components/Dashboard";
 import { DemoControls } from "@/components/DemoControls";
 import { SafetyLabels } from "@/components/SafetyLabels";
+import { AddYourselfButton } from "@/components/AddYourselfButton";
 
 export const metadata = { title: "Nurse dashboard — CareLoop" };
 
@@ -16,7 +17,10 @@ export default function DashboardPage() {
           </p>
           <SafetyLabels className="mt-3" />
         </div>
-        <DemoControls />
+        <div className="flex flex-col gap-2 lg:items-end">
+          <AddYourselfButton />
+          <DemoControls />
+        </div>
       </div>
       <Dashboard />
     </div>

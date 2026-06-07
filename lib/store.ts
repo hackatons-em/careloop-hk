@@ -791,4 +791,58 @@ export async function resetDemo(): Promise<void> {
   await pushAudit("demo_data_reset", "demo", "dataset", "demo", {});
 }
 
+/** Create a fresh demo patient cloned from one of the mock templates (cycling
+ * through them for variety) with its synthetic 7-day history, so the risk engine
+ * shows a realistic state immediately. Returns the new id — onboard at
+ * /onboard/<id>, where registering a WhatsApp number binds it to this patient. */
+export async function createPatientFromMock(): Promise<string> {
+  const db = supa();
+  const seed = buildSeed();
+
+  const { data: existing } = await db.from("careloop_patients").select("id").like("id", "demo-%");
+  const count = existing?.length ?? 0;
+  const tpl = seed.patients[count % seed.patients.length];
+  const tplId = tpl.id;
+  const newId = `demo-${Math.random().toString(36).slice(2, 8)}`;
+
+  const patient = { ...tpl, id: newId, name: `Demo patient ${count + 1}` };
+  const e1 = (await db.from("careloop_patients").insert(patient)).error;
+  if (e1) throw new Error(`Supabase: ${e1.message}`);
+
+  const vitals = seed.vitals
+    .filter((v) => v.patient_id === tplId)
+    .map((v) => ({
+      id: `vital-${newId}-${v.timestamp.slice(0, 10)}-${v.type}`,
+      patient_id: newId,
+      ts: v.timestamp,
+      type: v.type,
+      value: v.value,
+      unit: v.unit,
+      source: v.source,
+    }));
+  const e2 = (await db.from("careloop_vitals").insert(vitals)).error;
+  if (e2) throw new Error(`Supabase: ${e2.message}`);
+
+  const checkins = seed.checkins
+    .filter((c) => c.patient_id === tplId)
+    .map((c) => ({
+      id: `checkin-${newId}-${c.date}`,
+      patient_id: newId,
+      date: c.date,
+      mood: c.mood,
+      shortness_of_breath: c.shortness_of_breath,
+      swelling: c.swelling,
+      dizziness: c.dizziness,
+      chest_discomfort: c.chest_discomfort,
+      medication_taken: c.medication_taken,
+      free_text_note: c.free_text_note,
+      source: c.source,
+    }));
+  const e3 = (await db.from("careloop_checkins").insert(checkins)).error;
+  if (e3) throw new Error(`Supabase: ${e3.message}`);
+
+  await upsertAlertFor(newId, "system");
+  return newId;
+}
+
 export const DEMO_WEEK = { start: WEEK_START, end: WEEK_END, dates: DEMO_DATES };

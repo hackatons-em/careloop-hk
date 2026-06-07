@@ -1,5 +1,6 @@
-import { assignPatientForSender, setPatientPhone } from "@/lib/conversation";
+import { assignPatientForSender, getPatientPhone, setPatientPhone } from "@/lib/conversation";
 import { ingestCheckInMessage } from "@/lib/ingest";
+import { getPatient } from "@/lib/store";
 import { verifyTwilioSignature } from "@/lib/whatsapp";
 
 export const dynamic = "force-dynamic";
@@ -58,10 +59,31 @@ export async function POST(req: Request) {
 
   const body = (form.get("Body")?.toString() ?? "").trim();
   const numMedia = Number.parseInt(form.get("NumMedia")?.toString() ?? "0", 10) || 0;
+  const from = form.get("From")?.toString() ?? "";
+
+  // Personalised onboarding: a register message from a patient's own QR carries
+  // "careloop-link:<patientId>". Bind THIS sender to THAT patient so we know who
+  // they are and route their check-ins. This is registration, not a check-in.
+  const link = body.match(/careloop-link:([\w-]+)/i);
+  if (link && from) {
+    const patient = await getPatient(link[1]);
+    if (patient) {
+      // 1:1 — once a patient is connected to a phone, no other phone may take it.
+      const existing = await getPatientPhone(patient.id);
+      if (existing && existing !== from) {
+        return twiml(
+          `Sorry — ${patient.name} is already connected to another phone. Add a fresh demo patient and scan its own QR.`,
+        );
+      }
+      await setPatientPhone(patient.id, from);
+      return twiml(
+        `You're connected, ${patient.name}. CareLoop will send your daily check-in here — just reply each day.`,
+      );
+    }
+  }
 
   // Map the sender to a patient (sticky), and remember the number so the agent
   // can message them first next time.
-  const from = form.get("From")?.toString() ?? "";
   const patientId = await assignPatientForSender(from);
   if (from) await setPatientPhone(patientId, from);
 

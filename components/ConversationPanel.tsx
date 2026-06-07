@@ -2,11 +2,11 @@
 
 // Live WhatsApp conversation panel — the patient's chat thread + the symptom
 // extraction per inbound message. Polls /api/patients/:id/messages so it updates
-// in real time when a message arrives (judge self-serve moment). Decoupled from
-// the server-only conversation store (local types, plain fetch).
+// in real time when a message arrives (judge self-serve moment). Fills its
+// container and scrolls internally — used as a fixed, sticky right-hand panel.
 
 import { useEffect, useRef, useState } from "react";
-import { Mic } from "lucide-react";
+import { Mic, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Extracted {
@@ -48,6 +48,7 @@ export function ConversationPanel({
 }) {
   const [messages, setMessages] = useState<ConvoMessage[]>([]);
   const seen = useRef(0);
+  const threadRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -74,30 +75,36 @@ export function ConversationPanel({
     };
   }, [patientId, onActivity]);
 
+  // keep the latest message in view
+  useEffect(() => {
+    const el = threadRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <span className="text-base">💬</span>
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
+        <MessageCircle className="size-4 text-primary" />
         <h2 className="font-semibold">WhatsApp check-in</h2>
         <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="size-1.5 animate-pulse rounded-full bg-green-500" /> live
         </span>
       </div>
 
-      {messages.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">
-          Waiting for the patient&apos;s WhatsApp reply…
-        </p>
-      ) : (
-        <div className="space-y-2.5">
-          {messages.map((m) => {
+      <div ref={threadRef} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
+        {messages.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            Waiting for the patient&apos;s WhatsApp reply…
+          </p>
+        ) : (
+          messages.map((m) => {
             const isPatient = m.direction === "inbound";
             const tags = isPatient ? chips(m.extracted) : [];
             return (
               <div key={m.id} className={cn("flex", isPatient ? "justify-start" : "justify-end")}>
                 <div
                   className={cn(
-                    "max-w-[80%] rounded-2xl px-3 py-2 text-sm",
+                    "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
                     isPatient
                       ? "rounded-tl-sm bg-muted text-foreground"
                       : "rounded-tr-sm bg-[#dcf8c6] text-neutral-800",
@@ -125,9 +132,9 @@ export function ConversationPanel({
                 </div>
               </div>
             );
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
     </div>
   );
 }

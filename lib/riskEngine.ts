@@ -57,6 +57,36 @@ const RECOMMENDED_ACTION: Record<Severity, string> = {
   stable: "No action needed. Continue routine monitoring.",
 };
 
+// Per-rule metadata — the severity each rule raises and its fixed clinical
+// rationale. Single source of truth: the eval logic below only decides WHEN a
+// rule fires and computes its data evidence; the wording lives here.
+const RULE_META: Record<string, { severity: Severity; description: string }> = {
+  "HF-001": {
+    severity: "review_today",
+    description: "Rapid weight gain can indicate fluid retention in heart-failure monitoring.",
+  },
+  "HF-002": {
+    severity: "escalate",
+    description: "Weight gain combined with shortness of breath and swelling requires review.",
+  },
+  "MED-001": {
+    severity: "review_today",
+    description: "Repeated missed medication increases chronic-care risk.",
+  },
+  "BP-001": {
+    severity: "escalate",
+    description: "Very high blood pressure should be reviewed urgently.",
+  },
+  "ACT-001": {
+    severity: "watch",
+    description: "Reduced activity may signal deterioration or frailty risk.",
+  },
+  "SYM-001": {
+    severity: "review_today",
+    description: "Patient reported symptoms that warrant nurse review, regardless of condition.",
+  },
+};
+
 function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
@@ -129,8 +159,7 @@ export function evaluateRisk(
   if (wc && wc.gain >= HF001_WEIGHT_GAIN_KG) {
     matched.push({
       code: "HF-001",
-      severity: "review_today",
-      description: "Rapid weight gain can indicate fluid retention in heart-failure monitoring.",
+      ...RULE_META["HF-001"],
       evidence: `Weight increased ${round1(wc.gain)} kg over ${wc.spanDays} days (${wc.from} → ${wc.to} kg).`,
     });
   }
@@ -143,8 +172,7 @@ export function evaluateRisk(
   ) {
     matched.push({
       code: "HF-002",
-      severity: "escalate",
-      description: "Weight gain combined with shortness of breath and swelling requires review.",
+      ...RULE_META["HF-002"],
       evidence: `+${round1(wc.gain)} kg over ${wc.spanDays} days with reported shortness of breath and leg/feet swelling.`,
     });
   }
@@ -158,8 +186,7 @@ export function evaluateRisk(
     ) {
       matched.push({
         code: "MED-001",
-        severity: "review_today",
-        description: "Repeated missed medication increases chronic-care risk.",
+        ...RULE_META["MED-001"],
         evidence: `Medication reported missed on ${lastTwo[0].date} and ${lastTwo[1].date}.`,
       });
     }
@@ -175,8 +202,7 @@ export function evaluateRisk(
     ) {
       matched.push({
         code: "BP-001",
-        severity: "escalate",
-        description: "Very high blood pressure should be reviewed urgently.",
+        ...RULE_META["BP-001"],
         evidence: `Latest blood pressure ${systolic ?? "?"}/${diastolic ?? "?"} mmHg on ${bpDay.date}.`,
       });
     }
@@ -192,8 +218,7 @@ export function evaluateRisk(
       const dropPct = Math.round((1 - avg / patient.baseline_steps) * 100);
       matched.push({
         code: "ACT-001",
-        severity: "watch",
-        description: "Reduced activity may signal deterioration or frailty risk.",
+        ...RULE_META["ACT-001"],
         evidence: `Activity averaged ${avg} steps over ${ACT_DAYS} days, ~${dropPct}% below the ${patient.baseline_steps} baseline.`,
       });
     }
@@ -210,9 +235,7 @@ export function evaluateRisk(
     if (reported.length > 0) {
       matched.push({
         code: "SYM-001",
-        severity: "review_today",
-        description:
-          "Patient reported symptoms that warrant nurse review, regardless of condition.",
+        ...RULE_META["SYM-001"],
         evidence: `Reported ${reported.join(", ")} on ${latestCheckin.date}.`,
       });
     }
