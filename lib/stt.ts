@@ -37,6 +37,22 @@ function resolveProvider(): SttProvider | null {
   return null;
 }
 
+/** Only fetch media from Twilio hosts. The URL arrives from an unauthenticated
+ * webhook, so restricting the host prevents SSRF to internal/arbitrary targets
+ * (e.g. cloud metadata endpoints). Twilio's api.twilio.com media URL may 302 to
+ * another Twilio-controlled host, which fetch follows — we only gate the
+ * attacker-supplied entry URL. */
+function isAllowedMediaUrl(raw: string): boolean {
+  try {
+    const u = new URL(raw);
+    if (u.protocol !== "https:") return false;
+    const host = u.hostname.toLowerCase();
+    return host === "twilio.com" || host.endsWith(".twilio.com");
+  } catch {
+    return false;
+  }
+}
+
 /** Transcribe a remote audio file. Returns null when STT is unavailable. */
 export async function transcribeAudio(
   url: string,
@@ -44,6 +60,10 @@ export async function transcribeAudio(
 ): Promise<string | null> {
   const provider = resolveProvider();
   if (!provider) return null;
+  if (!isAllowedMediaUrl(url)) {
+    console.error("[careloop] STT refused a non-Twilio media URL (possible SSRF); using fallback.");
+    return null;
+  }
 
   try {
     // Twilio media URLs require HTTP basic auth with the account credentials.

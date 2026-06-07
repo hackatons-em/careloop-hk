@@ -62,6 +62,16 @@ export function DemoControls() {
     }
   }
 
+  function confirmReset() {
+    if (
+      window.confirm(
+        "Reset wipes ALL demo data (patients, vitals, check-ins, alerts, conversations) for everyone currently viewing and restores the clean seed. Continue?",
+      )
+    ) {
+      void resetDemo();
+    }
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -76,7 +86,7 @@ export function DemoControls() {
           <Zap className="text-primary!" /> Run risky check-in
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={resetDemo} disabled={busy}>
+        <DropdownMenuItem onClick={confirmReset} disabled={busy}>
           <RotateCcw /> Reset demo
         </DropdownMenuItem>
         <DropdownMenuItem onClick={sendCheckin} disabled={busy}>
