@@ -121,6 +121,11 @@ async function linkUpsert(phone: string, patientId: string): Promise<void> {
   if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
+/** The patient a phone is already linked to, or null (no new assignment). */
+export async function getPatientForPhone(phone: string): Promise<string | null> {
+  return phone ? linkPatientForPhone(phone) : null;
+}
+
 export async function assignPatientForSender(from: string): Promise<string> {
   const fixed = process.env.CARELOOP_WHATSAPP_PATIENT;
   if (fixed) {

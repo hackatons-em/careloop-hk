@@ -1,6 +1,6 @@
-import { assignPatientForSender, getPatientPhone, setPatientPhone } from "@/lib/conversation";
+import { getPatientForPhone, setPatientPhone } from "@/lib/conversation";
 import { ingestCheckInMessage } from "@/lib/ingest";
-import { getPatient } from "@/lib/store";
+import { createPatientFromMock, getPatient } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
@@ -36,30 +36,13 @@ export async function POST(req: Request) {
   const numMedia = Number.parseInt(form.get("NumMedia")?.toString() ?? "0", 10) || 0;
   const from = form.get("From")?.toString() ?? "";
 
-  // Personalised onboarding: a register message from a patient's own QR carries
-  // "careloop-link:<patientId>". Bind THIS sender to THAT patient so we know who
-  // they are and route their check-ins. This is registration, not a check-in.
-  const link = body.match(/careloop-link:([\w-]+)/i);
-  if (link && from) {
-    const patient = await getPatient(link[1]);
-    if (patient) {
-      // 1:1 — once a patient is connected to a phone, no other phone may take it.
-      const existing = await getPatientPhone(patient.id);
-      if (existing && existing !== from) {
-        return twiml(
-          `Sorry — ${patient.name} is already connected to another phone. Add a fresh demo patient and scan its own QR.`,
-        );
-      }
-      await setPatientPhone(patient.id, from);
-      return twiml(
-        `You're connected, ${patient.name}. CareLoop will send your daily check-in here — just reply each day.`,
-      );
-    }
-  }
-
-  // Map the sender to a patient (sticky), and remember the number so the agent
-  // can message them first next time.
-  const patientId = await assignPatientForSender(from);
+  // Map the sender to a patient. Existing number -> its patient. New number ->
+  // create a fresh mock Hong Kong patient, so every number that messages in gets
+  // its own patient that fills live from their WhatsApp replies.
+  const fixed = process.env.CARELOOP_WHATSAPP_PATIENT || undefined;
+  const existing = !fixed && from ? await getPatientForPhone(from) : null;
+  const patientId = fixed ?? existing ?? (await createPatientFromMock());
+  const isNewPatient = !fixed && !existing;
   if (from) await setPatientPhone(patientId, from);
 
   let audioUrl: string | null = null;
@@ -80,6 +63,13 @@ export async function POST(req: Request) {
   });
   if (!result) {
     return twiml("多謝！我哋收到咗你嘅訊息。Thank you — we've received your message.");
+  }
+  // On the first message, tell the sender which patient they were assigned to.
+  if (isNewPatient) {
+    const p = await getPatient(patientId);
+    return twiml(
+      `You're now ${p?.name ?? "a CareLoop patient"} — open the nurse dashboard to see your check-in.\n\n${result.reply}`,
+    );
   }
   return twiml(result.reply);
 }

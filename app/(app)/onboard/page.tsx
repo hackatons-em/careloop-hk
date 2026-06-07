@@ -53,11 +53,11 @@ export default async function OnboardPage() {
             2
           </span>
           <div className="text-sm">
-            <p className="font-medium text-foreground">Send one more message to register</p>
+            <p className="font-medium text-foreground">Write your first message</p>
             <p className="mt-0.5 text-muted-foreground">
-              Reply with anything — a quick “hi”, or how you feel today (type, or send a Cantonese
-              voice note, e.g. “今日有啲氣促，對腳腫咗”). This second message registers your number,
-              and your patient goes live on the nurse dashboard.
+              Reply with how you feel today — type, or send a Cantonese voice note (e.g.
+              “今日有啲氣促，對腳腫咗”). CareLoop replies telling you which patient you are, and your
+              patient goes live on the nurse dashboard.
             </p>
           </div>
         </li>

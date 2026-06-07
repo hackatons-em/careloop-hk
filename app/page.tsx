@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, ClipboardList, ListChecks, FileJson, HeartPulse, ShieldCheck } from "lucide-react";
 import { PreviewCard } from "@/components/PreviewCard";
-import { AddYourselfButton } from "@/components/AddYourselfButton";
 
 const PROOF = [
   {
@@ -32,15 +31,12 @@ export default function Landing() {
           </span>
           <span className="text-lg font-semibold tracking-tight">CareLoop</span>
         </div>
-        <div className="flex items-center gap-3">
-          <AddYourselfButton variant="outline" />
-          <Link
-            href="/honesty"
-            className="text-sm font-medium text-primary underline-offset-4 hover:underline"
-          >
-            View HONESTY.md
-          </Link>
-        </div>
+        <Link
+          href="/honesty"
+          className="text-sm font-medium text-primary underline-offset-4 hover:underline"
+        >
+          View HONESTY.md
+        </Link>
       </header>
 
       {/* hero split */}

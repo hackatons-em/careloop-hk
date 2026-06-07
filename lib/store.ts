@@ -791,10 +791,10 @@ export async function resetDemo(): Promise<void> {
   await pushAudit("demo_data_reset", "demo", "dataset", "demo", {});
 }
 
-/** Create a fresh demo patient cloned from one of the mock templates (cycling
- * through them for variety) with its synthetic 7-day history, so the risk engine
- * shows a realistic state immediately. Returns the new id — onboard at
- * /onboard/<id>, where registering a WhatsApp number binds it to this patient. */
+/** Create a fresh patient cloned from one of the mock Hong Kong templates
+ * (cycling through them for variety) with its synthetic 7-day history, so the
+ * risk engine shows a realistic state immediately. Returns the new id. Used by
+ * the inbound webhook: every new WhatsApp number gets its own mock patient. */
 export async function createPatientFromMock(): Promise<string> {
   const db = supa();
   const seed = buildSeed();
@@ -805,7 +805,7 @@ export async function createPatientFromMock(): Promise<string> {
   const tplId = tpl.id;
   const newId = `demo-${Math.random().toString(36).slice(2, 8)}`;
 
-  const patient = { ...tpl, id: newId, name: `Demo patient ${count + 1}` };
+  const patient = { ...tpl, id: newId };
   const e1 = (await db.from("careloop_patients").insert(patient)).error;
   if (e1) throw new Error(`Supabase: ${e1.message}`);
 

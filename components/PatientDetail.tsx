@@ -14,7 +14,6 @@ import {
   MoreHorizontal,
   Upload,
   History,
-  QrCode,
 } from "lucide-react";
 import { toast } from "sonner";
 import { TrendChart, type ChartRow } from "@/components/charts/TrendChart";
@@ -128,12 +127,6 @@ export function PatientDetail({
             <Button variant="outline" size="sm" onClick={sendCheckin} className="gap-1.5">
               <MessageCircle className="size-4" /> Send check-in
             </Button>
-            <Link
-              href={`/onboard/${patientId}`}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-medium transition-colors hover:bg-muted"
-            >
-              <QrCode className="size-4" /> Onboarding QR
-            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
