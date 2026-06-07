@@ -10,7 +10,8 @@ function ensureInit() {
     startOnLoad: false,
     theme: "neutral",
     securityLevel: "loose",
-    flowchart: { htmlLabels: true, curve: "basis", padding: 14, nodeSpacing: 45, rankSpacing: 55 },
+    themeVariables: { fontSize: "20px" },
+    flowchart: { htmlLabels: true, curve: "basis", padding: 22, nodeSpacing: 80, rankSpacing: 100 },
   });
   initialized = true;
 }
