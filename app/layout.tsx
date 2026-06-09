@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
@@ -17,51 +19,59 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
-  title: {
-    default: "CareLoop — Remote chronic-care monitoring",
-    template: "%s · CareLoop",
-  },
-  description:
-    "CareLoop turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
-  applicationName: "CareLoop",
-  openGraph: {
-    type: "website",
-    siteName: "CareLoop",
-    locale: "en_HK",
-    title: "CareLoop — Remote chronic-care monitoring",
-    description:
-      "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
-    url: SITE_URL,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "CareLoop — Remote chronic-care monitoring",
-    description:
-      "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = await getTranslations("metadata");
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: {
+      default: t("rootTitle"),
+      template: "%s · CareLoop",
+    },
+    description: t("rootDescription"),
+    applicationName: "CareLoop",
+    openGraph: {
+      type: "website",
+      siteName: "CareLoop",
+      locale: locale === "zh-HK" ? "zh_HK" : "en_HK",
+      title: t("rootTitle"),
+      description: t("ogDescription"),
+      url: SITE_URL,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("rootTitle"),
+      description: t("ogDescription"),
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
+  const t = await getTranslations("common");
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full">
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
         >
-          Skip to main content
+          {t("skipToContent")}
         </a>
-        <TooltipProvider>
-          <div className="flex min-h-screen flex-col">
-            {children}
-            <Footer />
-          </div>
-          <Toaster richColors position="top-right" theme="light" closeButton />
-        </TooltipProvider>
+        <NextIntlClientProvider>
+          <TooltipProvider>
+            <div className="flex min-h-screen flex-col">
+              {children}
+              <Footer />
+            </div>
+            <Toaster richColors position="top-right" theme="light" closeButton />
+          </TooltipProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

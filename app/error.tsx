@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import * as Sentry from "@sentry/nextjs";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ export default function AppError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useTranslations("errorPage");
+
   useEffect(() => {
     console.error("[careloop] unhandled error:", error);
     Sentry.captureException(error);
@@ -23,20 +26,17 @@ export default function AppError({
       <span className="flex size-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
         <AlertTriangle className="size-6" />
       </span>
-      <h1 className="mt-4 text-xl font-semibold">Something went wrong</h1>
-      <p className="mt-1 max-w-md text-sm text-muted-foreground">
-        An unexpected error occurred. Your data is safe — try again, or head back to the
-        dashboard.
-      </p>
+      <h1 className="mt-4 text-xl font-semibold">{t("title")}</h1>
+      <p className="mt-1 max-w-md text-sm text-muted-foreground">{t("body")}</p>
       <div className="mt-5 flex gap-2">
         <Button size="sm" onClick={() => reset()}>
-          Try again
+          {t("tryAgain")}
         </Button>
         <Link
           href="/dashboard"
           className="inline-flex h-7 items-center rounded-lg border border-border px-3 text-[0.8rem] font-medium hover:bg-muted"
         >
-          Back to dashboard
+          {t("backToDashboard")}
         </Link>
       </div>
     </div>

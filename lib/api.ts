@@ -45,6 +45,33 @@ export interface UserProfile {
   created_at: string;
 }
 
+export interface Lead {
+  id: string;
+  name: string;
+  organization: string;
+  role: string;
+  email: string;
+  phone: string;
+  message: string;
+  interest: "pilot" | "demo" | "pricing" | "other";
+  locale: string;
+  status: "new" | "contacted" | "closed";
+  created_at: string;
+}
+
+export interface LeadPayload {
+  name: string;
+  organization: string;
+  role: string;
+  email: string;
+  phone: string;
+  message: string;
+  interest: Lead["interest"];
+  locale: string;
+  /** Honeypot — always submitted empty by the real form. */
+  website: string;
+}
+
 export const api = {
   patients: () => fetch("/api/patients").then(json<PatientRow[]>),
   timeline: (id: string) => fetch(`/api/patients/${id}/timeline`).then(json<PatientTimeline>),
@@ -111,6 +138,22 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patient_id, csv }),
     }).then(json<{ ok: boolean; imported: number }>),
+
+  submitLead: (payload: LeadPayload) =>
+    fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(json<{ ok: boolean }>),
+
+  listLeads: () => fetch("/api/leads").then(json<Lead[]>),
+
+  patchLead: (id: string, patch: { status: Lead["status"] }) =>
+    fetch(`/api/leads/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }).then(json<Lead>),
 
   listUsers: () => fetch("/api/admin/users").then(json<UserProfile[]>),
 

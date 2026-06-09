@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { HeartPulse, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { Field } from "@/components/forms/Field";
@@ -10,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const schema = z.object({
-  email: z.string().trim().email("Enter a valid email"),
-  password: z.string().min(1, "Enter your password"),
+  email: z.string().trim().email(),
+  password: z.string().min(1),
 });
 
 export function LoginForm({ next }: { next?: string }) {
+  const t = useTranslations("auth.login");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,7 +33,7 @@ export function LoginForm({ next }: { next?: string }) {
       const errs: { email?: string; password?: string } = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0] as "email" | "password";
-        if (!errs[key]) errs[key] = issue.message;
+        if (!errs[key]) errs[key] = t(`errors.${key}`);
       }
       setFieldErrors(errs);
       return;
@@ -44,9 +46,7 @@ export function LoginForm({ next }: { next?: string }) {
     if (error) {
       setSubmitting(false);
       setFormError(
-        error.message === "Invalid login credentials"
-          ? "Incorrect email or password."
-          : error.message,
+        error.message === "Invalid login credentials" ? t("invalidCredentials") : error.message,
       );
       return;
     }
@@ -64,10 +64,8 @@ export function LoginForm({ next }: { next?: string }) {
         </span>
         <span className="text-lg font-semibold tracking-tight">CareLoop</span>
       </div>
-      <h1 className="mt-5 text-xl font-semibold tracking-tight">Sign in to CareLoop</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Nurse and admin access to the monitoring dashboard.
-      </p>
+      <h1 className="mt-5 text-xl font-semibold tracking-tight">{t("title")}</h1>
+      <p className="mt-1 text-sm text-muted-foreground">{t("sub")}</p>
 
       {formError && (
         <div
@@ -79,7 +77,7 @@ export function LoginForm({ next }: { next?: string }) {
       )}
 
       <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4" noValidate>
-        <Field label="Email" error={fieldErrors.email} required>
+        <Field label={t("email")} error={fieldErrors.email} required>
           {(props) => (
             <Input
               {...props}
@@ -87,11 +85,11 @@ export function LoginForm({ next }: { next?: string }) {
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nurse@hospital.hk"
+              placeholder={t("emailPlaceholder")}
             />
           )}
         </Field>
-        <Field label="Password" error={fieldErrors.password} required>
+        <Field label={t("password")} error={fieldErrors.password} required>
           {(props) => (
             <Input
               {...props}
@@ -104,14 +102,11 @@ export function LoginForm({ next }: { next?: string }) {
         </Field>
         <Button type="submit" size="lg" disabled={submitting} className="mt-1 w-full">
           {submitting && <Loader2 className="size-4 animate-spin" />}
-          {submitting ? "Signing in…" : "Sign in"}
+          {submitting ? t("submitting") : t("submit")}
         </Button>
       </form>
 
-      <p className="mt-5 text-xs text-muted-foreground">
-        Access is provisioned by your organization admin. Forgot your password? Ask an admin to
-        send a new invite.
-      </p>
+      <p className="mt-5 text-xs text-muted-foreground">{t("microcopy")}</p>
     </div>
   );
 }

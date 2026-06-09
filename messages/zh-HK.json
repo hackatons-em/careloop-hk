@@ -1,0 +1,804 @@
+{
+  "common": {
+    "appName": "CareLoop",
+    "cancel": "取消",
+    "save": "儲存",
+    "copy": "複製",
+    "close": "關閉",
+    "signIn": "登入",
+    "signOut": "登出",
+    "requestDemo": "預約示範",
+    "back": "返回",
+    "tryAgain": "再試一次",
+    "loading": "載入中…",
+    "skipToContent": "跳至主要內容"
+  },
+  "nav": {
+    "dashboard": "儀表板",
+    "alerts": "警示",
+    "howItWorks": "運作方式",
+    "pricing": "收費模式",
+    "security": "安全保障",
+    "contact": "聯絡我們",
+    "businessCase": "商業案例",
+    "alertsAria": "警示（{count} 個未處理）",
+    "alertsAriaNone": "警示",
+    "openMenu": "開啟選單",
+    "closeMenu": "關閉選單",
+    "reconnecting": "重新連線中…"
+  },
+  "footer": {
+    "tagline": "— 香港遠程慢性病監測。",
+    "privacy": "私隱政策",
+    "terms": "使用條款",
+    "businessCase": "商業案例",
+    "pricing": "收費模式",
+    "security": "安全保障",
+    "contact": "聯絡我們",
+    "disclaimer": "CareLoop 只標示監測風險供專業人員覆查，不作診斷或處方。"
+  },
+  "localeSwitcher": {
+    "label": "語言"
+  },
+  "userMenu": {
+    "ariaLabel": "{name} 的帳戶選單",
+    "roleAdmin": "管理員",
+    "roleNurse": "護士",
+    "settings": "設定",
+    "signOut": "登出"
+  },
+  "landing": {
+    "badge": "香港長者慢性病監測",
+    "heroTitle": "CareLoop 守護",
+    "heroTitleAccent": "覆診之間的空白期。",
+    "heroSub": "透過 WhatsApp 每日報到、生命體徵信號及可解釋的規則，協助護士在覆診之間監測長者慢性病患者。",
+    "safetyLine": "僅屬監測支援。不作診斷，亦不提供治療建議。",
+    "preview": {
+      "label": "病人 · CareLoop",
+      "escalate": "需立即跟進",
+      "name": "陳太，78歲",
+      "profile": "心臟衰竭＋高血壓 · 獨居",
+      "latestSignals": "最新信號",
+      "signal1": "3日內增重2.3公斤",
+      "signal2": "氣促",
+      "signal3": "腳部水腫",
+      "signal4": "漏服藥物",
+      "matchedRules": "觸發規則",
+      "escalateLine": "● 需立即跟進 — 建議護士覆查",
+      "forReview": "供護士覆查 · 並非診斷"
+    },
+    "problem": {
+      "title": "覆診之間的空白期",
+      "sub": "風險不只存在於診所之內，更在於症狀、服藥依從性與日常變化變得無從掌握的漫長空白期。",
+      "step1Title": "診所覆診",
+      "step1Body": "病人就診，更新治療計劃。",
+      "step2Title": "漫長空白",
+      "step2Body": "數日至數週之間情況難以掌握。",
+      "step3Title": "錯過症狀",
+      "step3Body": "症狀惡化，信號被忽略。",
+      "step4Title": "急症求醫",
+      "step4Body": "病情惡化，成本上升，壓力增加。",
+      "bottleneckTitle1": "真正的瓶頸是",
+      "bottleneckAccent": "依從性，",
+      "bottleneckTitle2": "而不僅是監測。",
+      "bottleneck1": "長者未必會使用新應用程式，或記得每日報到。",
+      "bottleneck2": "家人與護理團隊難以掌握情況。",
+      "bottleneck3": "延誤可能導致本可避免的惡化與急症求醫。"
+    },
+    "controls": {
+      "slide": "第 {n} 頁",
+      "back": "返回",
+      "next": "下一頁",
+      "requestDemo": "預約示範",
+      "signIn": "登入",
+      "scrollCue": "運作方式"
+    }
+  },
+  "sections": {
+    "how": {
+      "title": "運作方式",
+      "sub": "由一條 WhatsApp 訊息到護士決策——四個步驟，病人毋須安裝任何應用程式。",
+      "step1Title": "病人在 WhatsApp 回覆",
+      "step1Body": "每日以廣東話或英文報到。毋須安裝應用程式，毋須記住登入。",
+      "step2Title": "信號結構化",
+      "step2Body": "症狀、體重、血壓及語音訊息自動轉化為結構化數據。",
+      "step3Title": "確定性規則評估",
+      "step3Body": "可解釋的規則（如 HF-001，並非黑盒）決定哪些情況需要關注。絕不使用 AI 作診斷。",
+      "step4Title": "護士優先看例外",
+      "step4Body": "以例外為先的儀表板，配備完整審計紀錄。一名護士可照顧整個病房。"
+    },
+    "features": {
+      "title": "監測計劃所需的一切",
+      "sub": "為臨床問責而設，而非追求互動數字。",
+      "f1Title": "確定性風險引擎",
+      "f1Body": "保守、可解釋、附規則編號。每次升級警示都清楚說明原因。",
+      "f2Title": "雙語報到",
+      "f2Body": "透過 WhatsApp 以廣東話及英文進行——長者本來就在用的渠道。",
+      "f3Title": "例外為先的儀表板",
+      "f3Body": "護士只需覆查有需要的病人，而非全部。",
+      "f4Title": "照顧者通知",
+      "f4Body": "升級警示時通知家人，措辭由護士掌控。",
+      "f5Title": "臨床可用的匯出",
+      "f5Body": "每週摘要、PDF 報告及 FHIR 式匯出，融入現有工作流程。",
+      "f6Title": "只增不改的審計紀錄",
+      "f6Body": "每次存取與操作均有紀錄，為臨床問責而設。"
+    },
+    "trust": {
+      "item1": "每間醫院獨立專屬系統",
+      "item2": "傳輸與儲存均加密",
+      "item3": "不用 AI 診斷——以確定性規則決策",
+      "item4": "完整審計紀錄",
+      "link": "閱讀安全保障概覽 →"
+    },
+    "cta": {
+      "title": "在您病房的工作流程上體驗 CareLoop。",
+      "sub": "與我們團隊進行30分鐘示範——配合您的應用場景、語言組合及升級規則。",
+      "primary": "預約示範",
+      "secondary": "了解收費模式"
+    }
+  },
+  "public": {
+    "business": {
+      "title": "商業案例",
+      "sub": "CareLoop 將覆診之間的監測變成可營運的工作流程。以下說明誰會購買、為何購買，以及如何在規模化下保持安全。",
+      "whoTitle": "誰會付費？",
+      "who1": "安老服務營運機構",
+      "who2": "居家護理機構",
+      "who3": "私營診所",
+      "who4": "保險公司",
+      "who5": "營運長者慢性病計劃的非政府組織",
+      "who6": "護理統籌服務供應商",
+      "whyTitle": "為何付費",
+      "why1": "更早獲護士覆查",
+      "why2": "減少錯過病情惡化",
+      "why3": "更好的照顧者協調",
+      "why4": "提升覆診依從性",
+      "why5": "臨床可用的摘要",
+      "why6": "結構化匯出，融入醫療工作流程",
+      "kpiTitle": "關鍵績效指標",
+      "kpi1": "護士覆查所需時間",
+      "kpi2": "已覆查的高風險病人",
+      "kpi3": "漏報到次數",
+      "kpi4": "服藥依從性",
+      "kpi5": "照顧者回應時間",
+      "kpi6": "可避免的升級信號",
+      "scaleTitle": "規模化會遇到甚麼問題？",
+      "scale1": "誤報",
+      "scale2": "數據不完整",
+      "scale3": "裝置碎片化",
+      "scale4": "照顧者信任",
+      "scale5": "臨床責任",
+      "scale6": "工作流程採納",
+      "handleTitle": "CareLoop 如何應對",
+      "handle1": "保守的規則",
+      "handle2": "數據完整度評分",
+      "handle3": "護士人手覆查把關",
+      "handle4": "審計紀錄",
+      "handle5": "清晰的免責聲明",
+      "handle6": "FHIR 式匯出",
+      "handle7": "不作診斷或治療建議"
+    },
+    "pricing": {
+      "title": "按合作模式收費",
+      "sub": "CareLoop 按醫院部署，而非按帳戶收費。每個合作均由雙方共同釐定範圍——以下是常見的合作流程。",
+      "pilotName": "先導計劃",
+      "pilotTag": "由此開始",
+      "pilot1": "一個病房或護理計劃，設定明確的病人群組",
+      "pilot2": "為期三個月，按群組規模釐定固定先導費用",
+      "pilot3": "完整產品：WhatsApp 報到、風險規則、護士儀表板",
+      "pilot4": "共同制定成效準則，每週與我們團隊檢討",
+      "pilotCta": "申請先導計劃",
+      "standardName": "標準方案",
+      "standardTag": "最常見",
+      "standard1": "先導計劃成功後，按病人每月訂閱",
+      "standard2": "護士及管理員帳戶不設上限——我們從不按醫護人員收費",
+      "standard3": "雙語報到、照顧者通知、PDF 及 FHIR 式匯出",
+      "standard4": "包括電郵支援及產品更新",
+      "standardCta": "預約示範",
+      "enterpriseName": "企業方案",
+      "enterpriseTag": "完全隔離",
+      "enterprise1": "專屬系統：獨立資料庫、應用程式及 WhatsApp 號碼",
+      "enterprise2": "數據存放於您指定的地區——絕不與其他醫院共享",
+      "enterprise3": "自訂升級規則、SSO/SMTP 整合、服務水平協議",
+      "enterprise4": "可選擇於您的網絡內自行託管",
+      "enterpriseCta": "與我們聯絡",
+      "whyTitle": "為何沒有公開價目表？",
+      "whyBody": "群組規模、語言組合及整合深度都會影響成本。我們寧願花30分鐘誠實地與您釐定範圍，也不願公佈一個不適合您病房的數字。"
+    },
+    "security": {
+      "title": "安全與信任",
+      "sub": "以淺白的語言說明 CareLoop 如何保護病人數據。如有未盡之處，歡迎直接向我們查詢。",
+      "isolationTitle": "一間醫院，一套系統",
+      "isolationBody": "每間正式使用的醫院均運行專屬的 CareLoop 系統——獨立資料庫、獨立應用程式部署、獨立 WhatsApp 號碼。您病人的數據絕不與其他機構共享基礎設施。不是「邏輯分隔」，而是實體分隔。",
+      "accessTitle": "存取控制",
+      "accessBody": "員工帳戶由您的管理員開立，不設公開註冊。設有管理員及護士兩種角色，每個頁面及 API 請求均在伺服器端重新驗證。",
+      "encryptionTitle": "加密",
+      "encryptionBody": "傳輸使用 TLS 1.2 或以上；託管 Postgres 資料庫以 AES-256 靜態加密。服務憑證絕不傳送至瀏覽器。",
+      "auditTitle": "只增不改的審計紀錄",
+      "auditBody": "每次存取與操作均被記錄，並歸屬於已登入的使用者——可匯出作內部審查。",
+      "deterministicTitle": "以確定性為設計原則",
+      "deterministicBody": "升級警示的嚴重程度由可解釋、有版本管理的規則決定——絕不由 AI 模型判斷。AI 只用於處理語言（轉錄、措辭），絕不用於判斷臨床風險。",
+      "residencyTitle": "數據存放地區",
+      "residencyBody": "每套專屬系統均部署於您指定的雲端地區——香港的部署一般選用新加坡。（我們的公開示範運行於美國；正式系統會按您的需要選址。）",
+      "backupsTitle": "備份與復原",
+      "backupsBody": "每日自動備份是標準配置；企業方案可選擇時間點復原（PITR）。",
+      "certsTitle": "認證——如實交代",
+      "certsBody": "CareLoop 尚未取得 SOC 2 或 ISO 27001 認證。我們仍處於早期階段，不會假裝不是。我們的路線圖：先取得 SOC 2 Type I，再到 Type II。我們樂意向任何評估中的醫院提供安全問卷答覆及架構文件。",
+      "reportingTitle": "漏洞通報",
+      "reportingBody": "請以私下渠道向團隊通報安全問題——切勿透過公開的問題追蹤系統，亦切勿在通報中包含真實病人數據。",
+      "ctaTitle": "正在為您的醫院評估 CareLoop？",
+      "ctaSub": "我們樂意向您的資訊科技及數據保障團隊詳細講解。",
+      "ctaButton": "預約安全評估會議"
+    },
+    "contact": {
+      "title": "預約示範",
+      "sub": "告訴我們您病房或計劃的情況。真人會在一個工作天內回覆——絕無自動化郵件轟炸。",
+      "point1": "30分鐘示範，針對您的應用場景",
+      "point2": "無任何義務，毋須信用卡",
+      "point3": "歡迎查詢先導計劃、收費及數據隔離",
+      "form": {
+        "name": "姓名",
+        "organization": "機構",
+        "organizationPlaceholder": "醫院、診所或護理服務機構",
+        "role": "您的職位",
+        "rolePlaceholder": "例如：病房經理、醫療資訊總監、護理主管",
+        "email": "工作電郵",
+        "phone": "電話",
+        "phoneHint": "選填——請包括國家區號",
+        "interest": "您想了解甚麼？",
+        "interestPilot": "先導計劃",
+        "interestDemo": "產品示範",
+        "interestPricing": "收費查詢",
+        "interestOther": "其他",
+        "message": "訊息",
+        "messagePlaceholder": "您的病房規模、病人群體、現行工作流程…",
+        "submit": "送出請求",
+        "submitting": "傳送中…",
+        "successTitle": "多謝——我們已收到。",
+        "successBody": "我們會在一個工作天內回覆至 {email}。",
+        "failed": "未能送出請求",
+        "errors": {
+          "name": "請填寫姓名",
+          "organization": "請填寫機構名稱",
+          "email": "請輸入有效電郵"
+        }
+      }
+    },
+    "privacy": {
+      "title": "私隱政策",
+      "updated": "最後更新：2026年6月",
+      "s1h": "CareLoop 的功能",
+      "s1p": "CareLoop 為慢性病護理計劃提供監測支援：收集每日報到及生命體徵讀數，套用確定性升級規則，並將結果呈報護理團隊。CareLoop 不作診斷、不處方藥物，亦不取代臨床判斷。",
+      "s2h": "我們處理的數據",
+      "s2p": "CareLoop 代表部署機構處理以下數據：護理團隊輸入的病人識別資料（姓名、年齡、病況、照顧者聯絡方式）、傳送至報到號碼的 WhatsApp 訊息及語音轉錄文本、生命體徵讀數（體重、血壓、心率、活動量、睡眠），以及由此產生的風險評估。系統以只增不改的審計紀錄記載每次存取與操作，以確保問責。",
+      "s3h": "數據存放於何處、誰能查閱",
+      "s3p": "數據儲存於機構專屬的資料庫（Supabase Postgres），並以該機構為範圍。查閱須使用由機構管理員開立的員工帳戶。語音訊息會被轉錄，自由文字訊息會經 AI 服務（語音轉文字及語言模型）結構化處理；這些服務僅處理訊息內容，絕不判斷臨床嚴重程度。",
+      "s4h": "保留期限與權利",
+      "s4p": "數據的保留與刪除由部署機構決定。病人及照顧者可向其護理服務提供者（即數據管理方）提出查詢、更正或刪除要求。香港的部署受《個人資料（私隱）條例》（PDPO）規管。",
+      "s5h": "聯絡方式",
+      "s5p": "如對個別部署有私隱方面的查詢，請聯絡該部署機構的管理員。"
+    },
+    "terms": {
+      "title": "使用條款",
+      "updated": "最後更新：2026年6月",
+      "s1h": "並非醫療儀器",
+      "s1p": "CareLoop 是監測支援軟件，以確定性、可審計的規則標示監測信號供專業人員覆查。它不作診斷、不處方藥物、不提供治療建議，亦不能取代臨床判斷或緊急服務。如遇緊急情況，請立即致電當地緊急服務。",
+      "s2h": "授權使用",
+      "s2p": "護士儀表板及病人紀錄僅限由部署機構管理員開立的員工帳戶使用。帳戶屬個人專用，不得共享登入憑證。員工離職時，機構有責任撤銷其存取權限。",
+      "s3h": "服務預期",
+      "s3p": "每日報到依賴第三方通訊服務（經 Twilio 的 WhatsApp）及病人回覆；跟進漏報到的責任仍在護理團隊。CareLoop 按與部署機構簽訂的服務協議提供，該協議規管系統可用性、支援及責任條款。",
+      "s4h": "數據",
+      "s4p": "病人數據的使用受部署機構的協議及以下文件規管：",
+      "s4link": "私隱政策"
+    }
+  },
+  "auth": {
+    "login": {
+      "metaTitle": "登入",
+      "title": "登入 CareLoop",
+      "sub": "護士及管理員專用的監測儀表板。",
+      "email": "電郵",
+      "emailPlaceholder": "nurse@hospital.hk",
+      "password": "密碼",
+      "submit": "登入",
+      "submitting": "登入中…",
+      "invalidCredentials": "電郵或密碼不正確。",
+      "microcopy": "帳戶由機構管理員開立。忘記密碼？請聯絡管理員重新發出邀請。",
+      "errors": {
+        "email": "請輸入有效電郵",
+        "password": "請輸入密碼"
+      }
+    },
+    "updatePassword": {
+      "metaTitle": "設定密碼",
+      "title": "設定密碼",
+      "subPrefix": "已登入為",
+      "subSuffix": "。請設定密碼以完成帳戶設置。",
+      "newPassword": "新密碼",
+      "confirmPassword": "確認密碼",
+      "submit": "儲存並繼續",
+      "submitting": "儲存中…",
+      "errors": {
+        "password": "請使用至少10個字元",
+        "confirm": "兩次輸入的密碼不一致"
+      }
+    },
+    "noAccess": {
+      "metaTitle": "沒有存取權限",
+      "title": "帳戶尚未開通",
+      "bodyPrefix": "您已登入為",
+      "bodySuffix": "，但此帳戶尚未獲任何 CareLoop 機構的存取權限。請聯絡您機構的管理員完成邀請程序。"
+    }
+  },
+  "dashboard": {
+    "metaTitle": "護士儀表板",
+    "title": "護士儀表板",
+    "sub": "長者慢性病患者的最新報到、確定性風險狀態及下一步行動。",
+    "addPatient": "新增病人",
+    "onboardQr": "二維碼登記",
+    "stats": {
+      "monitored": "監測中的病人",
+      "escalate": "需立即跟進",
+      "watchReview": "觀察／覆查",
+      "checkinsToday": "今日已報到"
+    },
+    "filters": {
+      "all": "全部",
+      "needsReview": "待確認"
+    },
+    "nextAction": {
+      "escalate": "今日護士覆查",
+      "review_today": "今日覆查",
+      "watch": "持續監察",
+      "stable": "例行監測"
+    },
+    "table": {
+      "patient": "病人",
+      "lastCheckin": "最後報到",
+      "risk": "風險",
+      "reason": "原因",
+      "nextAction": "下一步行動",
+      "empty": "此檢視沒有病人。",
+      "lastCheckinShort": "最後報到"
+    },
+    "focused": {
+      "highestPriority": "最高優先",
+      "assignedTo": "負責護士",
+      "openPatient": "開啟病人檔案"
+    }
+  },
+  "alerts": {
+    "metaTitle": "護士覆查隊列",
+    "title": "護士覆查隊列",
+    "sub": "由確定性規則引擎發出的警示，附觸發規則、證據及建議負責人。確認後可加上備註。",
+    "views": {
+      "unopened": "未開啟",
+      "open": "處理中",
+      "all": "全部"
+    },
+    "empty": {
+      "title": "此檢視沒有警示",
+      "body": "可從頁首執行高風險報到以產生警示。"
+    },
+    "card": {
+      "nurseNote": "護士備註",
+      "notePlaceholder": "加入備註（例如：已致電女兒、已預約診所覆診）…",
+      "statusLabel": "警示狀態",
+      "acknowledge": "確認",
+      "save": "儲存",
+      "lastCheckin": "最後報到 {date}"
+    },
+    "toasts": {
+      "new": "警示已重新開啟",
+      "acknowledged": "警示已確認",
+      "family_contacted": "警示已更新——已聯絡家人",
+      "clinician_review_requested": "警示已更新——已要求醫生覆查",
+      "resolved": "警示已解決",
+      "failed": "未能更新警示"
+    }
+  },
+  "patient": {
+    "detail": {
+      "back": "返回儀表板",
+      "sendCheckin": "發送報到",
+      "sendCheckinSuccess": "每日報到已發送至{name}的 WhatsApp",
+      "sendCheckinFailed": "未能發送報到",
+      "edit": "編輯",
+      "moreActions": "更多操作",
+      "importCsv": "匯入 CSV",
+      "auditTrail": "審計紀錄",
+      "pendingBanner": "此病人由 WhatsApp 報到自動建立——請確認其資料。",
+      "reviewDetails": "確認資料",
+      "years": "{age} 歲",
+      "ageUnknown": "年齡未知",
+      "monitoringNote": "僅屬監測警示，並非診斷或治療建議。",
+      "nurse": "護士",
+      "caregiver": "照顧者",
+      "whatsapp": "WhatsApp",
+      "tabs": {
+        "trends": "趨勢",
+        "checkins": "報到紀錄",
+        "export": "匯出及審計"
+      },
+      "charts": {
+        "weight": "體重（公斤）",
+        "bloodPressure": "血壓（mmHg）",
+        "activity": "活動量（步數）",
+        "riskOverTime": "風險水平變化",
+        "weightAria": "{name}在監測期間的體重趨勢圖（公斤）",
+        "bpAria": "{name}的血壓趨勢圖：收縮壓及舒張壓（毫米水銀柱）",
+        "stepsAria": "{name}的每日活動量趨勢圖（步數），附基線及下降四成的警戒線",
+        "riskAria": "{name}的風險水平變化，由穩定至需立即跟進",
+        "baseline": "基線",
+        "seriesWeight": "體重",
+        "seriesSystolic": "收縮壓",
+        "seriesDiastolic": "舒張壓",
+        "seriesSteps": "步數",
+        "seriesRisk": "風險"
+      },
+      "moreTrends": "更多趨勢——活動量、服藥依從性、風險變化",
+      "adherence": {
+        "title": "服藥依從性",
+        "days": "{taken}/{total} 日",
+        "taken": "已服藥",
+        "missed": "漏服"
+      },
+      "checkinsHeading": "每日報到回覆",
+      "table": {
+        "date": "日期",
+        "mood": "心情",
+        "breathless": "氣促",
+        "swelling": "水腫",
+        "medication": "服藥",
+        "note": "備註"
+      },
+      "yesNo": {
+        "yes": "有",
+        "no": "沒有",
+        "taken": "已服",
+        "missed": "漏服"
+      },
+      "noActiveAlert": {
+        "title": "沒有未處理警示",
+        "body": "監測數據在預期範圍內。請繼續每日報到。"
+      },
+      "riskCard": {
+        "title": "風險評估",
+        "engineNote": "嚴重程度由確定性規則引擎決定——並非 AI。",
+        "noneTriggered": "沒有觸發任何監測規則。生命體徵、症狀及服藥依從性均在預期範圍內。",
+        "recommendedAction": "建議操作"
+      }
+    },
+    "form": {
+      "sectionPatient": "病人資料",
+      "sectionWhatsapp": "WhatsApp 及照顧者",
+      "sectionCarePlan": "護理計劃及基線",
+      "name": "姓名",
+      "namePlaceholder": "陳太",
+      "age": "年齡",
+      "gender": "性別",
+      "genderFemale": "女",
+      "genderMale": "男",
+      "genderOther": "其他",
+      "language": "語言",
+      "languagePlaceholder": "廣東話",
+      "livingStatus": "居住情況",
+      "livingStatusPlaceholder": "獨居／與家人同住／院舍",
+      "conditions": "病況",
+      "conditionsHint": "輸入病況後按 Enter",
+      "conditionsPlaceholder": "heart failure",
+      "removeCondition": "移除 {condition}",
+      "phone": "病人 WhatsApp 號碼",
+      "phoneHint": "國際格式，用於每日報到，例如 +85291234567",
+      "caregiverName": "照顧者姓名",
+      "caregiverNamePlaceholder": "女兒——陳小姐",
+      "caregiverPhone": "照顧者電話",
+      "assignedNurse": "負責護士",
+      "assignedNursePlaceholder": "黃護士",
+      "baselineWeight": "基線體重（公斤）",
+      "baselineWeightHint": "供體重增加規則使用",
+      "baselineSteps": "基線每日步數",
+      "baselineStepsHint": "供活動量下降規則使用",
+      "create": "建立病人",
+      "creating": "建立中…",
+      "saveChanges": "儲存變更",
+      "saveAndReview": "儲存並標記為已確認",
+      "saving": "儲存中…",
+      "fixFields": "請修正標示的欄位",
+      "created": "{name}已加入監測",
+      "saved": "病人資料已儲存",
+      "saveFailed": "未能儲存病人資料",
+      "errors": {
+        "name": "請填寫姓名",
+        "age": "請輸入1至120之間的年齡",
+        "language": "請填寫語言",
+        "living_status": "請填寫居住情況",
+        "conditions": "請至少加入一項病況",
+        "assigned_nurse": "請填寫負責護士",
+        "baseline_weight": "請輸入20至300公斤之間的基線體重",
+        "baseline_steps": "請輸入0至100,000之間的基線步數",
+        "phone": "電話須為國際格式，例如 +85291234567"
+      }
+    },
+    "new": {
+      "metaTitle": "新增病人",
+      "title": "新增病人",
+      "sub": "登記病人接受每日 WhatsApp 監測。基線數據驅動確定性風險規則。",
+      "back": "返回儀表板"
+    },
+    "edit": {
+      "metaTitle": "編輯病人",
+      "title": "編輯病人",
+      "sub": "更新病人資料、WhatsApp 號碼及監測基線。",
+      "subPending": "此病人由 WhatsApp 訊息自動建立。請確認資料以完成登記。",
+      "back": "返回{name}"
+    },
+    "notFoundFallback": "找不到病人。"
+  },
+  "onboard": {
+    "metaTitle": "病人登記",
+    "title": "啟動您的 CareLoop 報到",
+    "sub": "在 WhatsApp 完成兩個簡單步驟——毋須安裝應用程式，毋須開戶。",
+    "scanCaption": "掃描以開啟 WhatsApp（號碼：{number}）",
+    "step1Title": "掃描二維碼並按發送",
+    "step1Body": "WhatsApp 會自動填好「{joinText}」。直接發送即可——這一步將您連接至 CareLoop。",
+    "step2Title": "發送您的第一條訊息",
+    "step2Body": "回覆您今日的感覺——可以打字，或發送廣東話語音（例如「今日有啲氣促，對腳腫咗」）。CareLoop 會確認您的登記，您的病人紀錄亦會出現在護士儀表板上待確認。",
+    "whyTwo": "為何要兩條訊息？第一條將您連接至 WhatsApp 沙盒；第二條才是 CareLoop 實際收到的第一條訊息，讓系統取得您的號碼（單憑掃描無法得知號碼）。此後 CareLoop 會每日主動發送報到——您只需回覆。",
+    "disclaimer": "CareLoop 屬監測支援——並非診斷或治療工具。"
+  },
+  "settings": {
+    "metaTitle": "設定",
+    "title": "設定",
+    "sub": "管理您機構的團隊及配置。",
+    "tabs": {
+      "team": "團隊",
+      "organization": "機構",
+      "demo": "示範",
+      "leads": "查詢"
+    },
+    "org": {
+      "title": "機構",
+      "name": "名稱",
+      "id": "機構編號",
+      "note": "CareLoop 已具備多機構架構——所有紀錄均以此機構為範圍。多機構管理功能將於日後版本推出。"
+    },
+    "demo": {
+      "title": "示範工具",
+      "body": "此部署以示範模式運行：臨床日期凍結於示範週，數據集為模擬數據。重設會還原至標準的五位病人情境。",
+      "reset": "重設示範數據"
+    },
+    "users": {
+      "title": "團隊",
+      "loading": "載入團隊中…",
+      "empty": "尚未有團隊成員。請於上方邀請第一位護士。",
+      "you": "（您）",
+      "loadFailed": "未能載入團隊",
+      "invite": "邀請成員",
+      "inviteTitle": "邀請團隊成員",
+      "inviteSub": "對方會收到電郵，內附設定密碼的連結。",
+      "name": "姓名",
+      "namePlaceholder": "黃護士",
+      "email": "電郵",
+      "emailPlaceholder": "nurse@hospital.hk",
+      "role": "角色",
+      "roleNurse": "護士",
+      "roleAdmin": "管理員",
+      "send": "發送邀請",
+      "sending": "傳送中…",
+      "sent": "邀請已發送至 {email}",
+      "failed": "邀請失敗",
+      "errors": {
+        "name": "請填寫姓名",
+        "email": "請輸入有效電郵"
+      }
+    },
+    "leads": {
+      "title": "查詢",
+      "loading": "載入查詢中…",
+      "empty": "尚未有查詢。有人提交聯絡表格後會在此顯示。",
+      "loadFailed": "未能載入查詢",
+      "statusLabel": "查詢狀態",
+      "status": {
+        "new": "新查詢",
+        "contacted": "已聯絡",
+        "closed": "已結束"
+      },
+      "interest": {
+        "pilot": "先導計劃",
+        "demo": "示範",
+        "pricing": "收費",
+        "other": "其他"
+      },
+      "updated": "查詢已更新",
+      "updateFailed": "未能更新查詢"
+    }
+  },
+  "panels": {
+    "caregiver": {
+      "title": "照顧者通知",
+      "copy": "複製",
+      "copied": "已複製照顧者訊息",
+      "copyFailed": "未能複製到剪貼簿",
+      "notify": "通知家人",
+      "notified": "已記錄：已聯絡家人",
+      "notifyFailed": "未能記錄照顧者通知"
+    },
+    "conversation": {
+      "title": "WhatsApp 報到",
+      "live": "即時",
+      "waiting": "等待病人的 WhatsApp 回覆…",
+      "voiceNote": "語音訊息",
+      "voiceDemo": "（示範）",
+      "chips": {
+        "breathless": "氣促",
+        "swelling": "水腫",
+        "dizzy": "頭暈",
+        "chest": "胸口不適",
+        "missedMeds": "漏服藥"
+      }
+    },
+    "weekly": {
+      "title": "每週臨床摘要",
+      "aiBadge": "AI 輔助措辭",
+      "templateBadge": "確定性範本",
+      "generate": "產生摘要",
+      "regenerate": "重新產生",
+      "generating": "產生中…",
+      "downloadPdf": "下載 PDF",
+      "generatedAi": "已產生每週摘要（AI 輔助）",
+      "generated": "已產生每週摘要",
+      "generatedAiDesc": "措辭由 Claude 潤飾；數據為確定性結果。",
+      "generatedDesc": "確定性範本（設定 ANTHROPIC_API_KEY 可啟用 AI 措辭）。",
+      "failed": "未能產生摘要",
+      "completeness": "數據完整度：{pct}% · AI 僅用於措辭；嚴重程度及數據均為確定性結果。",
+      "empty": "產生一頁臨床可用的本週監測摘要——風險趨勢、生命體徵、症狀、依從性、觸發規則及建議覆查事項，並可匯出 PDF 供護理團隊使用。"
+    },
+    "fhir": {
+      "title": "FHIR 式匯出",
+      "resources": "{count} 項資源",
+      "empty": "產生 FHIR 式 JSON 套件——病人、觀察項目、問卷回覆及護士覆查服務請求——專為融入醫療工作流程而設。",
+      "export": "匯出 FHIR 套件",
+      "exporting": "匯出中…",
+      "exported": "已匯出 FHIR 式套件",
+      "exportFailed": "未能匯出套件",
+      "copy": "複製",
+      "copied": "已複製 FHIR 套件",
+      "copyFailed": "未能複製",
+      "download": "下載 .json"
+    },
+    "csv": {
+      "title": "匯入生命體徵／穿戴裝置 CSV",
+      "sub": "欄位：date、weight_kg、systolic_bp、diastolic_bp、heart_rate、steps、sleep_hours、medication_taken、shortness_of_breath、swelling。匯入此病人的數據後，規則引擎會重新評估。",
+      "chooseFile": "選擇 CSV 檔案",
+      "placeholder": "…或在此貼上 CSV 內容",
+      "cancel": "取消",
+      "import": "匯入",
+      "importing": "匯入中…",
+      "emptyError": "請先選擇 CSV 檔案或貼上內容",
+      "imported": "已匯入 {count, plural, other {# 行}}",
+      "failed": "匯入失敗"
+    },
+    "audit": {
+      "title": "審計紀錄",
+      "sub": "此病人所有監測操作的只增不改紀錄。",
+      "trigger": "審計紀錄",
+      "empty": "尚未有紀錄。",
+      "by": "操作者：{actor}"
+    },
+    "demoControls": {
+      "trigger": "示範工具",
+      "risky": "執行高風險報到",
+      "sendAll": "每日報到（全部）",
+      "generateSummary": "產生摘要",
+      "summaryReadyAi": "每週摘要已備妥（AI 輔助）",
+      "summaryReadyTemplate": "每週摘要已備妥（範本）",
+      "summaryDesc": "開啟陳太 → 匯出及審計，即可查閱及下載。",
+      "summaryFailed": "未能產生摘要",
+      "noNumbers": "尚未取得任何病人的 WhatsApp 號碼——請先向 CareLoop 號碼發送訊息。",
+      "sent": "每日報到已發送至 {sent}/{total} 位病人。",
+      "sendFailed": "未能發送報到"
+    }
+  },
+  "appProvider": {
+    "restored": "連線已恢復",
+    "refreshFailed": "未能更新數據",
+    "refreshFailedDesc": "即時更新已暫停，待連線恢復後繼續。",
+    "resetSuccess": "示範數據已重設至初始狀態",
+    "resetFailed": "重設失敗",
+    "riskyTitle": "已為陳太記錄高風險報到",
+    "riskyDesc": "觸發 {codes} → {severity}。警示已送至護士隊列。",
+    "riskyFailed": "未能執行高風險報到"
+  },
+  "domain": {
+    "severity": {
+      "stable": "穩定",
+      "watch": "觀察",
+      "review_today": "今日覆查",
+      "escalate": "需立即跟進"
+    },
+    "alertStatus": {
+      "new": "新警示",
+      "acknowledged": "已確認",
+      "family_contacted": "已聯絡家人",
+      "clinician_review_requested": "已要求醫生覆查",
+      "resolved": "已解決"
+    },
+    "reasonTags": {
+      "weight gain": "體重增加",
+      "symptoms reported": "報告症狀",
+      "missed meds": "漏服藥",
+      "high BP": "血壓偏高",
+      "low activity": "活動量偏低"
+    },
+    "noFlags": "沒有標示",
+    "rules": {
+      "HF-001": "體重急速增加可能反映心臟衰竭監測中的體液滯留。",
+      "HF-002": "體重增加並同時出現氣促及水腫，需要覆查。",
+      "MED-001": "持續漏服藥物會增加慢性病風險。",
+      "BP-001": "血壓非常高，應盡快覆查。",
+      "ACT-001": "活動量下降可能是惡化或體弱風險的信號。",
+      "SYM-001": "病人報告的症狀需要護士覆查，與基礎病況無關。"
+    },
+    "recommendedAction": {
+      "escalate": "建議今日安排護士覆查並通知家人。如症狀嚴重，請聯絡緊急服務。",
+      "review_today": "建議今日安排護士覆查，並考慮預約診所跟進。",
+      "watch": "繼續監測。如趨勢持續，安排護士覆查。",
+      "stable": "毋須行動。繼續例行監測。"
+    },
+    "audit": {
+      "demo_data_seeded": "已載入示範數據",
+      "checkin_submitted": "已提交報到",
+      "risk_evaluated": "已評估風險",
+      "alert_created": "已建立警示",
+      "alert_acknowledged": "已確認警示",
+      "alert_updated": "已更新警示",
+      "caregiver_alert_generated": "已產生照顧者通知",
+      "weekly_summary_generated": "已產生每週摘要",
+      "pdf_exported": "已匯出 PDF",
+      "fhir_exported": "已匯出 FHIR",
+      "csv_imported": "已匯入 CSV",
+      "demo_data_reset": "已重設示範數據",
+      "risky_checkin_replayed": "已重播高風險報到",
+      "patient_created": "已建立病人",
+      "patient_updated": "已更新病人",
+      "patient_archived": "已封存病人",
+      "user_invited": "已邀請使用者"
+    },
+    "safety": {
+      "label1": "並非診斷",
+      "label2": "供護士／醫生覆查",
+      "label3": "不提供治療建議",
+      "label4": "示範數據",
+      "banner": "CareLoop 不作診斷或處方，只標示監測風險供專業人員覆查。",
+      "note": "此警示並非診斷或治療建議，而是供專業人員覆查的監測提示。"
+    }
+  },
+  "metadata": {
+    "rootTitle": "CareLoop — 遠程慢性病監測",
+    "rootDescription": "CareLoop 將每日廣東話報到、生命體徵信號及確定性升級規則，轉化為護士覆查工作流程，服務覆診之間的香港長者。監測支援——並非診斷。",
+    "ogDescription": "每日 WhatsApp 報到、確定性風險規則，以及例外為先的護士儀表板，服務覆診之間的慢性病護理。",
+    "landingDescription": "WhatsApp 報到、生命體徵信號及可解釋的確定性規則，協助護士在覆診之間監測長者慢性病患者。監測支援——並非診斷。",
+    "businessDescription": "誰會為 CareLoop 付費及原因：安老服務營運機構、居家護理機構、診所及保險公司——關鍵指標、規模化風險及應對方案。",
+    "pricingTitle": "收費模式",
+    "pricingDescription": "CareLoop 的合作模式：先導計劃、按病人訂閱及企業專屬系統。不設公開價目表——每間醫院的範圍各有不同。",
+    "securityTitle": "安全與信任",
+    "securityDescription": "CareLoop 如何保護病人數據：每間醫院獨立系統、加密、審計紀錄及確定性臨床規則。",
+    "contactTitle": "預約示範",
+    "contactDescription": "告訴我們您病房或計劃的情況——先導計劃、收費及安全評估。真人會在一個工作天內回覆。",
+    "privacyDescription": "CareLoop 如何處理病人監測數據。",
+    "termsDescription": "CareLoop 監測平台的使用條款。"
+  },
+  "notFound": {
+    "title": "找不到頁面",
+    "body": "您要找的頁面不存在，或已被移動。",
+    "goDashboard": "前往儀表板",
+    "home": "主頁"
+  },
+  "errorPage": {
+    "title": "發生錯誤",
+    "body": "出現意外錯誤。您的數據安全無損——請再試一次，或返回儀表板。",
+    "tryAgain": "再試一次",
+    "backToDashboard": "返回儀表板"
+  }
+}

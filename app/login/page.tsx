@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { LoginForm } from "@/components/LoginForm";
 import { getAuthContext } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth.login");
+  return { title: t("metaTitle"), robots: { index: false, follow: false } };
+}
 
 export default async function LoginPage({
   searchParams,

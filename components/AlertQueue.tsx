@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { ArrowRight, CheckCircle2, ChevronRight, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/AppProvider";
@@ -9,14 +10,8 @@ import { AlertStatusBadge, RiskBadge } from "@/components/RiskBadge";
 import { SafetyNote } from "@/components/SafetyLabels";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
-import { formatDateTime, formatDay } from "@/lib/format";
-import {
-  ALERT_STATUS_LABEL,
-  SEVERITY_ORDER,
-  type AlertStatus,
-  type PatientRow,
-  type RiskAlert,
-} from "@/lib/types";
+import { useFormat } from "@/lib/useFormat";
+import { SEVERITY_ORDER, type AlertStatus, type PatientRow, type RiskAlert } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const STATUSES: AlertStatus[] = [
@@ -29,13 +24,10 @@ const STATUSES: AlertStatus[] = [
 
 type AlertView = "unopened" | "open" | "all";
 
-const VIEWS: { key: AlertView; label: string }[] = [
-  { key: "unopened", label: "Unopened" },
-  { key: "open", label: "Open" },
-  { key: "all", label: "All" },
-];
+const VIEWS: AlertView[] = ["unopened", "open", "all"];
 
 export function AlertQueue() {
+  const t = useTranslations("alerts");
   const { alerts, rows, refresh } = useApp();
   const [view, setView] = useState<AlertView>("open");
 
@@ -69,27 +61,29 @@ export function AlertQueue() {
 
   return (
     <div className="space-y-4">
-      <div className="flex rounded-lg border border-border p-0.5 text-sm w-fit">
+      <div className="flex w-fit rounded-lg border border-border p-0.5 text-sm">
         {VIEWS.map((v) => {
-          const active = view === v.key;
+          const active = view === v;
           return (
             <button
-              key={v.key}
-              onClick={() => setView(v.key)}
+              key={v}
+              onClick={() => setView(v)}
               aria-pressed={active}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                 active ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
-              {v.label}
+              {t(`views.${v}`)}
               <span
                 className={cn(
                   "rounded-full px-1.5 text-xs",
-                  active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted text-muted-foreground",
+                  active
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
-                {counts[v.key]}
+                {counts[v]}
               </span>
             </button>
           );
@@ -99,10 +93,8 @@ export function AlertQueue() {
       {visible.length === 0 && (
         <div className="rounded-xl border border-dashed border-border bg-card py-12 text-center">
           <CheckCircle2 className="mx-auto size-8 text-emerald-500" />
-          <p className="mt-2 font-medium">No alerts in this view</p>
-          <p className="text-sm text-muted-foreground">
-            Run a risky check-in from the header to generate one.
-          </p>
+          <p className="mt-2 font-medium">{t("empty.title")}</p>
+          <p className="text-sm text-muted-foreground">{t("empty.body")}</p>
         </div>
       )}
 
@@ -131,6 +123,9 @@ function AlertCard({
   patient: PatientRow | undefined;
   onChanged: () => Promise<void> | void;
 }) {
+  const t = useTranslations("alerts");
+  const td = useTranslations("domain.alertStatus");
+  const { formatDay, formatDateTime } = useFormat();
   const [status, setStatus] = useState<AlertStatus>(alert.status);
   const [note, setNote] = useState(alert.nurse_note ?? "");
   const [busy, setBusy] = useState(false);
@@ -142,9 +137,9 @@ function AlertCard({
       await api.patchAlert(alert.id, { status: finalStatus, nurse_note: note || null });
       setStatus(finalStatus);
       await onChanged();
-      if (!opts?.quiet) toast.success(`Alert ${ALERT_STATUS_LABEL[finalStatus].toLowerCase()}`);
+      if (!opts?.quiet) toast.success(t(`toasts.${finalStatus}`));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not update alert");
+      toast.error(e instanceof Error ? e.message : t("toasts.failed"));
     } finally {
       setBusy(false);
     }
@@ -163,7 +158,8 @@ function AlertCard({
           </Link>
           {patient && (
             <span className="text-sm text-muted-foreground">
-              {patient.patient.age} · {patient.patient.conditions.join(", ")}
+              {patient.patient.age > 0 ? patient.patient.age : "—"} ·{" "}
+              {patient.patient.conditions.join(", ")}
             </span>
           )}
         </div>
@@ -183,7 +179,7 @@ function AlertCard({
         <span aria-hidden>·</span>
         <span>{patient?.latest_weight != null ? `${patient.latest_weight} kg` : "—"}</span>
         <span aria-hidden>·</span>
-        <span>Last check-in {formatDay(patient?.last_checkin_date)}</span>
+        <span>{t("card.lastCheckin", { date: formatDay(patient?.last_checkin_date) })}</span>
       </div>
 
       <p className="mt-2 flex items-start gap-1.5 text-sm">
@@ -194,37 +190,37 @@ function AlertCard({
       {/* nurse action row */}
       <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end">
         <label className="flex-1 text-xs text-muted-foreground">
-          Nurse note
+          {t("card.nurseNote")}
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
             onBlur={() => {
               if (!busy && note !== (alert.nurse_note ?? "")) void save(undefined, { quiet: true });
             }}
-            placeholder="Add a note (e.g. called daughter, booked clinic follow-up)…"
+            placeholder={t("card.notePlaceholder")}
             className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
           />
         </label>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value as AlertStatus)}
-          aria-label="Alert status"
+          aria-label={t("card.statusLabel")}
           className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring"
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {ALERT_STATUS_LABEL[s]}
+              {td(s)}
             </option>
           ))}
         </select>
         <div className="flex gap-2">
           {alert.status === "new" && (
             <Button variant="outline" size="sm" disabled={busy} onClick={() => save("acknowledged")}>
-              Acknowledge
+              {t("card.acknowledge")}
             </Button>
           )}
           <Button size="sm" disabled={busy} onClick={() => save()} className="gap-1.5">
-            Save <ChevronRight className="size-4" />
+            {t("card.save")} <ChevronRight className="size-4" />
           </Button>
         </div>
       </div>

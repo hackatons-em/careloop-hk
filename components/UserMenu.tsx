@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { LogOut, Settings } from "lucide-react";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ function initials(name: string): string {
 }
 
 export function UserMenu({ user }: { user: HeaderUser }) {
+  const t = useTranslations("userMenu");
   const router = useRouter();
 
   async function signOut() {
@@ -35,7 +37,7 @@ export function UserMenu({ user }: { user: HeaderUser }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        aria-label={`Account menu for ${user.name}`}
+        aria-label={t("ariaLabel", { name: user.name })}
         className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         {initials(user.name)}
@@ -45,17 +47,17 @@ export function UserMenu({ user }: { user: HeaderUser }) {
           <p className="truncate text-sm font-medium">{user.name}</p>
           <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           <span className="mt-1.5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-2 py-0.5 text-[11px] font-semibold text-accent-foreground">
-            {user.role === "admin" ? "Administrator" : "Nurse"}
+            {user.role === "admin" ? t("roleAdmin") : t("roleNurse")}
           </span>
         </div>
         <DropdownMenuSeparator />
         {user.role === "admin" && (
           <DropdownMenuItem onClick={() => router.push("/settings")}>
-            <Settings className="size-4" /> Settings
+            <Settings className="size-4" /> {t("settings")}
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={signOut}>
-          <LogOut className="size-4" /> Sign out
+          <LogOut className="size-4" /> {t("signOut")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

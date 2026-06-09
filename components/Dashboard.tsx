@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Users, AlertTriangle, Eye, ClipboardCheck, ChevronRight, ArrowRight } from "lucide-react";
 import { useApp } from "@/components/AppProvider";
 import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
@@ -17,35 +18,30 @@ import {
 } from "@/components/ui/table";
 import { SEVERITY_ORDER, type PatientRow, type Severity } from "@/lib/types";
 import { severityStyle } from "@/lib/severity";
-import { formatDay } from "@/lib/format";
+import { useFormat } from "@/lib/useFormat";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | Severity | "needs_review";
 
-const FILTERS: { key: Filter; label: string }[] = [
-  { key: "all", label: "All" },
-  { key: "stable", label: "Stable" },
-  { key: "watch", label: "Watch" },
-  { key: "review_today", label: "Review today" },
-  { key: "escalate", label: "Escalate" },
-  { key: "needs_review", label: "Needs review" },
-];
-
-const NEXT_ACTION: Record<Severity, string> = {
-  escalate: "Nurse review today",
-  review_today: "Review today",
-  watch: "Monitor",
-  stable: "Routine monitoring",
-};
+const FILTER_KEYS: Filter[] = ["all", "stable", "watch", "review_today", "escalate", "needs_review"];
 
 function ageLabel(age: number): string {
   return age > 0 ? String(age) : "—";
 }
 
 export function Dashboard() {
+  const t = useTranslations("dashboard");
+  const ts = useTranslations("domain.severity");
+  const { formatDay } = useFormat();
   const { rows } = useApp();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
+
+  const filterLabel = (f: Filter): string => {
+    if (f === "all") return t("filters.all");
+    if (f === "needs_review") return t("filters.needsReview");
+    return ts(f);
+  };
 
   const sortedAll = useMemo(
     () =>
@@ -95,10 +91,27 @@ export function Dashboard() {
     <div className="space-y-5">
       {/* summary row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat icon={Users} label="Monitored patients" value={stats.monitored} delayMs={0} />
-        <Stat icon={AlertTriangle} label="Escalate" value={stats.escalate} tone="escalate" delayMs={60} />
-        <Stat icon={Eye} label="Watch / review" value={stats.watchReview} tone="watch" delayMs={120} />
-        <Stat icon={ClipboardCheck} label="Check-ins today" value={stats.checkinsToday} delayMs={180} />
+        <Stat icon={Users} label={t("stats.monitored")} value={stats.monitored} delayMs={0} />
+        <Stat
+          icon={AlertTriangle}
+          label={t("stats.escalate")}
+          value={stats.escalate}
+          tone="escalate"
+          delayMs={60}
+        />
+        <Stat
+          icon={Eye}
+          label={t("stats.watchReview")}
+          value={stats.watchReview}
+          tone="watch"
+          delayMs={120}
+        />
+        <Stat
+          icon={ClipboardCheck}
+          label={t("stats.checkinsToday")}
+          value={stats.checkinsToday}
+          delayMs={180}
+        />
       </div>
 
       {/* focused high-risk patient */}
@@ -106,20 +119,20 @@ export function Dashboard() {
 
       {/* filter segmented control */}
       <div className="flex flex-wrap gap-1.5">
-        {FILTERS.map((f) => {
-          const active = filter === f.key;
+        {FILTER_KEYS.map((f) => {
+          const active = filter === f;
           const accent =
-            f.key === "all"
+            f === "all"
               ? "bg-foreground"
-              : f.key === "needs_review"
+              : f === "needs_review"
                 ? "bg-primary"
-                : severityStyle(f.key as Severity).dot;
+                : severityStyle(f as Severity).dot;
           // Hide the needs-review chip entirely when nothing is pending.
-          if (f.key === "needs_review" && counts.needs_review === 0 && !active) return null;
+          if (f === "needs_review" && counts.needs_review === 0 && !active) return null;
           return (
             <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
+              key={f}
+              onClick={() => setFilter(f)}
               aria-pressed={active}
               className={cn(
                 "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
@@ -128,15 +141,15 @@ export function Dashboard() {
                   : "border-border bg-card text-muted-foreground hover:bg-muted",
               )}
             >
-              {f.key !== "all" && <span className={cn("size-1.5 rounded-full", accent)} />}
-              {f.label}
+              {f !== "all" && <span className={cn("size-1.5 rounded-full", accent)} />}
+              {filterLabel(f)}
               <span
                 className={cn(
                   "rounded-full px-1.5 text-xs",
                   active ? "bg-primary/15 text-foreground" : "bg-muted text-muted-foreground",
                 )}
               >
-                {counts[f.key]}
+                {counts[f]}
               </span>
             </button>
           );
@@ -151,11 +164,11 @@ export function Dashboard() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead>Patient</TableHead>
-              <TableHead>Last check-in</TableHead>
-              <TableHead>Risk</TableHead>
-              <TableHead>Reason</TableHead>
-              <TableHead>Next action</TableHead>
+              <TableHead>{t("table.patient")}</TableHead>
+              <TableHead>{t("table.lastCheckin")}</TableHead>
+              <TableHead>{t("table.risk")}</TableHead>
+              <TableHead>{t("table.reason")}</TableHead>
+              <TableHead>{t("table.nextAction")}</TableHead>
               <TableHead className="w-8" />
             </TableRow>
           </TableHeader>
@@ -163,7 +176,7 @@ export function Dashboard() {
             {visible.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                  No patients in this view.
+                  {t("table.empty")}
                 </TableCell>
               </TableRow>
             )}
@@ -198,7 +211,9 @@ export function Dashboard() {
                 <TableCell className="max-w-[200px] whitespace-normal">
                   <ReasonTags tags={row.risk.reason_tags} max={2} />
                 </TableCell>
-                <TableCell className="text-foreground">{NEXT_ACTION[row.risk.severity]}</TableCell>
+                <TableCell className="text-foreground">
+                  {t(`nextAction.${row.risk.severity}`)}
+                </TableCell>
                 <TableCell>
                   <ChevronRight aria-hidden className="size-4 text-muted-foreground" />
                 </TableCell>
@@ -212,7 +227,7 @@ export function Dashboard() {
       <div className="cl-rise space-y-3 md:hidden" style={{ animationDelay: "270ms" }}>
         {visible.length === 0 && (
           <div className="rounded-2xl border border-border bg-card py-10 text-center text-sm text-muted-foreground">
-            No patients in this view.
+            {t("table.empty")}
           </div>
         )}
         {visible.map((row) => (
@@ -230,13 +245,13 @@ export function Dashboard() {
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {ageLabel(row.patient.age)} ·{" "}
-              {row.patient.conditions[0] ?? row.patient.gender ?? "—"} · last check-in{" "}
-              {formatDay(row.last_checkin_date)}
+              {row.patient.conditions[0] ?? row.patient.gender ?? "—"} ·{" "}
+              {t("table.lastCheckinShort")} {formatDay(row.last_checkin_date)}
             </p>
             <div className="mt-2 flex items-center justify-between gap-2">
               <ReasonTags tags={row.risk.reason_tags} max={2} />
               <span className="shrink-0 text-xs font-medium text-foreground">
-                {NEXT_ACTION[row.risk.severity]}
+                {t(`nextAction.${row.risk.severity}`)}
               </span>
             </div>
           </Link>
@@ -276,6 +291,7 @@ function Stat({
 }
 
 function FocusedCard({ row }: { row: PatientRow }) {
+  const t = useTranslations("dashboard.focused");
   const s = severityStyle(row.risk.severity);
   return (
     <div
@@ -286,7 +302,7 @@ function FocusedCard({ row }: { row: PatientRow }) {
         <div>
           <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <span className={cn("size-1.5 rounded-full", s.dot)} />
-            Highest priority
+            {t("highestPriority")}
           </div>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">{row.patient.name}</h2>
           <p className="text-sm text-muted-foreground">
@@ -307,13 +323,14 @@ function FocusedCard({ row }: { row: PatientRow }) {
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <span className="text-sm text-muted-foreground">
-          Assigned to <span className="font-medium text-foreground">{row.patient.assigned_nurse}</span>
+          {t("assignedTo")}{" "}
+          <span className="font-medium text-foreground">{row.patient.assigned_nurse}</span>
         </span>
         <Link
           href={`/patients/${row.patient.id}`}
           className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Open patient <ArrowRight className="size-4" />
+          {t("openPatient")} <ArrowRight className="size-4" />
         </Link>
       </div>
     </div>

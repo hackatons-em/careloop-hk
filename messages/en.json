@@ -1,0 +1,804 @@
+{
+  "common": {
+    "appName": "CareLoop",
+    "cancel": "Cancel",
+    "save": "Save",
+    "copy": "Copy",
+    "close": "Close",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "requestDemo": "Request a demo",
+    "back": "Back",
+    "tryAgain": "Try again",
+    "loading": "Loading…",
+    "skipToContent": "Skip to main content"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "alerts": "Alerts",
+    "howItWorks": "How it works",
+    "pricing": "Pricing",
+    "security": "Security",
+    "contact": "Contact",
+    "businessCase": "Business case",
+    "alertsAria": "Alerts ({count} open)",
+    "alertsAriaNone": "Alerts",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "reconnecting": "Reconnecting…"
+  },
+  "footer": {
+    "tagline": "— remote chronic-care monitoring, Hong Kong.",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "businessCase": "Business case",
+    "pricing": "Pricing",
+    "security": "Security",
+    "contact": "Contact",
+    "disclaimer": "CareLoop flags monitoring risks for professional review. It does not diagnose or prescribe."
+  },
+  "localeSwitcher": {
+    "label": "Language"
+  },
+  "userMenu": {
+    "ariaLabel": "Account menu for {name}",
+    "roleAdmin": "Administrator",
+    "roleNurse": "Nurse",
+    "settings": "Settings",
+    "signOut": "Sign out"
+  },
+  "landing": {
+    "badge": "Hong Kong elderly chronic-care monitoring",
+    "heroTitle": "CareLoop watches the",
+    "heroTitleAccent": "gaps between visits.",
+    "heroSub": "WhatsApp check-ins, vital signals, and explainable rules help nurses monitor elderly chronic-care patients between clinic visits.",
+    "safetyLine": "Monitoring support only. Not diagnosis. No treatment recommendation.",
+    "preview": {
+      "label": "Patient · CareLoop",
+      "escalate": "Escalate",
+      "name": "Mrs. Chan, 78",
+      "profile": "Heart failure + hypertension · lives alone",
+      "latestSignals": "Latest signals",
+      "signal1": "+2.3kg in 3 days",
+      "signal2": "Shortness of breath",
+      "signal3": "Leg swelling",
+      "signal4": "Medication missed",
+      "matchedRules": "Matched rules",
+      "escalateLine": "● Escalate — nurse review recommended",
+      "forReview": "For nurse review · not diagnosis"
+    },
+    "problem": {
+      "title": "The gap between visits",
+      "sub": "The risk is not only inside the clinic. It is the long period where symptoms, adherence, and daily changes become invisible.",
+      "step1Title": "Clinic visit",
+      "step1Body": "Patient seen, plan updated.",
+      "step2Title": "Long gap",
+      "step2Body": "Days to weeks pass with little visibility.",
+      "step3Title": "Missed symptoms",
+      "step3Body": "Symptoms worsen, signals are missed.",
+      "step4Title": "Urgent care",
+      "step4Body": "Condition worsens, costs go up, stress rises.",
+      "bottleneckTitle1": "The real bottleneck is",
+      "bottleneckAccent": "adherence,",
+      "bottleneckTitle2": "not only monitoring.",
+      "bottleneck1": "Elderly patients may not open new apps or remember daily check-ins.",
+      "bottleneck2": "Families and care teams have limited visibility.",
+      "bottleneck3": "Delays can lead to avoidable deterioration and urgent care."
+    },
+    "controls": {
+      "slide": "Slide {n}",
+      "back": "Back",
+      "next": "Next slide",
+      "requestDemo": "Request a demo",
+      "signIn": "Sign in",
+      "scrollCue": "How it works"
+    }
+  },
+  "sections": {
+    "how": {
+      "title": "How it works",
+      "sub": "From a WhatsApp message to a nurse decision — four steps, no app for the patient to install.",
+      "step1Title": "Patient answers on WhatsApp",
+      "step1Body": "A daily Cantonese or English check-in. No app to install, no login to forget.",
+      "step2Title": "Signals are structured",
+      "step2Body": "Symptoms, weight, blood pressure, and voice notes become structured data.",
+      "step3Title": "Deterministic rules evaluate",
+      "step3Body": "Explainable rules (HF-001, not a black box) decide what needs attention. No AI diagnosis — ever.",
+      "step4Title": "Nurses see exceptions first",
+      "step4Body": "An exception-first dashboard with a full audit trail. One nurse covers a whole ward."
+    },
+    "features": {
+      "title": "Everything a monitoring program needs",
+      "sub": "Built for clinical accountability, not engagement metrics.",
+      "f1Title": "Deterministic risk engine",
+      "f1Body": "Conservative, explainable rules with rule IDs. Every escalation says exactly why.",
+      "f2Title": "Bilingual check-ins",
+      "f2Body": "Cantonese and English over WhatsApp — the channel elderly patients already use.",
+      "f3Title": "Exception-first dashboard",
+      "f3Body": "Nurses review the patients who need it, not all of them.",
+      "f4Title": "Caregiver alerts",
+      "f4Body": "Family is looped in on escalations, with nurse-controlled wording.",
+      "f5Title": "Clinician-ready exports",
+      "f5Body": "Weekly summaries, PDF reports, and FHIR-style export into existing workflows.",
+      "f6Title": "Append-only audit trail",
+      "f6Body": "Every access and action recorded. Built for clinical accountability."
+    },
+    "trust": {
+      "item1": "Dedicated instance per hospital",
+      "item2": "Encrypted in transit and at rest",
+      "item3": "No AI diagnosis — deterministic rules",
+      "item4": "Full audit trail",
+      "link": "Read our security overview →"
+    },
+    "cta": {
+      "title": "See CareLoop on your own ward's workflow.",
+      "sub": "A 30-minute walkthrough with our team — your use case, your language mix, your escalation rules.",
+      "primary": "Request a demo",
+      "secondary": "How pricing works"
+    }
+  },
+  "public": {
+    "business": {
+      "title": "Business case",
+      "sub": "CareLoop turns between-visit monitoring into an operational workflow. Here is who buys it, why, and how it stays safe at scale.",
+      "whoTitle": "Who pays?",
+      "who1": "Elderly-care operators",
+      "who2": "Home-care agencies",
+      "who3": "Private clinics",
+      "who4": "Insurers",
+      "who5": "NGOs running elderly chronic-care programs",
+      "who6": "Care coordination providers",
+      "whyTitle": "Why they pay",
+      "why1": "Earlier nurse review",
+      "why2": "Fewer missed deteriorations",
+      "why3": "Better caregiver coordination",
+      "why4": "Better follow-up adherence",
+      "why5": "Clinician-ready summaries",
+      "why6": "Structured export for healthcare workflows",
+      "kpiTitle": "Key KPIs",
+      "kpi1": "Time to nurse review",
+      "kpi2": "High-risk patients reviewed",
+      "kpi3": "Missed check-ins",
+      "kpi4": "Medication adherence",
+      "kpi5": "Caregiver response time",
+      "kpi6": "Avoidable escalation signals",
+      "scaleTitle": "What breaks at scale?",
+      "scale1": "False alarms",
+      "scale2": "Incomplete data",
+      "scale3": "Device fragmentation",
+      "scale4": "Caregiver trust",
+      "scale5": "Clinical liability",
+      "scale6": "Workflow adoption",
+      "handleTitle": "How CareLoop handles it",
+      "handle1": "Conservative rules",
+      "handle2": "Data completeness score",
+      "handle3": "Human-in-the-loop nurse review",
+      "handle4": "Audit trail",
+      "handle5": "Clear disclaimers",
+      "handle6": "FHIR-style export",
+      "handle7": "No diagnosis or treatment recommendation"
+    },
+    "pricing": {
+      "title": "Pricing that follows the engagement",
+      "sub": "CareLoop is deployed per hospital, not per seat. We scope every engagement together — here is how it usually runs.",
+      "pilotName": "Pilot program",
+      "pilotTag": "Start here",
+      "pilot1": "One ward or care program, with a defined patient cohort",
+      "pilot2": "Three months, fixed pilot fee scoped to your cohort",
+      "pilot3": "Full product: WhatsApp check-ins, risk rules, nurse dashboard",
+      "pilot4": "Joint success criteria and weekly review with our team",
+      "pilotCta": "Request a pilot",
+      "standardName": "Standard",
+      "standardTag": "Most common",
+      "standard1": "Per-patient, per-month subscription after a successful pilot",
+      "standard2": "Unlimited nurse and admin seats — we never charge per clinician",
+      "standard3": "Bilingual check-ins, caregiver alerts, PDF + FHIR-style export",
+      "standard4": "Email support and product updates included",
+      "standardCta": "Request a demo",
+      "enterpriseName": "Enterprise",
+      "enterpriseTag": "Full isolation",
+      "enterprise1": "Dedicated instance: your own database, application, and WhatsApp number",
+      "enterprise2": "Data residency in your preferred region — nothing shared with other hospitals",
+      "enterprise3": "Custom escalation rules, SSO/SMTP integration, SLA",
+      "enterprise4": "Optional self-hosted deployment inside your network",
+      "enterpriseCta": "Talk to us",
+      "whyTitle": "Why no price list?",
+      "whyBody": "Cohort size, language mix, and integration depth change the economics. We'd rather scope honestly in 30 minutes than publish a number that's wrong for your ward."
+    },
+    "security": {
+      "title": "Security & trust",
+      "sub": "How CareLoop protects patient data, in plain language. Questions we haven't answered here: ask us directly.",
+      "isolationTitle": "One hospital, one instance",
+      "isolationBody": "Every production hospital runs its own dedicated CareLoop instance — its own database, its own application deployment, its own WhatsApp number. Your patients' data never shares infrastructure with another organization. Not \"logically separated\" — physically separate.",
+      "accessTitle": "Access control",
+      "accessBody": "Staff accounts are provisioned by your administrator — there is no public signup. Two roles (administrator and nurse), and every page and API call re-checks the session on the server.",
+      "encryptionTitle": "Encryption",
+      "encryptionBody": "TLS 1.2+ in transit. AES-256 at rest in the managed Postgres database. Service credentials never reach the browser.",
+      "auditTitle": "Append-only audit trail",
+      "auditBody": "Every access and action is recorded and attributed to the signed-in user — exportable for internal review.",
+      "deterministicTitle": "Deterministic by design",
+      "deterministicBody": "Escalation severity is decided by explainable, versioned rules — never by an AI model. AI is used only to structure language (transcription, wording), never to judge clinical risk.",
+      "residencyTitle": "Data residency",
+      "residencyBody": "Each dedicated instance is provisioned in your preferred cloud region — for Hong Kong deployments, typically Singapore. (Our public demo runs in the US; production instances are placed where you need them.)",
+      "backupsTitle": "Backups & recovery",
+      "backupsBody": "Daily automated backups are standard; point-in-time recovery is available on enterprise instances.",
+      "certsTitle": "Certifications — honest status",
+      "certsBody": "CareLoop is not yet SOC 2 or ISO 27001 certified. We are early, and we won't pretend otherwise. Our roadmap: SOC 2 Type I, then Type II. We will share our security questionnaire answers and architecture documentation with any evaluating hospital.",
+      "reportingTitle": "Vulnerability reporting",
+      "reportingBody": "Report security issues privately to the team — never through public issue trackers, and never with real patient data in the report.",
+      "ctaTitle": "Evaluating CareLoop for your hospital?",
+      "ctaSub": "We'll walk your IT and data-protection teams through everything.",
+      "ctaButton": "Request a security review call"
+    },
+    "contact": {
+      "title": "Request a demo",
+      "sub": "Tell us about your ward or program. A real person replies within one business day — no automated sequences.",
+      "point1": "A 30-minute walkthrough, on your use case",
+      "point2": "No obligation, no credit card",
+      "point3": "Pilots, pricing, and data-isolation questions all welcome",
+      "form": {
+        "name": "Full name",
+        "organization": "Organization",
+        "organizationPlaceholder": "Hospital, clinic, or care provider",
+        "role": "Your role",
+        "rolePlaceholder": "e.g. Ward manager, CMIO, Head of nursing",
+        "email": "Work email",
+        "phone": "Phone",
+        "phoneHint": "Optional — include the country code",
+        "interest": "What are you interested in?",
+        "interestPilot": "Pilot program",
+        "interestDemo": "Product demo",
+        "interestPricing": "Pricing question",
+        "interestOther": "Something else",
+        "message": "Message",
+        "messagePlaceholder": "Your ward size, patient population, current workflow…",
+        "submit": "Send request",
+        "submitting": "Sending…",
+        "successTitle": "Thanks — we've got it.",
+        "successBody": "We'll reply to {email} within one business day.",
+        "failed": "Could not send your request",
+        "errors": {
+          "name": "Name is required",
+          "organization": "Organization is required",
+          "email": "Enter a valid email"
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "updated": "Last updated: June 2026",
+      "s1h": "What CareLoop does",
+      "s1p": "CareLoop provides monitoring support for chronic-care programs: it collects daily check-ins and vital readings, applies deterministic escalation rules, and surfaces results to the care team. CareLoop does not diagnose, prescribe, or replace clinical judgment.",
+      "s2h": "Data we process",
+      "s2p": "On behalf of the deploying healthcare organization, CareLoop processes: patient identification details entered by the care team (name, age, conditions, caregiver contact), WhatsApp messages and voice-note transcripts sent to the check-in number, vital readings (weight, blood pressure, heart rate, activity, sleep), and the resulting risk evaluations. An append-only audit trail records every access and action for accountability.",
+      "s3h": "Where it lives and who sees it",
+      "s3p": "Data is stored in the organization's dedicated database (Supabase Postgres) and is scoped to that organization. Access requires a staff account provisioned by the organization's administrator. Voice notes are transcribed and free-text messages are structured using AI services (speech-to-text and language models); these services process message content only and never decide clinical severity.",
+      "s4h": "Retention and rights",
+      "s4p": "The deploying organization controls retention and deletion. Patients and caregivers can direct questions, correction requests, or deletion requests to their care provider, who administers the data. Hong Kong's Personal Data (Privacy) Ordinance (PDPO) applies to deployments in Hong Kong.",
+      "s5h": "Contact",
+      "s5p": "For privacy questions about a specific deployment, contact the deploying organization's administrator."
+    },
+    "terms": {
+      "title": "Terms of use",
+      "updated": "Last updated: June 2026",
+      "s1h": "Not a medical device",
+      "s1p": "CareLoop is monitoring support software. It flags monitoring signals for professional review using deterministic, auditable rules. It does not diagnose, prescribe, or provide treatment recommendations, and it is not a substitute for clinical judgment or emergency services. In an emergency, call local emergency services immediately.",
+      "s2h": "Authorized use",
+      "s2p": "The nurse dashboard and patient records are restricted to staff accounts provisioned by the deploying organization's administrator. Accounts are personal; credentials must not be shared. The organization is responsible for revoking access when staff leave.",
+      "s3h": "Service expectations",
+      "s3p": "Daily check-ins depend on third-party messaging (WhatsApp via Twilio) and patient response; the care team remains responsible for following up on missed check-ins. CareLoop is provided as part of a service agreement with the deploying organization, which governs uptime, support, and liability.",
+      "s4h": "Data",
+      "s4p": "Use of patient data is governed by the deploying organization's agreements and the",
+      "s4link": "privacy policy"
+    }
+  },
+  "auth": {
+    "login": {
+      "metaTitle": "Sign in",
+      "title": "Sign in to CareLoop",
+      "sub": "Nurse and admin access to the monitoring dashboard.",
+      "email": "Email",
+      "emailPlaceholder": "nurse@hospital.hk",
+      "password": "Password",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "invalidCredentials": "Incorrect email or password.",
+      "microcopy": "Access is provisioned by your organization admin. Forgot your password? Ask an admin to send a new invite.",
+      "errors": {
+        "email": "Enter a valid email",
+        "password": "Enter your password"
+      }
+    },
+    "updatePassword": {
+      "metaTitle": "Set your password",
+      "title": "Set your password",
+      "subPrefix": "Signed in as",
+      "subSuffix": ". Choose a password to finish setting up your account.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "submit": "Save and continue",
+      "submitting": "Saving…",
+      "errors": {
+        "password": "Use at least 10 characters",
+        "confirm": "Passwords do not match"
+      }
+    },
+    "noAccess": {
+      "metaTitle": "No access",
+      "title": "Account not provisioned",
+      "bodyPrefix": "You're signed in as",
+      "bodySuffix": ", but this account has no access to a CareLoop organization yet. Ask your organization's administrator to complete your invitation."
+    }
+  },
+  "dashboard": {
+    "metaTitle": "Nurse dashboard",
+    "title": "Nurse dashboard",
+    "sub": "Elderly chronic-care patients, their latest check-in, deterministic risk state, and the next action.",
+    "addPatient": "Add patient",
+    "onboardQr": "Onboard via QR",
+    "stats": {
+      "monitored": "Monitored patients",
+      "escalate": "Escalate",
+      "watchReview": "Watch / review",
+      "checkinsToday": "Check-ins today"
+    },
+    "filters": {
+      "all": "All",
+      "needsReview": "Needs review"
+    },
+    "nextAction": {
+      "escalate": "Nurse review today",
+      "review_today": "Review today",
+      "watch": "Monitor",
+      "stable": "Routine monitoring"
+    },
+    "table": {
+      "patient": "Patient",
+      "lastCheckin": "Last check-in",
+      "risk": "Risk",
+      "reason": "Reason",
+      "nextAction": "Next action",
+      "empty": "No patients in this view.",
+      "lastCheckinShort": "last check-in"
+    },
+    "focused": {
+      "highestPriority": "Highest priority",
+      "assignedTo": "Assigned to",
+      "openPatient": "Open patient"
+    }
+  },
+  "alerts": {
+    "metaTitle": "Nurse review queue",
+    "title": "Nurse review queue",
+    "sub": "Alerts raised by the deterministic rule engine, with matched rules, evidence, and the suggested owner. Acknowledge and add a note.",
+    "views": {
+      "unopened": "Unopened",
+      "open": "Open",
+      "all": "All"
+    },
+    "empty": {
+      "title": "No alerts in this view",
+      "body": "Run a risky check-in from the header to generate one."
+    },
+    "card": {
+      "nurseNote": "Nurse note",
+      "notePlaceholder": "Add a note (e.g. called daughter, booked clinic follow-up)…",
+      "statusLabel": "Alert status",
+      "acknowledge": "Acknowledge",
+      "save": "Save",
+      "lastCheckin": "Last check-in {date}"
+    },
+    "toasts": {
+      "new": "Alert reopened",
+      "acknowledged": "Alert acknowledged",
+      "family_contacted": "Alert updated — family contacted",
+      "clinician_review_requested": "Alert updated — clinician review requested",
+      "resolved": "Alert resolved",
+      "failed": "Could not update alert"
+    }
+  },
+  "patient": {
+    "detail": {
+      "back": "Back to dashboard",
+      "sendCheckin": "Send check-in",
+      "sendCheckinSuccess": "Daily check-in sent to {name}'s WhatsApp",
+      "sendCheckinFailed": "Could not send check-in",
+      "edit": "Edit",
+      "moreActions": "More actions",
+      "importCsv": "Import CSV",
+      "auditTrail": "Audit trail",
+      "pendingBanner": "Auto-created from a WhatsApp check-in — confirm this patient's details.",
+      "reviewDetails": "Review details",
+      "years": "{age} years",
+      "ageUnknown": "Age unknown",
+      "monitoringNote": "Monitoring alert only. Not diagnosis or treatment advice.",
+      "nurse": "Nurse",
+      "caregiver": "Caregiver",
+      "whatsapp": "WhatsApp",
+      "tabs": {
+        "trends": "Trends",
+        "checkins": "Check-ins",
+        "export": "Export & audit"
+      },
+      "charts": {
+        "weight": "Weight (kg)",
+        "bloodPressure": "Blood pressure (mmHg)",
+        "activity": "Activity (steps)",
+        "riskOverTime": "Risk level over time",
+        "weightAria": "Weight trend chart for {name} over the monitored period, in kilograms",
+        "bpAria": "Blood pressure trend chart for {name}: systolic and diastolic, in millimetres of mercury",
+        "stepsAria": "Daily activity trend chart for {name}, in steps, with baseline and 40 percent drop threshold",
+        "riskAria": "Risk level over time for {name}, from stable to escalate",
+        "baseline": "baseline",
+        "seriesWeight": "Weight",
+        "seriesSystolic": "Systolic",
+        "seriesDiastolic": "Diastolic",
+        "seriesSteps": "Steps",
+        "seriesRisk": "Risk"
+      },
+      "moreTrends": "More trends — activity, medication adherence, risk over time",
+      "adherence": {
+        "title": "Medication adherence",
+        "days": "{taken}/{total} days",
+        "taken": "taken",
+        "missed": "missed"
+      },
+      "checkinsHeading": "Daily check-in responses",
+      "table": {
+        "date": "Date",
+        "mood": "Mood",
+        "breathless": "Breathless",
+        "swelling": "Swelling",
+        "medication": "Medication",
+        "note": "Note"
+      },
+      "yesNo": {
+        "yes": "Yes",
+        "no": "No",
+        "taken": "Taken",
+        "missed": "Missed"
+      },
+      "noActiveAlert": {
+        "title": "No active alert",
+        "body": "Monitoring is within the expected range. Continue daily check-ins."
+      },
+      "riskCard": {
+        "title": "Risk assessment",
+        "engineNote": "Severity is decided by the deterministic rule engine — not by AI.",
+        "noneTriggered": "No monitoring rules triggered. Vitals, symptoms, and adherence are within the expected range.",
+        "recommendedAction": "Recommended operational action"
+      }
+    },
+    "form": {
+      "sectionPatient": "Patient",
+      "sectionWhatsapp": "WhatsApp & caregiver",
+      "sectionCarePlan": "Care plan & baselines",
+      "name": "Full name",
+      "namePlaceholder": "Mrs. Chan",
+      "age": "Age",
+      "gender": "Gender",
+      "genderFemale": "Female",
+      "genderMale": "Male",
+      "genderOther": "Other",
+      "language": "Language",
+      "languagePlaceholder": "Cantonese",
+      "livingStatus": "Living situation",
+      "livingStatusPlaceholder": "lives alone / with family / care home",
+      "conditions": "Conditions",
+      "conditionsHint": "Type a condition and press Enter",
+      "conditionsPlaceholder": "heart failure",
+      "removeCondition": "Remove {condition}",
+      "phone": "Patient WhatsApp number",
+      "phoneHint": "International format for daily check-ins, e.g. +85291234567",
+      "caregiverName": "Caregiver name",
+      "caregiverNamePlaceholder": "Daughter — Ms. Chan",
+      "caregiverPhone": "Caregiver phone",
+      "assignedNurse": "Assigned nurse",
+      "assignedNursePlaceholder": "Nurse Wong",
+      "baselineWeight": "Baseline weight (kg)",
+      "baselineWeightHint": "Used by the weight-gain rules",
+      "baselineSteps": "Baseline steps / day",
+      "baselineStepsHint": "Used by the activity-drop rule",
+      "create": "Create patient",
+      "creating": "Creating…",
+      "saveChanges": "Save changes",
+      "saveAndReview": "Save and mark reviewed",
+      "saving": "Saving…",
+      "fixFields": "Please fix the highlighted fields",
+      "created": "{name} added to monitoring",
+      "saved": "Patient details saved",
+      "saveFailed": "Could not save patient",
+      "errors": {
+        "name": "Name is required",
+        "age": "Enter an age between 1 and 120",
+        "language": "Language is required",
+        "living_status": "Living status is required",
+        "conditions": "Add at least one condition",
+        "assigned_nurse": "Assigned nurse is required",
+        "baseline_weight": "Enter a baseline weight between 20 and 300 kg",
+        "baseline_steps": "Enter baseline steps between 0 and 100,000",
+        "phone": "Phone must be in international format, e.g. +85291234567"
+      }
+    },
+    "new": {
+      "metaTitle": "Add patient",
+      "title": "Add a patient",
+      "sub": "Enroll a patient in daily WhatsApp monitoring. Baselines drive the deterministic risk rules.",
+      "back": "Back to dashboard"
+    },
+    "edit": {
+      "metaTitle": "Edit patient",
+      "title": "Edit patient",
+      "sub": "Update the patient's details, WhatsApp number, and monitoring baselines.",
+      "subPending": "This patient was auto-created from a WhatsApp message. Confirm the details to finish enrolment.",
+      "back": "Back to {name}"
+    },
+    "notFoundFallback": "Patient not found."
+  },
+  "onboard": {
+    "metaTitle": "Onboard a patient",
+    "title": "Activate your CareLoop check-in",
+    "sub": "Two quick steps in WhatsApp — no app to install, no account.",
+    "scanCaption": "Scan to open WhatsApp to {number}",
+    "step1Title": "Scan the QR and hit send",
+    "step1Body": "WhatsApp opens with \"{joinText}\" already typed. Just send it — this connects you to CareLoop.",
+    "step2Title": "Write your first message",
+    "step2Body": "Reply with how you feel today — type, or send a Cantonese voice note (e.g. \"今日有啲氣促，對腳腫咗\"). CareLoop confirms your enrolment, and your patient record appears on the nurse dashboard for review.",
+    "whyTwo": "Why two messages? The first connects you to the WhatsApp sandbox; the second is the first one CareLoop actually receives, so it learns your number (a scan alone never reveals it). From then on, CareLoop sends you the daily check-in first — you just reply.",
+    "disclaimer": "CareLoop is monitoring support — not a diagnosis or treatment tool."
+  },
+  "settings": {
+    "metaTitle": "Settings",
+    "title": "Settings",
+    "sub": "Manage your organization's team and configuration.",
+    "tabs": {
+      "team": "Team",
+      "organization": "Organization",
+      "demo": "Demo",
+      "leads": "Leads"
+    },
+    "org": {
+      "title": "Organization",
+      "name": "Name",
+      "id": "Organization ID",
+      "note": "CareLoop is multi-tenant ready — every record is scoped to this organization. Multi-organization management lands in a future release."
+    },
+    "demo": {
+      "title": "Demo tools",
+      "body": "This deployment runs in demo mode: the clinical clock is frozen to the demo week and the dataset is synthetic. Reset restores the canonical five-patient scenario.",
+      "reset": "Reset demo data"
+    },
+    "users": {
+      "title": "Team",
+      "loading": "Loading team…",
+      "empty": "No team members yet. Invite the first nurse above.",
+      "you": "(you)",
+      "loadFailed": "Could not load team",
+      "invite": "Invite user",
+      "inviteTitle": "Invite a team member",
+      "inviteSub": "They'll receive an email with a link to set their password.",
+      "name": "Name",
+      "namePlaceholder": "Nurse Wong",
+      "email": "Email",
+      "emailPlaceholder": "nurse@hospital.hk",
+      "role": "Role",
+      "roleNurse": "Nurse",
+      "roleAdmin": "Administrator",
+      "send": "Send invite",
+      "sending": "Sending…",
+      "sent": "Invite sent to {email}",
+      "failed": "Invite failed",
+      "errors": {
+        "name": "Name is required",
+        "email": "Enter a valid email"
+      }
+    },
+    "leads": {
+      "title": "Leads",
+      "loading": "Loading leads…",
+      "empty": "No leads yet. They appear here when someone submits the contact form.",
+      "loadFailed": "Could not load leads",
+      "statusLabel": "Lead status",
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "closed": "Closed"
+      },
+      "interest": {
+        "pilot": "Pilot",
+        "demo": "Demo",
+        "pricing": "Pricing",
+        "other": "Other"
+      },
+      "updated": "Lead updated",
+      "updateFailed": "Could not update lead"
+    }
+  },
+  "panels": {
+    "caregiver": {
+      "title": "Caregiver alert",
+      "copy": "Copy",
+      "copied": "Caregiver message copied",
+      "copyFailed": "Could not copy to clipboard",
+      "notify": "Notify family",
+      "notified": "Logged: family contacted",
+      "notifyFailed": "Could not log caregiver alert"
+    },
+    "conversation": {
+      "title": "WhatsApp check-in",
+      "live": "live",
+      "waiting": "Waiting for the patient's WhatsApp reply…",
+      "voiceNote": "voice note",
+      "voiceDemo": " (demo)",
+      "chips": {
+        "breathless": "breathless",
+        "swelling": "swelling",
+        "dizzy": "dizzy",
+        "chest": "chest",
+        "missedMeds": "missed meds"
+      }
+    },
+    "weekly": {
+      "title": "Weekly clinician summary",
+      "aiBadge": "AI-assisted wording",
+      "templateBadge": "Deterministic template",
+      "generate": "Generate summary",
+      "regenerate": "Regenerate",
+      "generating": "Generating…",
+      "downloadPdf": "Download PDF",
+      "generatedAi": "Weekly summary generated (AI-assisted)",
+      "generated": "Weekly summary generated",
+      "generatedAiDesc": "Wording polished by Claude; figures are deterministic.",
+      "generatedDesc": "Deterministic template (set ANTHROPIC_API_KEY to enable AI wording).",
+      "failed": "Could not generate summary",
+      "completeness": "Data completeness: {pct}% · AI is used only for wording; severity and figures are deterministic.",
+      "empty": "Generate a one-page, clinician-ready summary of this week's monitoring data — risk trend, vitals, symptoms, adherence, matched rules, and recommended review items. Export it as a PDF for the care team."
+    },
+    "fhir": {
+      "title": "FHIR-style export",
+      "resources": "{count} resources",
+      "empty": "Generate a FHIR-style JSON bundle — Patient, Observations, QuestionnaireResponse, and a nurse-review ServiceRequest — designed to fit healthcare workflows.",
+      "export": "Export FHIR bundle",
+      "exporting": "Exporting…",
+      "exported": "FHIR-style bundle exported",
+      "exportFailed": "Could not export bundle",
+      "copy": "Copy",
+      "copied": "FHIR bundle copied",
+      "copyFailed": "Could not copy",
+      "download": "Download .json"
+    },
+    "csv": {
+      "title": "Import vital / wearable CSV",
+      "sub": "Columns: date, weight_kg, systolic_bp, diastolic_bp, heart_rate, steps, sleep_hours, medication_taken, shortness_of_breath, swelling. Rows are imported for this patient and re-evaluated by the rule engine.",
+      "chooseFile": "Choose CSV file",
+      "placeholder": "…or paste CSV rows here",
+      "cancel": "Cancel",
+      "import": "Import",
+      "importing": "Importing…",
+      "emptyError": "Choose a CSV file or paste rows first",
+      "imported": "Imported {count, plural, one {# row} other {# rows}}",
+      "failed": "Import failed"
+    },
+    "audit": {
+      "title": "Audit trail",
+      "sub": "Append-only record of every monitoring action for this patient.",
+      "trigger": "Audit trail",
+      "empty": "No events yet.",
+      "by": "by {actor}"
+    },
+    "demoControls": {
+      "trigger": "Demo tools",
+      "risky": "Run risky check-in",
+      "sendAll": "Daily check-in (all)",
+      "generateSummary": "Generate summary",
+      "summaryReadyAi": "Weekly summary ready (AI-assisted)",
+      "summaryReadyTemplate": "Weekly summary ready (template)",
+      "summaryDesc": "Open Mrs. Chan → Export & audit to view and download.",
+      "summaryFailed": "Could not generate summary",
+      "noNumbers": "No patient WhatsApp numbers known yet — message the CareLoop number first.",
+      "sent": "Daily check-in sent to {sent}/{total} patient(s).",
+      "sendFailed": "Could not send check-in"
+    }
+  },
+  "appProvider": {
+    "restored": "Connection restored",
+    "refreshFailed": "Failed to refresh data",
+    "refreshFailedDesc": "Live updates are paused until the connection recovers.",
+    "resetSuccess": "Demo data reset to a clean state",
+    "resetFailed": "Reset failed",
+    "riskyTitle": "Risky check-in recorded for Mrs. Chan",
+    "riskyDesc": "Matched {codes} → {severity}. Alert sent to nurse queue.",
+    "riskyFailed": "Could not run risky check-in"
+  },
+  "domain": {
+    "severity": {
+      "stable": "Stable",
+      "watch": "Watch",
+      "review_today": "Review today",
+      "escalate": "Escalate"
+    },
+    "alertStatus": {
+      "new": "New",
+      "acknowledged": "Acknowledged",
+      "family_contacted": "Family contacted",
+      "clinician_review_requested": "Clinician review requested",
+      "resolved": "Resolved"
+    },
+    "reasonTags": {
+      "weight gain": "weight gain",
+      "symptoms reported": "symptoms reported",
+      "missed meds": "missed meds",
+      "high BP": "high BP",
+      "low activity": "low activity"
+    },
+    "noFlags": "No flags",
+    "rules": {
+      "HF-001": "Rapid weight gain can indicate fluid retention in heart-failure monitoring.",
+      "HF-002": "Weight gain combined with shortness of breath and swelling requires review.",
+      "MED-001": "Repeated missed medication increases chronic-care risk.",
+      "BP-001": "Very high blood pressure should be reviewed urgently.",
+      "ACT-001": "Reduced activity may signal deterioration or frailty risk.",
+      "SYM-001": "Patient reported symptoms that warrant nurse review, regardless of condition."
+    },
+    "recommendedAction": {
+      "escalate": "Nurse review recommended today and notify family. If symptoms are severe, contact emergency services.",
+      "review_today": "Nurse review recommended today. Consider booking a clinic follow-up.",
+      "watch": "Continue monitoring. Nurse review if the trend continues.",
+      "stable": "No action needed. Continue routine monitoring."
+    },
+    "audit": {
+      "demo_data_seeded": "Demo data seeded",
+      "checkin_submitted": "Check-in submitted",
+      "risk_evaluated": "Risk evaluated",
+      "alert_created": "Alert created",
+      "alert_acknowledged": "Alert acknowledged",
+      "alert_updated": "Alert updated",
+      "caregiver_alert_generated": "Caregiver alert generated",
+      "weekly_summary_generated": "Weekly summary generated",
+      "pdf_exported": "PDF exported",
+      "fhir_exported": "FHIR exported",
+      "csv_imported": "CSV imported",
+      "demo_data_reset": "Demo data reset",
+      "risky_checkin_replayed": "Risky check-in replayed",
+      "patient_created": "Patient created",
+      "patient_updated": "Patient updated",
+      "patient_archived": "Patient archived",
+      "user_invited": "User invited"
+    },
+    "safety": {
+      "label1": "Not diagnosis",
+      "label2": "For nurse / clinician review",
+      "label3": "No treatment recommendation",
+      "label4": "Demo data",
+      "banner": "CareLoop does not diagnose or prescribe. It flags monitoring risks for professional review.",
+      "note": "This alert is not a diagnosis or treatment recommendation. It is a monitoring prompt for professional review."
+    }
+  },
+  "metadata": {
+    "rootTitle": "CareLoop — Remote chronic-care monitoring",
+    "rootDescription": "CareLoop turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
+    "ogDescription": "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
+    "landingDescription": "WhatsApp check-ins, vital signals, and explainable deterministic rules help nurses monitor elderly chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
+    "businessDescription": "Who pays for CareLoop and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
+    "pricingTitle": "Pricing",
+    "pricingDescription": "How CareLoop engagements work: pilot program, per-patient subscription, and dedicated enterprise instances. No public price list — every hospital's scope differs.",
+    "securityTitle": "Security & trust",
+    "securityDescription": "How CareLoop protects patient data: dedicated instances per hospital, encryption, audit trails, and deterministic clinical rules.",
+    "contactTitle": "Request a demo",
+    "contactDescription": "Tell us about your ward or program — pilots, pricing, and security reviews. A real person replies within one business day.",
+    "privacyDescription": "How CareLoop handles patient monitoring data.",
+    "termsDescription": "Terms of use for the CareLoop monitoring platform."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or may have been moved.",
+    "goDashboard": "Go to dashboard",
+    "home": "Home"
+  },
+  "errorPage": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. Your data is safe — try again, or head back to the dashboard.",
+    "tryAgain": "Try again",
+    "backToDashboard": "Back to dashboard"
+  }
+}

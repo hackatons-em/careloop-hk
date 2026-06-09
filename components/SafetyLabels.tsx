@@ -1,18 +1,14 @@
+import { useTranslations } from "next-intl";
 import { Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const LABELS = [
-  "Not diagnosis",
-  "For nurse / clinician review",
-  "No treatment recommendation",
-  "Demo data",
-];
-
 /** Row of small safety chips for risky screens. */
 export function SafetyLabels({ className }: { className?: string }) {
+  const t = useTranslations("domain.safety");
+  const labels = [t("label1"), t("label2"), t("label3"), t("label4")];
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
-      {LABELS.map((label) => (
+      {labels.map((label) => (
         <span
           key={label}
           className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/60 px-2 py-0.5 text-[11px] font-medium text-muted-foreground"
@@ -27,6 +23,7 @@ export function SafetyLabels({ className }: { className?: string }) {
 
 /** Primary product disclaimer line. */
 export function SafetyBanner({ className }: { className?: string }) {
+  const t = useTranslations("domain.safety");
   return (
     <div
       className={cn(
@@ -35,19 +32,13 @@ export function SafetyBanner({ className }: { className?: string }) {
       )}
     >
       <Info className="mt-0.5 size-4 shrink-0" />
-      <p>
-        CareLoop does not diagnose or prescribe. It flags monitoring risks for professional review.
-      </p>
+      <p>{t("banner")}</p>
     </div>
   );
 }
 
 /** Compact inline note for alert cards. */
 export function SafetyNote({ className }: { className?: string }) {
-  return (
-    <p className={cn("text-xs text-muted-foreground", className)}>
-      This alert is not a diagnosis or treatment recommendation. It is a monitoring prompt for
-      professional review.
-    </p>
-  );
+  const t = useTranslations("domain.safety");
+  return <p className={cn("text-xs text-muted-foreground", className)}>{t("note")}</p>;
 }

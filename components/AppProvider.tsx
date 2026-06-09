@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { AuditEvent, PatientRow, RiskAlert } from "@/lib/types";
@@ -36,6 +37,7 @@ export function AppProvider({
   initialAlerts: RiskAlert[];
   initialAudit: AuditEvent[];
 }) {
+  const t = useTranslations("appProvider");
   // Initial data is server-rendered from the store, so there's no mount fetch
   // (and no loading flash). refresh() pulls live data after any mutation.
   const [rows, setRows] = useState<PatientRow[]>(initialRows);
@@ -52,56 +54,59 @@ export function AppProvider({
       setRows(r);
       setAlerts(a);
       setAudit(ev);
-      if (failStreak.current >= 2) toast.success("Connection restored");
+      if (failStreak.current >= 2) toast.success(t("restored"));
       failStreak.current = 0;
       setDegraded(false);
     } catch (e) {
       failStreak.current += 1;
       if (failStreak.current === 2) {
         setDegraded(true);
-        toast.error(e instanceof Error ? e.message : "Failed to refresh data", {
-          description: "Live updates are paused until the connection recovers.",
+        toast.error(e instanceof Error ? e.message : t("refreshFailed"), {
+          description: t("refreshFailedDesc"),
         });
       }
     }
-  }, []);
+  }, [t]);
 
   const resetDemo = useCallback(async () => {
     setBusy(true);
     try {
       await api.reset();
       await refresh();
-      toast.success("Demo data reset to a clean state");
+      toast.success(t("resetSuccess"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Reset failed");
+      toast.error(e instanceof Error ? e.message : t("resetFailed"));
     } finally {
       setBusy(false);
     }
-  }, [refresh]);
+  }, [refresh, t]);
 
   const runRiskyCheckIn = useCallback(async () => {
     setBusy(true);
     try {
       const res = await api.runRiskyCheckIn();
       await refresh();
-      toast.warning("Risky check-in recorded for Mrs. Chan", {
-        description: `Matched ${res.risk.matched_rules.map((m) => m.code).join(", ")} → ${res.risk.severity.replace("_", " ")}. Alert sent to nurse queue.`,
+      toast.warning(t("riskyTitle"), {
+        description: t("riskyDesc", {
+          codes: res.risk.matched_rules.map((m) => m.code).join(", "),
+          severity: res.risk.severity.replace("_", " "),
+        }),
       });
       return res.checkin.patient_id;
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not run risky check-in");
+      toast.error(e instanceof Error ? e.message : t("riskyFailed"));
       return null;
     } finally {
       setBusy(false);
     }
-  }, [refresh]);
+  }, [refresh, t]);
 
   // Live updates: poll so the dashboard/alerts update when WhatsApp messages arrive.
   useEffect(() => {
-    const t = setInterval(() => {
+    const timer = setInterval(() => {
       void refresh();
     }, 5000);
-    return () => clearInterval(t);
+    return () => clearInterval(timer);
   }, [refresh]);
 
   return (

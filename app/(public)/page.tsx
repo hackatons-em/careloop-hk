@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { LandingSections } from "@/components/marketing/LandingSections";
 import { LandingSlides } from "@/components/LandingSlides";
 
-export const metadata: Metadata = {
-  title: "CareLoop — Remote chronic-care monitoring",
-  description:
-    "WhatsApp check-ins, vital signals, and explainable deterministic rules help nurses monitor elderly chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
-  alternates: { canonical: "/" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return {
+    title: t("rootTitle"),
+    description: t("landingDescription"),
+    alternates: { canonical: "/" },
+  };
+}
 
 const JSON_LD = {
   "@context": "https://schema.org",
@@ -16,7 +20,6 @@ const JSON_LD = {
   operatingSystem: "Web",
   description:
     "Remote chronic-care monitoring for elderly Hong Kong patients: daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard.",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "HKD" },
 };
 
 export default function Landing() {
@@ -28,6 +31,7 @@ export default function Landing() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
       <LandingSlides />
+      <LandingSections />
     </>
   );
 }

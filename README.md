@@ -107,10 +107,19 @@ See `.env.example` for the full list (rate limiting, Sentry, scheduler, model ov
 
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** — Supabase setup (migrations + first admin), Vercel,
   Twilio webhook, Docker self-hosting, monitoring, CI/E2E secrets.
+- **[docs/PROVISIONING.md](./docs/PROVISIONING.md)** — dedicated-instance runbook for
+  onboarding each hospital (own Supabase + Vercel + WhatsApp number).
+- **[docs/GO-TO-MARKET.md](./docs/GO-TO-MARKET.md)** — founder checklist of non-code launch
+  items (domain, WhatsApp Business API, Resend, Sentry, legal review).
 - **[SECURITY.md](./SECURITY.md)** — security architecture and vulnerability reporting.
 - Auth: Supabase Auth with `admin`/`nurse` roles; multi-tenant-ready schema (org-scoped rows);
   zod-validated APIs; rate limiting; signed Twilio webhooks; CSP/HSTS headers; Sentry; structured
   JSON logs; append-only audit trail.
+- **Bilingual**: the entire UI ships in English and Traditional Chinese (zh-HK) via a
+  cookie-based switcher. Stored clinical text (alert reasons, rule evidence, weekly summaries,
+  PDF/FHIR exports) stays English by policy — Hong Kong clinical documentation standard and
+  audit stability. zh-HK strings are machine-drafted pending native review
+  (see `docs/GO-TO-MARKET.md`).
 
 ## Safety & honesty
 

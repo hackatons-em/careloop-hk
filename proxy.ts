@@ -14,11 +14,21 @@ const PUBLIC_PAGES = new Set([
   "/architecture",
   "/privacy",
   "/terms",
+  "/pricing",
+  "/security",
+  "/contact",
 ]);
 
 // Routes that manage their own authentication (webhook signature, cron bearer
-// token, or the auth flow itself).
-const PUBLIC_PREFIXES = ["/auth", "/api/whatsapp", "/api/agent", "/api/auth", "/api/health"];
+// token, the auth flow itself, or per-route checks like the public lead form).
+const PUBLIC_PREFIXES = [
+  "/auth",
+  "/api/whatsapp",
+  "/api/agent",
+  "/api/auth",
+  "/api/health",
+  "/api/leads",
+];
 
 function isPublic(path: string): boolean {
   if (PUBLIC_PAGES.has(path)) return true;

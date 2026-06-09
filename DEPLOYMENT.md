@@ -9,6 +9,7 @@ Production deployment on Vercel + Supabase, or self-hosted via Docker.
    - `supabase/migrations/0001_careloop_init.sql`
    - `supabase/migrations/0002_alert_one_open.sql`
    - `supabase/migrations/0003_orgs_auth.sql`
+   - `supabase/migrations/0004_leads.sql`
 3. Collect from **Project Settings → API**: the project URL, the `anon` (public)
    key, and the `service_role` (secret) key.
 4. **Create the first admin user** (no public signup exists):

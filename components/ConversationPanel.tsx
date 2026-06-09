@@ -6,6 +6,7 @@
 // container and scrolls internally — used as a fixed, sticky right-hand panel.
 
 import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Mic, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -25,19 +26,12 @@ interface ConvoMessage {
   extracted?: Extracted;
 }
 
-const SYMPTOM_LABEL: { key: keyof Extracted; label: string }[] = [
-  { key: "shortness_of_breath", label: "breathless" },
-  { key: "swelling", label: "swelling" },
-  { key: "dizziness", label: "dizzy" },
-  { key: "chest_discomfort", label: "chest" },
+const SYMPTOM_CHIPS: { key: keyof Extracted; chip: "breathless" | "swelling" | "dizzy" | "chest" }[] = [
+  { key: "shortness_of_breath", chip: "breathless" },
+  { key: "swelling", chip: "swelling" },
+  { key: "dizziness", chip: "dizzy" },
+  { key: "chest_discomfort", chip: "chest" },
 ];
-
-function chips(ex?: Extracted): string[] {
-  if (!ex) return [];
-  const out = SYMPTOM_LABEL.filter((s) => ex[s.key] === true).map((s) => s.label);
-  if (ex.medication_taken === false) out.push("missed meds");
-  return out;
-}
 
 export function ConversationPanel({
   patientId,
@@ -48,9 +42,17 @@ export function ConversationPanel({
   onActivity?: () => void;
   className?: string;
 }) {
+  const t = useTranslations("panels.conversation");
   const [messages, setMessages] = useState<ConvoMessage[]>([]);
   const seen = useRef(0);
   const threadRef = useRef<HTMLDivElement>(null);
+
+  const chips = (ex?: Extracted): string[] => {
+    if (!ex) return [];
+    const out = SYMPTOM_CHIPS.filter((s) => ex[s.key] === true).map((s) => t(`chips.${s.chip}`));
+    if (ex.medication_taken === false) out.push(t("chips.missedMeds"));
+    return out;
+  };
 
   useEffect(() => {
     let alive = true;
@@ -92,17 +94,15 @@ export function ConversationPanel({
     >
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <MessageCircle className="size-4 text-primary" />
-        <h2 className="font-semibold">WhatsApp check-in</h2>
+        <h2 className="font-semibold">{t("title")}</h2>
         <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span className="size-1.5 animate-pulse rounded-full bg-green-500" /> live
+          <span className="size-1.5 animate-pulse rounded-full bg-green-500" /> {t("live")}
         </span>
       </div>
 
       <div ref={threadRef} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-4">
         {messages.length === 0 ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
-            Waiting for the patient&apos;s WhatsApp reply…
-          </p>
+          <p className="py-10 text-center text-sm text-muted-foreground">{t("waiting")}</p>
         ) : (
           messages.map((m) => {
             const isPatient = m.direction === "inbound";
@@ -119,8 +119,8 @@ export function ConversationPanel({
                 >
                   {m.kind === "voice" && (
                     <span className="mb-1 flex items-center gap-1 text-xs opacity-70">
-                      <Mic className="size-3" /> voice note
-                      {m.transcript_source === "pinned" ? " (demo)" : ""}
+                      <Mic className="size-3" /> {t("voiceNote")}
+                      {m.transcript_source === "pinned" ? t("voiceDemo") : ""}
                     </span>
                   )}
                   <p className="whitespace-pre-wrap leading-relaxed">{m.body}</p>

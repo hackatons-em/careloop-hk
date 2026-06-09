@@ -77,6 +77,11 @@ export function validateEnv(): void {
   if (!process.env.SENTRY_DSN) {
     logger.info("SENTRY_DSN unset — error tracking disabled.");
   }
+  if (!process.env.RESEND_API_KEY || !process.env.LEADS_NOTIFY_EMAIL) {
+    logger.info(
+      "RESEND_API_KEY/LEADS_NOTIFY_EMAIL unset — leads stored in DB only, no email notification.",
+    );
+  }
   if (process.env.DEMO_MODE === "true") {
     logger.warn("DEMO_MODE enabled — demo tooling active and clock frozen to the demo week. Do not use for real patients.");
   }

@@ -1,8 +1,10 @@
-import { ALERT_STATUS_LABEL, type AlertStatus, type Severity } from "@/lib/types";
+import { useTranslations } from "next-intl";
+import { type AlertStatus, type Severity } from "@/lib/types";
 import { ALERT_STATUS_STYLE, REASON_TAG_STYLE, severityStyle } from "@/lib/severity";
 import { cn } from "@/lib/utils";
 
 export function RiskBadge({ severity, className }: { severity: Severity; className?: string }) {
+  const t = useTranslations("domain.severity");
   const s = severityStyle(severity);
   return (
     <span
@@ -13,7 +15,7 @@ export function RiskBadge({ severity, className }: { severity: Severity; classNa
       )}
     >
       <span className={cn("size-1.5 rounded-full", s.dot)} />
-      {s.label}
+      {t(severity)}
     </span>
   );
 }
@@ -28,8 +30,9 @@ export function ReasonTags({
   /** When set, show at most `max` tags plus a muted "+N" overflow pill. */
   max?: number;
 }) {
+  const t = useTranslations("domain");
   if (tags.length === 0) {
-    return <span className="text-xs text-muted-foreground">No flags</span>;
+    return <span className="text-xs text-muted-foreground">{t("noFlags")}</span>;
   }
   const shown = max != null ? tags.slice(0, max) : tags;
   const overflow = tags.length - shown.length;
@@ -43,7 +46,9 @@ export function ReasonTags({
             REASON_TAG_STYLE[tag] ?? "bg-muted text-muted-foreground border-border",
           )}
         >
-          {tag}
+          {/* Stored tags are a fixed enumerable set; unknown values (e.g. raw
+              rule codes) render as-is. */}
+          {t.has(`reasonTags.${tag}` as never) ? t(`reasonTags.${tag}` as never) : tag}
         </span>
       ))}
       {overflow > 0 && (
@@ -62,6 +67,7 @@ export function AlertStatusBadge({
   status: AlertStatus;
   className?: string;
 }) {
+  const t = useTranslations("domain.alertStatus");
   return (
     <span
       className={cn(
@@ -70,7 +76,7 @@ export function AlertStatusBadge({
         className,
       )}
     >
-      {ALERT_STATUS_LABEL[status]}
+      {t(status)}
     </span>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { HeartPulse, Loader2 } from "lucide-react";
 import { z } from "zod";
 import { Field } from "@/components/forms/Field";
@@ -11,15 +12,13 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 const schema = z
   .object({
-    password: z.string().min(10, "Use at least 10 characters"),
+    password: z.string().min(10),
     confirm: z.string(),
   })
-  .refine((v) => v.password === v.confirm, {
-    path: ["confirm"],
-    message: "Passwords do not match",
-  });
+  .refine((v) => v.password === v.confirm, { path: ["confirm"] });
 
 export function UpdatePasswordForm({ email }: { email: string }) {
+  const t = useTranslations("auth.updatePassword");
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -36,7 +35,7 @@ export function UpdatePasswordForm({ email }: { email: string }) {
       const errs: { password?: string; confirm?: string } = {};
       for (const issue of parsed.error.issues) {
         const key = issue.path[0] as "password" | "confirm";
-        if (!errs[key]) errs[key] = issue.message;
+        if (!errs[key]) errs[key] = t(`errors.${key}`);
       }
       setFieldErrors(errs);
       return;
@@ -63,10 +62,10 @@ export function UpdatePasswordForm({ email }: { email: string }) {
         </span>
         <span className="text-lg font-semibold tracking-tight">CareLoop</span>
       </div>
-      <h1 className="mt-5 text-xl font-semibold tracking-tight">Set your password</h1>
+      <h1 className="mt-5 text-xl font-semibold tracking-tight">{t("title")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Signed in as <span className="font-medium text-foreground">{email}</span>. Choose a
-        password to finish setting up your account.
+        {t("subPrefix")} <span className="font-medium text-foreground">{email}</span>
+        {t("subSuffix")}
       </p>
 
       {formError && (
@@ -79,7 +78,7 @@ export function UpdatePasswordForm({ email }: { email: string }) {
       )}
 
       <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-4" noValidate>
-        <Field label="New password" error={fieldErrors.password} required>
+        <Field label={t("newPassword")} error={fieldErrors.password} required>
           {(props) => (
             <Input
               {...props}
@@ -90,7 +89,7 @@ export function UpdatePasswordForm({ email }: { email: string }) {
             />
           )}
         </Field>
-        <Field label="Confirm password" error={fieldErrors.confirm} required>
+        <Field label={t("confirmPassword")} error={fieldErrors.confirm} required>
           {(props) => (
             <Input
               {...props}
@@ -103,7 +102,7 @@ export function UpdatePasswordForm({ email }: { email: string }) {
         </Field>
         <Button type="submit" size="lg" disabled={submitting} className="mt-1 w-full">
           {submitting && <Loader2 className="size-4 animate-spin" />}
-          {submitting ? "Saving…" : "Save and continue"}
+          {submitting ? t("submitting") : t("submit")}
         </Button>
       </form>
     </div>

@@ -1,14 +1,15 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { UpdatePasswordForm } from "@/components/UpdatePasswordForm";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Set your password",
-  robots: { index: false, follow: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth.updatePassword");
+  return { title: t("metaTitle"), robots: { index: false, follow: false } };
+}
 
 // Reached from the invite/recovery email via /auth/callback, which has already
 // established a session. Requires only a raw session (not a profile) — a fresh

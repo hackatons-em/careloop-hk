@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { FileText, Download, PenLine, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,7 @@ export function WeeklySummaryPanel({
   patientId: string;
   onChanged?: () => void;
 }) {
+  const t = useTranslations("panels.weekly");
   const [summary, setSummary] = useState<WeeklySummary | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -25,17 +27,11 @@ export function WeeklySummaryPanel({
       const s = await api.weeklySummary(patientId);
       setSummary(s);
       onChanged?.();
-      toast.success(
-        s.generated_by === "ai" ? "Weekly summary generated (AI-assisted)" : "Weekly summary generated",
-        {
-          description:
-            s.generated_by === "ai"
-              ? "Wording polished by Claude; figures are deterministic."
-              : "Deterministic template (set ANTHROPIC_API_KEY to enable AI wording).",
-        },
-      );
+      toast.success(s.generated_by === "ai" ? t("generatedAi") : t("generated"), {
+        description: s.generated_by === "ai" ? t("generatedAiDesc") : t("generatedDesc"),
+      });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not generate summary");
+      toast.error(e instanceof Error ? e.message : t("failed"));
     } finally {
       setBusy(false);
     }
@@ -46,7 +42,7 @@ export function WeeklySummaryPanel({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <FileText className="size-4 text-primary" />
-          <h2 className="font-semibold">Weekly clinician summary</h2>
+          <h2 className="font-semibold">{t("title")}</h2>
           {summary && (
             <span
               className={cn(
@@ -57,20 +53,20 @@ export function WeeklySummaryPanel({
               )}
             >
               {summary.generated_by === "ai" && <PenLine className="size-3" />}
-              {summary.generated_by === "ai" ? "AI-assisted wording" : "Deterministic template"}
+              {summary.generated_by === "ai" ? t("aiBadge") : t("templateBadge")}
             </span>
           )}
         </div>
         <div className="flex gap-2">
           <Button size="sm" onClick={generate} disabled={busy} className="gap-1.5">
             {summary ? <RefreshCw className="size-4" /> : <PenLine className="size-4" />}
-            {busy ? "Generating…" : summary ? "Regenerate" : "Generate summary"}
+            {busy ? t("generating") : summary ? t("regenerate") : t("generate")}
           </Button>
           <a
             href={pdfUrl(patientId)}
             className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5")}
           >
-            <Download className="size-4" /> Download PDF
+            <Download className="size-4" /> {t("downloadPdf")}
           </a>
         </div>
       </div>
@@ -81,16 +77,11 @@ export function WeeklySummaryPanel({
             {summary.generated_text}
           </p>
           <p className="text-xs text-muted-foreground">
-            Data completeness: {Math.round(summary.data_completeness * 100)}% · AI is used only for
-            wording; severity and figures are deterministic.
+            {t("completeness", { pct: Math.round(summary.data_completeness * 100) })}
           </p>
         </div>
       ) : (
-        <p className="mt-3 text-sm text-muted-foreground">
-          Generate a one-page, clinician-ready summary of this week’s monitoring data — risk trend,
-          vitals, symptoms, adherence, matched rules, and recommended review items. Export it as a
-          PDF for the care team.
-        </p>
+        <p className="mt-3 text-sm text-muted-foreground">{t("empty")}</p>
       )}
     </div>
   );

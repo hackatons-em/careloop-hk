@@ -1,5 +1,8 @@
 import { withSentryConfig } from "@sentry/nextjs";
+import createNextIntlPlugin from "next-intl/plugin";
 import type { NextConfig } from "next";
+
+const withNextIntl = createNextIntlPlugin();
 
 // Content-Security-Policy. 'unsafe-inline' script/style is required by the
 // Next.js inline runtime + Mermaid/Recharts inline styles; nonce-based CSP is a
@@ -45,7 +48,7 @@ const nextConfig: NextConfig = {
 
 // Source maps upload only when SENTRY_AUTH_TOKEN is present (Vercel <-> Sentry
 // integration); CI and local builds stay clean without it.
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withNextIntl(nextConfig), {
   silent: true,
   telemetry: false,
   disableLogger: true,

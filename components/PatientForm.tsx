@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/AppProvider";
@@ -11,10 +12,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/select";
 import { api } from "@/lib/api";
 import type { Patient } from "@/lib/types";
-import {
-  patientCreateSchema,
-  type PatientCreateInput,
-} from "@/lib/validation";
+import { patientCreateSchema, type PatientCreateInput } from "@/lib/validation";
 
 interface FormState {
   name: string;
@@ -65,6 +63,8 @@ function toPayload(f: FormState): PatientCreateInput {
   };
 }
 
+// Stored data values — kept English on purpose (the risk engine's condition
+// matching and seed data use these identifiers).
 const CONDITION_SUGGESTIONS = [
   "heart failure",
   "hypertension",
@@ -84,6 +84,8 @@ export function PatientForm({
   patient?: Patient;
   markReviewedOnSave?: boolean;
 }) {
+  const t = useTranslations("patient.form");
+  const tc = useTranslations("common");
   const router = useRouter();
   const { refresh } = useApp();
   const [form, setForm] = useState<FormState>(() => fromPatient(patient));
@@ -109,18 +111,23 @@ export function PatientForm({
     );
   }
 
+  /** Translate a zod field error via the catalog; fall back to the schema text. */
+  function fieldError(key: string, fallback: string): string {
+    return t.has(`errors.${key}` as never) ? t(`errors.${key}` as never) : fallback;
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // Friendly required-field messages for the numeric inputs (Number("") is 0,
     // which would otherwise surface as a confusing range error from zod).
     const missing: Record<string, string> = {};
-    if (!form.age.trim()) missing.age = "Age is required";
-    if (!form.baseline_weight.trim()) missing.baseline_weight = "Baseline weight is required";
-    if (!form.baseline_steps.trim()) missing.baseline_steps = "Baseline steps is required";
+    if (!form.age.trim()) missing.age = t("errors.age");
+    if (!form.baseline_weight.trim()) missing.baseline_weight = t("errors.baseline_weight");
+    if (!form.baseline_steps.trim()) missing.baseline_steps = t("errors.baseline_steps");
     if (Object.keys(missing).length > 0) {
       setErrors(missing);
-      toast.error("Please fix the highlighted fields");
+      toast.error(t("fixFields"));
       return;
     }
 
@@ -130,10 +137,10 @@ export function PatientForm({
       const errs: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
         const key = String(issue.path[0] ?? "form");
-        if (!errs[key]) errs[key] = issue.message;
+        if (!errs[key]) errs[key] = fieldError(key, issue.message);
       }
       setErrors(errs);
-      toast.error("Please fix the highlighted fields");
+      toast.error(t("fixFields"));
       return;
     }
     setErrors({});
@@ -141,7 +148,7 @@ export function PatientForm({
     try {
       if (mode === "create") {
         const created = await api.createPatient(parsed.data);
-        toast.success(`${created.name} added to monitoring`);
+        toast.success(t("created", { name: created.name }));
         await refresh();
         router.push(`/patients/${created.id}`);
       } else if (patient) {
@@ -149,14 +156,14 @@ export function PatientForm({
           ...parsed.data,
           ...(markReviewedOnSave ? { status: "active" as const } : {}),
         });
-        toast.success("Patient details saved");
+        toast.success(t("saved"));
         await refresh();
         router.push(`/patients/${patient.id}`);
       }
       router.refresh();
     } catch (err) {
       setSubmitting(false);
-      toast.error(err instanceof Error ? err.message : "Could not save patient");
+      toast.error(err instanceof Error ? err.message : t("saveFailed"));
     }
   }
 
@@ -167,20 +174,20 @@ export function PatientForm({
         className="cl-rise rounded-2xl border border-border bg-card p-5"
         style={{ animationDelay: "0ms" }}
       >
-        <h2 className="text-sm font-semibold">Patient</h2>
+        <h2 className="text-sm font-semibold">{t("sectionPatient")}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label="Full name" error={errors.name} required>
+          <Field label={t("name")} error={errors.name} required>
             {(props) => (
               <Input
                 {...props}
                 value={form.name}
                 onChange={(e) => set("name", e.target.value)}
-                placeholder="Mrs. Chan"
+                placeholder={t("namePlaceholder")}
                 autoComplete="off"
               />
             )}
           </Field>
-          <Field label="Age" error={errors.age} required>
+          <Field label={t("age")} error={errors.age} required>
             {(props) => (
               <Input
                 {...props}
@@ -193,31 +200,31 @@ export function PatientForm({
               />
             )}
           </Field>
-          <Field label="Gender" error={errors.gender} required>
+          <Field label={t("gender")} error={errors.gender} required>
             {(props) => (
               <NativeSelect
                 {...props}
                 value={form.gender}
                 onChange={(e) => set("gender", e.target.value)}
               >
-                <option value="female">Female</option>
-                <option value="male">Male</option>
-                <option value="other">Other</option>
+                <option value="female">{t("genderFemale")}</option>
+                <option value="male">{t("genderMale")}</option>
+                <option value="other">{t("genderOther")}</option>
               </NativeSelect>
             )}
           </Field>
-          <Field label="Language" error={errors.language} required>
+          <Field label={t("language")} error={errors.language} required>
             {(props) => (
               <Input
                 {...props}
                 value={form.language}
                 onChange={(e) => set("language", e.target.value)}
-                placeholder="Cantonese"
+                placeholder={t("languagePlaceholder")}
               />
             )}
           </Field>
           <Field
-            label="Living situation"
+            label={t("livingStatus")}
             error={errors.living_status}
             required
             className="sm:col-span-2"
@@ -227,14 +234,14 @@ export function PatientForm({
                 {...props}
                 value={form.living_status}
                 onChange={(e) => set("living_status", e.target.value)}
-                placeholder="lives alone / with family / care home"
+                placeholder={t("livingStatusPlaceholder")}
               />
             )}
           </Field>
           <Field
-            label="Conditions"
+            label={t("conditions")}
             error={errors.conditions}
-            hint="Type a condition and press Enter"
+            hint={t("conditionsHint")}
             required
             className="sm:col-span-2"
           >
@@ -250,7 +257,7 @@ export function PatientForm({
                         {c}
                         <button
                           type="button"
-                          aria-label={`Remove ${c}`}
+                          aria-label={t("removeCondition", { condition: c })}
                           onClick={() => removeCondition(c)}
                           className="rounded-full p-0.5 hover:bg-primary/10"
                         >
@@ -271,7 +278,7 @@ export function PatientForm({
                     }
                   }}
                   onBlur={() => addCondition(conditionDraft)}
-                  placeholder="heart failure"
+                  placeholder={t("conditionsPlaceholder")}
                   list="condition-suggestions"
                 />
                 <datalist id="condition-suggestions">
@@ -290,12 +297,12 @@ export function PatientForm({
         className="cl-rise rounded-2xl border border-border bg-card p-5"
         style={{ animationDelay: "60ms" }}
       >
-        <h2 className="text-sm font-semibold">WhatsApp &amp; caregiver</h2>
+        <h2 className="text-sm font-semibold">{t("sectionWhatsapp")}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <Field
-            label="Patient WhatsApp number"
+            label={t("phone")}
             error={errors.phone}
-            hint="International format for daily check-ins, e.g. +85291234567"
+            hint={t("phoneHint")}
             className="sm:col-span-2"
           >
             {(props) => (
@@ -308,17 +315,17 @@ export function PatientForm({
               />
             )}
           </Field>
-          <Field label="Caregiver name" error={errors.caregiver_name}>
+          <Field label={t("caregiverName")} error={errors.caregiver_name}>
             {(props) => (
               <Input
                 {...props}
                 value={form.caregiver_name}
                 onChange={(e) => set("caregiver_name", e.target.value)}
-                placeholder="Daughter — Ms. Chan"
+                placeholder={t("caregiverNamePlaceholder")}
               />
             )}
           </Field>
-          <Field label="Caregiver phone" error={errors.caregiver_phone}>
+          <Field label={t("caregiverPhone")} error={errors.caregiver_phone}>
             {(props) => (
               <Input
                 {...props}
@@ -337,22 +344,22 @@ export function PatientForm({
         className="cl-rise rounded-2xl border border-border bg-card p-5"
         style={{ animationDelay: "120ms" }}
       >
-        <h2 className="text-sm font-semibold">Care plan &amp; baselines</h2>
+        <h2 className="text-sm font-semibold">{t("sectionCarePlan")}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <Field label="Assigned nurse" error={errors.assigned_nurse} required>
+          <Field label={t("assignedNurse")} error={errors.assigned_nurse} required>
             {(props) => (
               <Input
                 {...props}
                 value={form.assigned_nurse}
                 onChange={(e) => set("assigned_nurse", e.target.value)}
-                placeholder="Nurse Wong"
+                placeholder={t("assignedNursePlaceholder")}
               />
             )}
           </Field>
           <Field
-            label="Baseline weight (kg)"
+            label={t("baselineWeight")}
             error={errors.baseline_weight}
-            hint="Used by the weight-gain rules"
+            hint={t("baselineWeightHint")}
             required
           >
             {(props) => (
@@ -369,9 +376,9 @@ export function PatientForm({
             )}
           </Field>
           <Field
-            label="Baseline steps / day"
+            label={t("baselineSteps")}
             error={errors.baseline_steps}
-            hint="Used by the activity-drop rule"
+            hint={t("baselineStepsHint")}
             required
           >
             {(props) => (
@@ -391,19 +398,19 @@ export function PatientForm({
 
       <div className="flex items-center justify-end gap-2">
         <Button type="button" variant="ghost" size="lg" onClick={() => router.back()}>
-          Cancel
+          {tc("cancel")}
         </Button>
         <Button type="submit" size="lg" disabled={submitting}>
           {submitting && <Loader2 className="size-4 animate-spin" />}
           {mode === "create"
             ? submitting
-              ? "Creating…"
-              : "Create patient"
+              ? t("creating")
+              : t("create")
             : submitting
-              ? "Saving…"
+              ? t("saving")
               : markReviewedOnSave
-                ? "Save and mark reviewed"
-                : "Save changes"}
+                ? t("saveAndReview")
+                : t("saveChanges")}
         </Button>
       </div>
     </form>

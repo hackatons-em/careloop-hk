@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Zap, FileText, MessageCircle, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,7 @@ const DEMO_PATIENT = "patient-mrs-chan";
 
 /** Polished demo-reliability controls (not debug buttons). */
 export function DemoControls() {
+  const t = useTranslations("panels.demoControls");
   const router = useRouter();
   const { busy, runRiskyCheckIn } = useApp();
   const [genBusy, setGenBusy] = useState(false);
@@ -32,12 +34,11 @@ export function DemoControls() {
     setGenBusy(true);
     try {
       const s = await api.weeklySummary(DEMO_PATIENT);
-      toast.success(
-        `Weekly summary ready (${s.generated_by === "ai" ? "AI-assisted" : "template"})`,
-        { description: "Open Mrs. Chan → Export & audit to view and download." },
-      );
+      toast.success(s.generated_by === "ai" ? t("summaryReadyAi") : t("summaryReadyTemplate"), {
+        description: t("summaryDesc"),
+      });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not generate summary");
+      toast.error(e instanceof Error ? e.message : t("summaryFailed"));
     } finally {
       setGenBusy(false);
     }
@@ -51,36 +52,34 @@ export function DemoControls() {
         total?: number;
         error?: string;
       };
-      if (!res.ok) throw new Error(data.error ?? "Failed to send");
+      if (!res.ok) throw new Error(data.error ?? t("sendFailed"));
       if (!data.total) {
-        toast.info("No patient WhatsApp numbers known yet — message the CareLoop number first.");
+        toast.info(t("noNumbers"));
       } else {
-        toast.success(`Daily check-in sent to ${data.sent}/${data.total} patient(s).`);
+        toast.success(t("sent", { sent: data.sent ?? 0, total: data.total }));
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not send check-in");
+      toast.error(e instanceof Error ? e.message : t("sendFailed"));
     }
   }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />
-        }
+        render={<Button variant="outline" size="sm" disabled={busy} className="gap-1.5" />}
       >
-        Demo tools <ChevronDown className="size-4" />
+        {t("trigger")} <ChevronDown className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={risky} disabled={busy} className="font-medium text-foreground">
-          <Zap className="text-primary!" /> Run risky check-in
+          <Zap className="text-primary!" /> {t("risky")}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={sendCheckin} disabled={busy}>
-          <MessageCircle /> Daily check-in (all)
+          <MessageCircle /> {t("sendAll")}
         </DropdownMenuItem>
         <DropdownMenuItem onClick={summary} disabled={busy || genBusy}>
-          <FileText /> Generate summary
+          <FileText /> {t("generateSummary")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

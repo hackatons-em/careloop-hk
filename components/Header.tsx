@@ -3,21 +3,23 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { HeartPulse, Bell, Menu, X } from "lucide-react";
 import { useApp } from "@/components/AppProvider";
 import { UserMenu, type HeaderUser } from "@/components/UserMenu";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/alerts", label: "Alerts" },
-];
-
 export function Header({ user }: { user: HeaderUser }) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const { alerts, degraded } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const openAlerts = alerts.filter((a) => a.status !== "resolved").length;
+
+  const nav = [
+    { href: "/dashboard", label: t("dashboard") },
+    { href: "/alerts", label: t("alerts") },
+  ];
 
   return (
     <header className="no-print sticky top-0 z-40 border-b border-border bg-card/80 backdrop-blur">
@@ -30,7 +32,7 @@ export function Header({ user }: { user: HeaderUser }) {
         </Link>
 
         <nav className="ml-2 hidden items-center gap-1 md:flex">
-          {NAV.map((item) => {
+          {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
               <Link
@@ -59,13 +61,13 @@ export function Header({ user }: { user: HeaderUser }) {
           {degraded && (
             <span className="hidden items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-flex">
               <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-muted-foreground" />
-              Reconnecting…
+              {t("reconnecting")}
             </span>
           )}
 
           <Link
             href="/alerts"
-            aria-label={`Alerts${openAlerts ? ` (${openAlerts} open)` : ""}`}
+            aria-label={openAlerts ? t("alertsAria", { count: openAlerts }) : t("alertsAriaNone")}
             className="relative flex size-9 items-center justify-center rounded-md text-muted-foreground outline-none hover:bg-accent hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring md:hidden"
           >
             <Bell className="size-5" />
@@ -78,7 +80,7 @@ export function Header({ user }: { user: HeaderUser }) {
 
           <button
             type="button"
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
             onClick={() => setMenuOpen((v) => !v)}
@@ -97,7 +99,7 @@ export function Header({ user }: { user: HeaderUser }) {
           className="cl-fade border-t border-border bg-card px-6 py-3 md:hidden"
         >
           <div className="flex flex-col gap-1">
-            {NAV.map((item) => {
+            {nav.map((item) => {
               const active = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
                 <Link

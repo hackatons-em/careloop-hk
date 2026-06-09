@@ -1,89 +1,62 @@
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { Users, TrendingUp, Target, AlertTriangle, ShieldCheck } from "lucide-react";
 
-export const metadata = {
-  title: "Business case",
-  description:
-    "Who pays for CareLoop and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("public.business");
+  const tm = await getTranslations("metadata");
+  return { title: t("title"), description: tm("businessDescription") };
+}
 
-const SECTIONS: { icon: React.ElementType; title: string; items: string[]; tone?: "warn" }[] = [
-  {
-    icon: Users,
-    title: "Who pays?",
-    items: [
-      "Elderly-care operators",
-      "Home-care agencies",
-      "Private clinics",
-      "Insurers",
-      "NGOs running elderly chronic-care programs",
-      "Care coordination providers",
-    ],
-  },
-  {
-    icon: TrendingUp,
-    title: "Why they pay",
-    items: [
-      "Earlier nurse review",
-      "Fewer missed deteriorations",
-      "Better caregiver coordination",
-      "Better follow-up adherence",
-      "Clinician-ready summaries",
-      "Structured export for healthcare workflows",
-    ],
-  },
-  {
-    icon: Target,
-    title: "Key KPIs",
-    items: [
-      "Time to nurse review",
-      "High-risk patients reviewed",
-      "Missed check-ins",
-      "Medication adherence",
-      "Caregiver response time",
-      "Avoidable escalation signals",
-    ],
-  },
-  {
-    icon: AlertTriangle,
-    title: "What breaks at scale?",
-    tone: "warn",
-    items: [
-      "False alarms",
-      "Incomplete data",
-      "Device fragmentation",
-      "Caregiver trust",
-      "Clinical liability",
-      "Workflow adoption",
-    ],
-  },
-  {
-    icon: ShieldCheck,
-    title: "How CareLoop handles it",
-    items: [
-      "Conservative rules",
-      "Data completeness score",
-      "Human-in-the-loop nurse review",
-      "Audit trail",
-      "Clear disclaimers",
-      "FHIR-style export",
-      "No diagnosis or treatment recommendation",
-    ],
-  },
-];
+export default async function BusinessPage() {
+  const t = await getTranslations("public.business");
 
-export default function BusinessPage() {
+  const sections: { icon: React.ElementType; title: string; items: string[]; tone?: "warn" }[] = [
+    {
+      icon: Users,
+      title: t("whoTitle"),
+      items: [t("who1"), t("who2"), t("who3"), t("who4"), t("who5"), t("who6")],
+    },
+    {
+      icon: TrendingUp,
+      title: t("whyTitle"),
+      items: [t("why1"), t("why2"), t("why3"), t("why4"), t("why5"), t("why6")],
+    },
+    {
+      icon: Target,
+      title: t("kpiTitle"),
+      items: [t("kpi1"), t("kpi2"), t("kpi3"), t("kpi4"), t("kpi5"), t("kpi6")],
+    },
+    {
+      icon: AlertTriangle,
+      title: t("scaleTitle"),
+      tone: "warn",
+      items: [t("scale1"), t("scale2"), t("scale3"), t("scale4"), t("scale5"), t("scale6")],
+    },
+    {
+      icon: ShieldCheck,
+      title: t("handleTitle"),
+      items: [
+        t("handle1"),
+        t("handle2"),
+        t("handle3"),
+        t("handle4"),
+        t("handle5"),
+        t("handle6"),
+        t("handle7"),
+      ],
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Business case</h1>
-        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          CareLoop turns between-visit monitoring into an operational workflow. Here is who buys it,
-          why, and how it stays safe at scale.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{t("sub")}</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        {SECTIONS.map((s, i) => (
+        {sections.map((s, i) => (
           <section
             key={s.title}
             className="cl-rise cl-card rounded-2xl border border-border bg-card p-6 last:sm:col-span-2"

@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import {
   ChevronLeft,
   Scale,
@@ -24,6 +25,7 @@ import { AuditDrawer } from "@/components/AuditDrawer";
 import { CsvImport } from "@/components/CsvImport";
 import { CaregiverAlert } from "@/components/CaregiverAlert";
 import { ConversationPanel } from "@/components/ConversationPanel";
+import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { WeeklySummaryPanel } from "@/components/WeeklySummaryPanel";
 import { FhirExportPanel } from "@/components/FhirExportPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -42,9 +44,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useApp } from "@/components/AppProvider";
-import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { api } from "@/lib/api";
-import { formatDay } from "@/lib/format";
+import { useFormat } from "@/lib/useFormat";
 import type { DailyCheckIn, PatientTimeline } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,9 @@ export function PatientDetail({
   patientId: string;
   initialTimeline: PatientTimeline;
 }) {
+  const t = useTranslations("patient.detail");
+  const tds = useTranslations("domain.severity");
+  const severityTicks = [tds("stable"), tds("watch"), tds("review_today"), tds("escalate")];
   const { refresh } = useApp();
   const [timeline, setTimeline] = useState<PatientTimeline>(initialTimeline);
   const [csvOpen, setCsvOpen] = useState(false);
@@ -83,7 +87,7 @@ export function PatientDetail({
     systolic: d.systolic,
     diastolic: d.diastolic,
   }));
-  const trendRows: ChartRow[] = risk_trend.map((t) => ({ date: t.date, score: t.score }));
+  const trendRows: ChartRow[] = risk_trend.map((row) => ({ date: row.date, score: row.score }));
   const stepsThreshold = Math.round(patient.baseline_steps * 0.6);
 
   async function sendCheckin() {
@@ -94,10 +98,10 @@ export function PatientDetail({
         body: JSON.stringify({ patientId }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Failed to send");
-      toast.success(`Daily check-in sent to ${patient.name}'s WhatsApp`);
+      if (!res.ok) throw new Error(data.error ?? t("sendCheckinFailed"));
+      toast.success(t("sendCheckinSuccess", { name: patient.name }));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not send check-in");
+      toast.error(e instanceof Error ? e.message : t("sendCheckinFailed"));
     }
   }
 
@@ -107,7 +111,7 @@ export function PatientDetail({
         href="/dashboard"
         className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" /> Back to dashboard
+        <ChevronLeft className="size-4" /> {t("back")}
       </Link>
 
       {/* Pending review: auto-created from WhatsApp, awaiting nurse confirmation */}
@@ -115,15 +119,13 @@ export function PatientDetail({
         <div className="cl-rise flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-accent p-4">
           <div className="flex items-center gap-3">
             <NeedsReviewBadge />
-            <p className="text-sm text-accent-foreground">
-              Auto-created from a WhatsApp check-in — confirm this patient&apos;s details.
-            </p>
+            <p className="text-sm text-accent-foreground">{t("pendingBanner")}</p>
           </div>
           <Link
             href={`/patients/${patientId}/edit`}
             className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            <Pencil className="size-3.5" /> Review details
+            <Pencil className="size-3.5" /> {t("reviewDetails")}
           </Link>
         </div>
       )}
@@ -137,38 +139,34 @@ export function PatientDetail({
               <RiskBadge severity={risk.severity} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {patient.age > 0 ? `${patient.age} years` : "Age unknown"}
+              {patient.age > 0 ? t("years", { age: patient.age }) : t("ageUnknown")}
               {patient.gender ? ` · ${patient.gender}` : ""}
               {patient.conditions.length > 0 ? ` · ${patient.conditions.join(", ")}` : ""}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Monitoring alert only. Not diagnosis or treatment advice.
-            </p>
+            <p className="mt-1 text-xs text-muted-foreground">{t("monitoringNote")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={sendCheckin} className="gap-1.5">
-              <MessageCircle className="size-4" /> Send check-in
+              <MessageCircle className="size-4" /> {t("sendCheckin")}
             </Button>
             <Link
               href={`/patients/${patientId}/edit`}
               className="inline-flex h-7 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Pencil className="size-3.5" /> Edit
+              <Pencil className="size-3.5" /> {t("edit")}
             </Link>
             <DropdownMenu>
               <DropdownMenuTrigger
-                render={
-                  <Button variant="outline" size="icon-sm" aria-label="More actions" />
-                }
+                render={<Button variant="outline" size="icon-sm" aria-label={t("moreActions")} />}
               >
                 <MoreHorizontal className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setCsvOpen(true)}>
-                  <Upload /> Import CSV
+                  <Upload /> {t("importCsv")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setAuditOpen(true)}>
-                  <History /> Audit trail
+                  <History /> {t("auditTrail")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -176,17 +174,18 @@ export function PatientDetail({
         </div>
 
         <p className="mt-4 text-sm text-muted-foreground">
-          Nurse <span className="font-medium text-foreground">{patient.assigned_nurse}</span>
+          {t("nurse")} <span className="font-medium text-foreground">{patient.assigned_nurse}</span>
           {patient.caregiver_name ? (
             <>
-              {" · "}Caregiver{" "}
+              {" · "}
+              {t("caregiver")}{" "}
               <span className="font-medium text-foreground">{patient.caregiver_name}</span>
               {patient.caregiver_phone ? ` (${patient.caregiver_phone})` : ""}
             </>
           ) : null}
           {patient.living_status ? ` · ${patient.living_status}` : ""}
           {patient.language ? ` · ${patient.language}` : ""}
-          {patient.phone ? ` · WhatsApp ${patient.phone}` : ""}
+          {patient.phone ? ` · ${t("whatsapp")} ${patient.phone}` : ""}
         </p>
       </div>
 
@@ -216,96 +215,105 @@ export function PatientDetail({
 
           {/* Secondary detail behind tabs */}
           <Tabs defaultValue="trends" className="cl-rise w-full">
-        <TabsList>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="checkins">Check-ins</TabsTrigger>
-          <TabsTrigger value="export">Export &amp; audit</TabsTrigger>
-        </TabsList>
+            <TabsList>
+              <TabsTrigger value="trends">{t("tabs.trends")}</TabsTrigger>
+              <TabsTrigger value="checkins">{t("tabs.checkins")}</TabsTrigger>
+              <TabsTrigger value="export">{t("tabs.export")}</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="trends" className="cl-fade pt-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <ChartCard icon={Scale} title="Weight (kg)">
-              <TrendChart
-                data={rows("weight")}
-                series={[{ key: "weight", name: "Weight", color: "var(--chart-1)" }]}
-                unit="kg"
-                refLines={[{ y: patient.baseline_weight, label: "baseline" }]}
-                ariaLabel={`Weight trend chart for ${patient.name} over the monitored period, in kilograms`}
-              />
-            </ChartCard>
-            <ChartCard icon={HeartPulse} title="Blood pressure (mmHg)">
-              <TrendChart
-                data={bpRows}
-                series={[
-                  { key: "systolic", name: "Systolic", color: "var(--chart-2)" },
-                  { key: "diastolic", name: "Diastolic", color: "var(--chart-5)" },
-                ]}
-                unit="mmHg"
-                ariaLabel={`Blood pressure trend chart for ${patient.name}: systolic and diastolic, in millimetres of mercury`}
-              />
-            </ChartCard>
-          </div>
-
-          <details className="group mt-4">
-            <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-              <ChevronLeft className="size-4 -rotate-90 transition-transform group-open:-rotate-180" />
-              More trends — activity, medication adherence, risk over time
-            </summary>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <ChartCard icon={Footprints} title="Activity (steps)">
-                <TrendChart
-                  data={rows("steps")}
-                  series={[{ key: "steps", name: "Steps", color: "var(--chart-2)" }]}
-                  unit="steps"
-                  refLines={[
-                    { y: patient.baseline_steps, label: "baseline" },
-                    { y: stepsThreshold, label: "-40%", color: "var(--destructive)" },
-                  ]}
-                  ariaLabel={`Daily activity trend chart for ${patient.name}, in steps, with baseline and 40 percent drop threshold`}
-                />
-              </ChartCard>
-              <AdherenceStrip checkins={checkins} />
-              <div className="sm:col-span-2">
-                <ChartCard icon={Activity} title="Risk level over time">
+            <TabsContent value="trends" className="cl-fade pt-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <ChartCard icon={Scale} title={t("charts.weight")}>
                   <TrendChart
-                    data={trendRows}
-                    series={[{ key: "score", name: "Risk", color: "var(--chart-3)" }]}
-                    domain={[0, 3]}
-                    step
-                    yTickFormatter={(v) => ["Stable", "Watch", "Review", "Escalate"][v] ?? ""}
-                    ariaLabel={`Risk level over time for ${patient.name}, from stable to escalate`}
+                    data={rows("weight")}
+                    series={[
+                      { key: "weight", name: t("charts.seriesWeight"), color: "var(--chart-1)" },
+                    ]}
+                    unit="kg"
+                    refLines={[{ y: patient.baseline_weight, label: t("charts.baseline") }]}
+                    ariaLabel={t("charts.weightAria", { name: patient.name })}
+                  />
+                </ChartCard>
+                <ChartCard icon={HeartPulse} title={t("charts.bloodPressure")}>
+                  <TrendChart
+                    data={bpRows}
+                    series={[
+                      { key: "systolic", name: t("charts.seriesSystolic"), color: "var(--chart-2)" },
+                      {
+                        key: "diastolic",
+                        name: t("charts.seriesDiastolic"),
+                        color: "var(--chart-5)",
+                      },
+                    ]}
+                    unit="mmHg"
+                    ariaLabel={t("charts.bpAria", { name: patient.name })}
                   />
                 </ChartCard>
               </div>
-            </div>
-          </details>
-        </TabsContent>
 
-        <TabsContent value="checkins" className="cl-fade pt-4">
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <h2 className="mb-2 text-sm font-medium">Daily check-in responses</h2>
-            <div className="overflow-x-auto">
-              <CheckInTable checkins={checkins} />
-            </div>
-          </div>
-        </TabsContent>
+              <details className="group mt-4">
+                <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                  <ChevronLeft className="size-4 -rotate-90 transition-transform group-open:-rotate-180" />
+                  {t("moreTrends")}
+                </summary>
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  <ChartCard icon={Footprints} title={t("charts.activity")}>
+                    <TrendChart
+                      data={rows("steps")}
+                      series={[
+                        { key: "steps", name: t("charts.seriesSteps"), color: "var(--chart-2)" },
+                      ]}
+                      unit="steps"
+                      refLines={[
+                        { y: patient.baseline_steps, label: t("charts.baseline") },
+                        { y: stepsThreshold, label: "-40%", color: "var(--destructive)" },
+                      ]}
+                      ariaLabel={t("charts.stepsAria", { name: patient.name })}
+                    />
+                  </ChartCard>
+                  <AdherenceStrip checkins={checkins} />
+                  <div className="sm:col-span-2">
+                    <ChartCard icon={Activity} title={t("charts.riskOverTime")}>
+                      <TrendChart
+                        data={trendRows}
+                        series={[
+                          { key: "score", name: t("charts.seriesRisk"), color: "var(--chart-3)" },
+                        ]}
+                        domain={[0, 3]}
+                        step
+                        yTickFormatter={(v) => severityTicks[v] ?? ""}
+                        ariaLabel={t("charts.riskAria", { name: patient.name })}
+                      />
+                    </ChartCard>
+                  </div>
+                </div>
+              </details>
+            </TabsContent>
 
-        <TabsContent value="export" className="cl-fade pt-4">
-          <div className="grid gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-2">
-              <WeeklySummaryPanel patientId={patientId} onChanged={handleChanged} />
-            </div>
-            <div>
-              <FhirExportPanel patientId={patientId} />
-            </div>
-          </div>
-        </TabsContent>
+            <TabsContent value="checkins" className="cl-fade pt-4">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <h2 className="mb-2 text-sm font-medium">{t("checkinsHeading")}</h2>
+                <div className="overflow-x-auto">
+                  <CheckInTable checkins={checkins} />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="export" className="cl-fade pt-4">
+              <div className="grid gap-4 lg:grid-cols-3">
+                <div className="lg:col-span-2">
+                  <WeeklySummaryPanel patientId={patientId} onChanged={handleChanged} />
+                </div>
+                <div>
+                  <FhirExportPanel patientId={patientId} />
+                </div>
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
 
-        {/* RIGHT: WhatsApp chat stays prominent (min height, fills, scrolls
-            internally); the column scrolls so the caregiver alert never
-            collides with or squeezes the chat. */}
+        {/* RIGHT: WhatsApp chat stays prominent; the column scrolls so the
+            caregiver alert never collides with or squeezes the chat. */}
         <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto pb-1 pl-0.5">
           <ConversationPanel
             patientId={patientId}
@@ -318,11 +326,9 @@ export function PatientDetail({
             ) : (
               <div className="rounded-2xl border border-border bg-card p-5">
                 <div className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="size-4 text-green-600" /> No active alert
+                  <CheckCircle2 className="size-4 text-green-600" /> {t("noActiveAlert.title")}
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Monitoring is within the expected range. Continue daily check-ins.
-                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{t("noActiveAlert.body")}</p>
               </div>
             )}
           </div>
@@ -353,6 +359,8 @@ function ChartCard({
 }
 
 function AdherenceStrip({ checkins }: { checkins: DailyCheckIn[] }) {
+  const t = useTranslations("patient.detail.adherence");
+  const { formatDay, formatDayNumber } = useFormat();
   const ordered = [...checkins].sort((a, b) => a.date.localeCompare(b.date));
   const taken = ordered.filter((c) => c.medication_taken).length;
   return (
@@ -360,24 +368,21 @@ function AdherenceStrip({ checkins }: { checkins: DailyCheckIn[] }) {
       <div className="mb-2 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Pill className="size-4 text-primary" />
-          Medication adherence
+          {t("title")}
         </div>
         <span className="text-xs text-muted-foreground">
-          {taken}/{ordered.length} days
+          {t("days", { taken, total: ordered.length })}
         </span>
       </div>
       <div className="flex gap-1.5">
         {ordered.map((c) => (
           <div key={c.id} className="flex-1">
             <div
-              className={cn(
-                "h-12 rounded-md",
-                c.medication_taken ? "bg-green-100" : "bg-red-100",
-              )}
-              title={`${c.date}: ${c.medication_taken ? "taken" : "missed"}`}
+              className={cn("h-12 rounded-md", c.medication_taken ? "bg-green-100" : "bg-red-100")}
+              title={`${formatDay(c.date)}: ${c.medication_taken ? t("taken") : t("missed")}`}
             />
             <div className="mt-1 text-center text-[10px] text-muted-foreground">
-              {formatDay(c.date).split(" ")[0]}
+              {formatDayNumber(c.date)}
             </div>
           </div>
         ))}
@@ -387,8 +392,9 @@ function AdherenceStrip({ checkins }: { checkins: DailyCheckIn[] }) {
 }
 
 function YesNo({ value, kind }: { value: boolean; kind: "symptom" | "med" }) {
+  const t = useTranslations("patient.detail.yesNo");
   const concerning = kind === "symptom" ? value : !value;
-  const label = kind === "med" ? (value ? "Taken" : "Missed") : value ? "Yes" : "No";
+  const label = kind === "med" ? (value ? t("taken") : t("missed")) : value ? t("yes") : t("no");
   return (
     <span
       className={cn(
@@ -402,17 +408,19 @@ function YesNo({ value, kind }: { value: boolean; kind: "symptom" | "med" }) {
 }
 
 function CheckInTable({ checkins }: { checkins: DailyCheckIn[] }) {
+  const t = useTranslations("patient.detail.table");
+  const { formatDay } = useFormat();
   const ordered = [...checkins].sort((a, b) => b.date.localeCompare(a.date));
   return (
     <Table>
       <TableHeader>
         <TableRow className="bg-muted/40 hover:bg-muted/40">
-          <TableHead>Date</TableHead>
-          <TableHead>Mood</TableHead>
-          <TableHead>Breathless</TableHead>
-          <TableHead>Swelling</TableHead>
-          <TableHead>Medication</TableHead>
-          <TableHead>Note</TableHead>
+          <TableHead>{t("date")}</TableHead>
+          <TableHead>{t("mood")}</TableHead>
+          <TableHead>{t("breathless")}</TableHead>
+          <TableHead>{t("swelling")}</TableHead>
+          <TableHead>{t("medication")}</TableHead>
+          <TableHead>{t("note")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

@@ -161,6 +161,32 @@ export const patientUpdateSchema = patientFieldsSchema
 export type PatientCreateInput = z.infer<typeof patientCreateSchema>;
 export type PatientUpdateInput = z.infer<typeof patientUpdateSchema>;
 
+// --- leads (public contact form) ----------------------------------------------
+
+export const leadInterests = ["pilot", "demo", "pricing", "other"] as const;
+export type LeadInterest = (typeof leadInterests)[number];
+
+export const leadSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").max(120),
+    organization: z.string().trim().min(1, "Organization is required").max(160),
+    role: z.string().trim().max(120).default(""),
+    email: z.string().trim().email("Enter a valid email").max(200),
+    phone: z.string().trim().max(40).default(""),
+    message: z.string().trim().max(2000, "Keep the message under 2000 characters").default(""),
+    interest: z.enum(leadInterests),
+    locale: z.string().trim().max(10).default("en"),
+    /** Honeypot — humans never see or fill this field. */
+    website: z.string().max(200).default(""),
+  })
+  .strict();
+
+export const leadPatchSchema = z
+  .object({
+    status: z.enum(["new", "contacted", "closed"]),
+  })
+  .strict();
+
 // --- misc routes ------------------------------------------------------------------
 
 export const caregiverAlertSchema = z

@@ -4,6 +4,8 @@ import {
   checkInInputSchema,
   csvImportSchema,
   inviteUserSchema,
+  leadPatchSchema,
+  leadSchema,
   patientCreateSchema,
   patientUpdateSchema,
   vitalInputSchema,
@@ -127,6 +129,49 @@ describe("csvImportSchema", () => {
   it("validates row ranges", () => {
     const bad = { patient_id: "p1", rows: [{ date: "2026-06-01", weight_kg: 1000 }] };
     expect(csvImportSchema.safeParse(bad).success).toBe(false);
+  });
+});
+
+describe("leadSchema", () => {
+  const valid = {
+    name: "Dr. Lee",
+    organization: "Queen Mary Hospital",
+    role: "Ward manager",
+    email: "lee@hospital.hk",
+    phone: "+85291234567",
+    message: "We run a 40-bed geriatric ward.",
+    interest: "pilot",
+    locale: "en",
+    website: "",
+  };
+
+  it("accepts a valid lead", () => {
+    expect(leadSchema.safeParse(valid).success).toBe(true);
+  });
+
+  it("requires name, organization, and a valid email", () => {
+    expect(leadSchema.safeParse({ ...valid, name: " " }).success).toBe(false);
+    expect(leadSchema.safeParse({ ...valid, organization: "" }).success).toBe(false);
+    expect(leadSchema.safeParse({ ...valid, email: "not-an-email" }).success).toBe(false);
+  });
+
+  it("rejects unknown interests and unknown keys", () => {
+    expect(leadSchema.safeParse({ ...valid, interest: "buyout" }).success).toBe(false);
+    expect(leadSchema.safeParse({ ...valid, admin: true }).success).toBe(false);
+  });
+
+  it("passes the honeypot field through for the route to inspect", () => {
+    const r = leadSchema.safeParse({ ...valid, website: "spam.example" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.website).toBe("spam.example");
+  });
+});
+
+describe("leadPatchSchema", () => {
+  it("accepts only known statuses", () => {
+    expect(leadPatchSchema.safeParse({ status: "contacted" }).success).toBe(true);
+    expect(leadPatchSchema.safeParse({ status: "spam" }).success).toBe(false);
+    expect(leadPatchSchema.safeParse({}).success).toBe(false);
   });
 });
 

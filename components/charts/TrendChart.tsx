@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatDay } from "@/lib/format";
+import { useFormat } from "@/lib/useFormat";
 
 export interface SeriesDef {
   key: string;
@@ -53,6 +53,7 @@ export function TrendChart({
   step = false,
   ariaLabel,
 }: TrendChartProps) {
+  const { formatDay } = useFormat();
   return (
     <div role={ariaLabel ? "img" : undefined} aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height={height}>

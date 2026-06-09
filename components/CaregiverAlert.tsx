@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { Users, Copy, Send } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,11 @@ export function CaregiverAlert({
   timeline: PatientTimeline;
   onNotified?: () => void;
 }) {
-  const [lang, setLang] = useState<"en" | "zh">("en");
+  const t = useTranslations("panels.caregiver");
+  const locale = useLocale();
+  // The caregiver message itself is independently bilingual; default the
+  // preview to the UI language.
+  const [lang, setLang] = useState<"en" | "zh">(locale === "zh-HK" ? "zh" : "en");
   const [busy, setBusy] = useState(false);
 
   const text = buildCaregiverAlert(
@@ -31,9 +36,9 @@ export function CaregiverAlert({
   async function copy() {
     try {
       await navigator.clipboard.writeText(body);
-      toast.success("Caregiver message copied");
+      toast.success(t("copied"));
     } catch {
-      toast.error("Could not copy to clipboard");
+      toast.error(t("copyFailed"));
     }
   }
 
@@ -41,10 +46,10 @@ export function CaregiverAlert({
     setBusy(true);
     try {
       await api.caregiverAlert(timeline.patient.id, true);
-      toast.success("Logged: family contacted");
+      toast.success(t("notified"));
       onNotified?.();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not log caregiver alert");
+      toast.error(e instanceof Error ? e.message : t("notifyFailed"));
     } finally {
       setBusy(false);
     }
@@ -55,7 +60,7 @@ export function CaregiverAlert({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <Users className="size-4 text-primary" />
-          <h2 className="font-semibold">Caregiver alert</h2>
+          <h2 className="font-semibold">{t("title")}</h2>
         </div>
         <div className="flex rounded-lg border border-border p-0.5 text-xs">
           {(["en", "zh"] as const).map((l) => (
@@ -85,10 +90,10 @@ export function CaregiverAlert({
 
       <div className="mt-3 flex gap-2">
         <Button variant="outline" size="sm" className="gap-1.5" onClick={copy}>
-          <Copy className="size-4" /> Copy
+          <Copy className="size-4" /> {t("copy")}
         </Button>
         <Button size="sm" className="gap-1.5" onClick={notify} disabled={busy}>
-          <Send className="size-4" /> Notify family
+          <Send className="size-4" /> {t("notify")}
         </Button>
       </div>
 
