@@ -21,7 +21,7 @@
     "security": "安全保障",
     "contact": "聯絡我們",
     "businessCase": "商業案例",
-    "alertsAria": "警示（{count} 個未處理）",
+    "alertsAria": "警示（{count} 個未解決）",
     "alertsAriaNone": "警示",
     "openMenu": "開啟選單",
     "closeMenu": "關閉選單",
@@ -60,7 +60,7 @@
       "profile": "心臟衰竭＋高血壓 · 獨居",
       "latestSignals": "最新信號",
       "signal1": "3日內增重2.3公斤",
-      "signal2": "氣促",
+      "signal2": "呼吸急促",
       "signal3": "腳部水腫",
       "signal4": "漏服藥物",
       "matchedRules": "觸發規則",
@@ -134,7 +134,7 @@
       "title": "在您病房的工作流程上體驗 CareLoop。",
       "sub": "與我們團隊進行30分鐘示範——配合您的應用場景、語言組合及升級規則。",
       "primary": "預約示範",
-      "secondary": "了解收費模式"
+      "secondary": "查閱收費方案"
     }
   },
   "public": {
@@ -179,7 +179,7 @@
       "handle7": "不作診斷或治療建議"
     },
     "pricing": {
-      "title": "按合作模式收費",
+      "title": "收費模式",
       "sub": "CareLoop 按醫院部署，而非按帳戶收費。每個合作均由雙方共同釐定範圍——以下是常見的合作流程。",
       "pilotName": "先導計劃",
       "pilotTag": "由此開始",
@@ -203,7 +203,7 @@
       "enterprise4": "可選擇於您的網絡內自行託管",
       "enterpriseCta": "與我們聯絡",
       "whyTitle": "為何沒有公開價目表？",
-      "whyBody": "群組規模、語言組合及整合深度都會影響成本。我們寧願花30分鐘誠實地與您釐定範圍，也不願公佈一個不適合您病房的數字。"
+      "whyBody": "群組規模、語言組合及整合深度都會影響成本。我們寧願花30分鐘誠實地與您釐定範圍，也不願發佈一個不適合您病房的數字。"
     },
     "security": {
       "title": "安全與信任",
@@ -222,7 +222,7 @@
       "residencyBody": "每套專屬系統均部署於您指定的雲端地區——香港的部署一般選用新加坡。（我們的公開示範運行於美國；正式系統會按您的需要選址。）",
       "backupsTitle": "備份與復原",
       "backupsBody": "每日自動備份是標準配置；企業方案可選擇時間點復原（PITR）。",
-      "certsTitle": "認證——如實交代",
+      "certsTitle": "認證——誠實披露",
       "certsBody": "CareLoop 尚未取得 SOC 2 或 ISO 27001 認證。我們仍處於早期階段，不會假裝不是。我們的路線圖：先取得 SOC 2 Type I，再到 Type II。我們樂意向任何評估中的醫院提供安全問卷答覆及架構文件。",
       "reportingTitle": "漏洞通報",
       "reportingBody": "請以私下渠道向團隊通報安全問題——切勿透過公開的問題追蹤系統，亦切勿在通報中包含真實病人數據。",
@@ -241,11 +241,11 @@
         "organization": "機構",
         "organizationPlaceholder": "醫院、診所或護理服務機構",
         "role": "您的職位",
-        "rolePlaceholder": "例如：病房經理、醫療資訊總監、護理主管",
+        "rolePlaceholder": "例如：病房經理、首席醫療資訊總監、護理主管",
         "email": "工作電郵",
         "phone": "電話",
         "phoneHint": "選填——請包括國家區號",
-        "interest": "您想了解甚麼？",
+        "interest": "您對甚麼有興趣？",
         "interestPilot": "先導計劃",
         "interestDemo": "產品示範",
         "interestPricing": "收費查詢",
@@ -327,7 +327,7 @@
       "metaTitle": "沒有存取權限",
       "title": "帳戶尚未開通",
       "bodyPrefix": "您已登入為",
-      "bodySuffix": "，但此帳戶尚未獲任何 CareLoop 機構的存取權限。請聯絡您機構的管理員完成邀請程序。"
+      "bodySuffix": "，但此帳戶尚未獲得任何 CareLoop 機構的存取權限。請聯絡您機構的管理員完成邀請流程。"
     }
   },
   "dashboard": {
@@ -411,7 +411,7 @@
       "reviewDetails": "確認資料",
       "years": "{age} 歲",
       "ageUnknown": "年齡未知",
-      "monitoringNote": "僅屬監測警示，並非診斷或治療建議。",
+      "monitoringNote": "僅屬監測提示，並非診斷或治療建議。",
       "nurse": "護士",
       "caregiver": "照顧者",
       "whatsapp": "WhatsApp",
@@ -447,7 +447,7 @@
       "table": {
         "date": "日期",
         "mood": "心情",
-        "breathless": "氣促",
+        "breathless": "呼吸急促",
         "swelling": "水腫",
         "medication": "服藥",
         "note": "備註"
@@ -472,7 +472,7 @@
     "form": {
       "sectionPatient": "病人資料",
       "sectionWhatsapp": "WhatsApp 及照顧者",
-      "sectionCarePlan": "護理計劃及基線",
+      "sectionCarePlan": "護理計劃及基線值",
       "name": "姓名",
       "namePlaceholder": "陳太",
       "age": "年齡",
@@ -555,7 +555,7 @@
       "team": "團隊",
       "organization": "機構",
       "demo": "示範",
-      "leads": "查詢"
+      "leads": "客戶查詢"
     },
     "org": {
       "title": "機構",
@@ -594,7 +594,7 @@
       }
     },
     "leads": {
-      "title": "查詢",
+      "title": "客戶查詢",
       "loading": "載入查詢中…",
       "empty": "尚未有查詢。有人提交聯絡表格後會在此顯示。",
       "loadFailed": "未能載入查詢",
@@ -631,7 +631,7 @@
       "voiceNote": "語音訊息",
       "voiceDemo": "（示範）",
       "chips": {
-        "breathless": "氣促",
+        "breathless": "呼吸急促",
         "swelling": "水腫",
         "dizzy": "頭暈",
         "chest": "胸口不適",
@@ -706,7 +706,7 @@
     "refreshFailedDesc": "即時更新已暫停，待連線恢復後繼續。",
     "resetSuccess": "示範數據已重設至初始狀態",
     "resetFailed": "重設失敗",
-    "riskyTitle": "已為陳太記錄高風險報到",
+    "riskyTitle": "已為陳太執行高風險報到",
     "riskyDesc": "觸發 {codes} → {severity}。警示已送至護士隊列。",
     "riskyFailed": "未能執行高風險報到"
   },

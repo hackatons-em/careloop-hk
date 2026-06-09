@@ -27,8 +27,10 @@ only you can do. The product is ready; these unlock selling it.
 ## Reliability & monitoring
 - [ ] Create a Sentry project; set `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`
       (+ the Vercel↔Sentry integration for source maps)
-- [ ] Point an uptime monitor (UptimeRobot / Checkly / BetterStack) at
-      `https://careloop-hk.vercel.app/api/health`
+- [x] Uptime monitoring: `.github/workflows/uptime.yml` probes `/api/health`
+      every 15 min and opens a GitHub issue (label `outage`) on failure —
+      zero-account baseline. Upgrade to UptimeRobot / Checkly / BetterStack
+      when you want SMS/phone paging
 - [ ] Optional: public status page (BetterStack/openstatus) — hospitals ask
 - [ ] Create an Upstash Redis database; set `UPSTASH_REDIS_REST_URL/TOKEN`
       (production-grade rate limiting across serverless instances)
@@ -40,8 +42,11 @@ only you can do. The product is ready; these unlock selling it.
       now bilingual — review BOTH languages)
 - [ ] Pilot agreement template (scope, fee, success criteria, duration)
 - [ ] Data Processing Agreement (DPA) template — PDPO-aligned for HK
-- [ ] Native-speaker review of the zh-HK catalog (`messages/zh-HK.json`) —
-      machine-drafted, clinically sensitive strings under `domain.*` first
+- [ ] Native-speaker sign-off of the zh-HK catalog (`messages/zh-HK.json`).
+      Already done: a 19-agent AI linguistic QA pass (HK conventions, clinical
+      terminology, tone — 15 corrections applied 2026-06-10), so this is a
+      sign-off read, not a rewrite. Clinically sensitive strings under
+      `domain.*` first
 - [ ] Position statement: monitoring support, not a medical device (HONESTY.md
       wording is the base)
 
