@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 
 // Administrative state pill. Teal accent on purpose — the red/amber/blue/green

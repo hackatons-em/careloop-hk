@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { ListChecks, ArrowRightCircle } from "lucide-react";
 import { RiskBadge } from "@/components/RiskBadge";

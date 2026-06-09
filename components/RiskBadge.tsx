@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { type AlertStatus, type Severity } from "@/lib/types";
 import { ALERT_STATUS_STYLE, REASON_TAG_STYLE, severityStyle } from "@/lib/severity";

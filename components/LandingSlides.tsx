@@ -39,7 +39,10 @@ export function LandingSlides() {
   }, [next, prev]);
 
   return (
-    <div className="flex min-h-[calc(100svh-9rem)] flex-col">
+    // Fill the first viewport minus the sticky public header (~57px) and the
+    // (public) layout's top padding (32px) — slides + controls + scroll cue
+    // fit without scrolling, with the marketing sections peeking below.
+    <div className="flex min-h-[calc(100svh-8rem)] flex-col">
       {/* slide */}
       <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center">
         <div key={i} className="cl-fade">

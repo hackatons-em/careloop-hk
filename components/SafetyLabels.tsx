@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { Info, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";

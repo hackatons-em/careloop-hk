@@ -50,10 +50,13 @@ export async function sendLeadNotification(lead: LeadEmailInput): Promise<void> 
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
+      // No reply_to on purpose: the submitted email is unverified, and a
+      // spoofed reply_to would silently route the admin's reply to an
+      // attacker-chosen address. The lead's email is in the body and in
+      // Settings → Leads — reply deliberately from there.
       body: JSON.stringify({
         from,
         to: [to],
-        reply_to: lead.email,
         subject: `New CareLoop lead — ${lead.organization} (${lead.interest})`,
         text,
       }),
