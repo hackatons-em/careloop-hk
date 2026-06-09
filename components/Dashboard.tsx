@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Users, AlertTriangle, Eye, ClipboardCheck, ChevronRight, ArrowRight } from "lucide-react";
 import { useApp } from "@/components/AppProvider";
+import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { ReasonTags, RiskBadge } from "@/components/RiskBadge";
 import {
   Table,
@@ -19,7 +20,7 @@ import { severityStyle } from "@/lib/severity";
 import { formatDay } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-type Filter = "all" | Severity;
+type Filter = "all" | Severity | "needs_review";
 
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
@@ -27,6 +28,7 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: "watch", label: "Watch" },
   { key: "review_today", label: "Review today" },
   { key: "escalate", label: "Escalate" },
+  { key: "needs_review", label: "Needs review" },
 ];
 
 const NEXT_ACTION: Record<Severity, string> = {
@@ -35,6 +37,10 @@ const NEXT_ACTION: Record<Severity, string> = {
   watch: "Monitor",
   stable: "Routine monitoring",
 };
+
+function ageLabel(age: number): string {
+  return age > 0 ? String(age) : "—";
+}
 
 export function Dashboard() {
   const { rows } = useApp();
@@ -62,13 +68,28 @@ export function Dashboard() {
   }, [rows]);
 
   const counts = useMemo(() => {
-    const c: Record<string, number> = { all: rows.length, stable: 0, watch: 0, review_today: 0, escalate: 0 };
-    for (const r of rows) c[r.risk.severity]++;
+    const c: Record<string, number> = {
+      all: rows.length,
+      stable: 0,
+      watch: 0,
+      review_today: 0,
+      escalate: 0,
+      needs_review: 0,
+    };
+    for (const r of rows) {
+      c[r.risk.severity]++;
+      if (r.patient.status === "pending_review") c.needs_review++;
+    }
     return c;
   }, [rows]);
 
   const focus = sortedAll.find((r) => r.risk.severity !== "stable") ?? null;
-  const visible = filter === "all" ? sortedAll : sortedAll.filter((r) => r.risk.severity === filter);
+  const visible =
+    filter === "all"
+      ? sortedAll
+      : filter === "needs_review"
+        ? sortedAll.filter((r) => r.patient.status === "pending_review")
+        : sortedAll.filter((r) => r.risk.severity === filter);
 
   return (
     <div className="space-y-5">
@@ -87,14 +108,21 @@ export function Dashboard() {
       <div className="flex flex-wrap gap-1.5">
         {FILTERS.map((f) => {
           const active = filter === f.key;
-          const accent = f.key !== "all" ? severityStyle(f.key as Severity).dot : "bg-foreground";
+          const accent =
+            f.key === "all"
+              ? "bg-foreground"
+              : f.key === "needs_review"
+                ? "bg-primary"
+                : severityStyle(f.key as Severity).dot;
+          // Hide the needs-review chip entirely when nothing is pending.
+          if (f.key === "needs_review" && counts.needs_review === 0 && !active) return null;
           return (
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
               aria-pressed={active}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors",
+                "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                 active
                   ? "border-primary bg-primary/10 text-foreground"
                   : "border-border bg-card text-muted-foreground hover:bg-muted",
@@ -115,8 +143,9 @@ export function Dashboard() {
         })}
       </div>
 
+      {/* desktop table */}
       <div
-        className="cl-rise overflow-hidden rounded-2xl border border-border bg-card"
+        className="cl-rise hidden overflow-hidden rounded-2xl border border-border bg-card md:block"
         style={{ animationDelay: "270ms" }}
       >
         <Table>
@@ -145,15 +174,19 @@ export function Dashboard() {
                 className="cursor-pointer hover:bg-muted/40"
               >
                 <TableCell>
-                  <Link
-                    href={`/patients/${row.patient.id}`}
-                    onClick={(e) => e.stopPropagation()}
-                    className="font-medium text-foreground outline-none hover:text-primary hover:underline focus-visible:text-primary focus-visible:underline"
-                  >
-                    {row.patient.name}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/patients/${row.patient.id}`}
+                      onClick={(e) => e.stopPropagation()}
+                      className="font-medium text-foreground outline-none hover:text-primary hover:underline focus-visible:text-primary focus-visible:underline"
+                    >
+                      {row.patient.name}
+                    </Link>
+                    {row.patient.status === "pending_review" && <NeedsReviewBadge />}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {row.patient.age} · {row.patient.conditions[0] ?? row.patient.gender}
+                    {ageLabel(row.patient.age)} ·{" "}
+                    {row.patient.conditions[0] ?? row.patient.gender ?? "—"}
                   </div>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
@@ -173,6 +206,41 @@ export function Dashboard() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* mobile card list */}
+      <div className="cl-rise space-y-3 md:hidden" style={{ animationDelay: "270ms" }}>
+        {visible.length === 0 && (
+          <div className="rounded-2xl border border-border bg-card py-10 text-center text-sm text-muted-foreground">
+            No patients in this view.
+          </div>
+        )}
+        {visible.map((row) => (
+          <Link
+            key={row.patient.id}
+            href={`/patients/${row.patient.id}`}
+            className="cl-card block rounded-2xl border border-border bg-card p-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="font-medium">{row.patient.name}</span>
+                {row.patient.status === "pending_review" && <NeedsReviewBadge />}
+              </div>
+              <RiskBadge severity={row.risk.severity} />
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {ageLabel(row.patient.age)} ·{" "}
+              {row.patient.conditions[0] ?? row.patient.gender ?? "—"} · last check-in{" "}
+              {formatDay(row.last_checkin_date)}
+            </p>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <ReasonTags tags={row.risk.reason_tags} max={2} />
+              <span className="shrink-0 text-xs font-medium text-foreground">
+                {NEXT_ACTION[row.risk.severity]}
+              </span>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -222,7 +290,7 @@ function FocusedCard({ row }: { row: PatientRow }) {
           </div>
           <h2 className="mt-1 text-xl font-semibold tracking-tight">{row.patient.name}</h2>
           <p className="text-sm text-muted-foreground">
-            {row.patient.age} · {row.patient.conditions.join(", ")}
+            {ageLabel(row.patient.age)} · {row.patient.conditions.join(", ")}
           </p>
         </div>
         <RiskBadge severity={row.risk.severity} />

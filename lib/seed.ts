@@ -56,7 +56,9 @@ interface DayRow {
 }
 
 interface PatientDef {
-  patient: Patient;
+  // Seed literals omit the production-only columns (phone, status); buildSeed
+  // fills the defaults so the dataset always matches the Patient type.
+  patient: Omit<Patient, "phone" | "status">;
   rows: DayRow[]; // exactly 7, aligned with DEMO_DATES
 }
 
@@ -433,7 +435,12 @@ export function buildSeed(): SeedDataset {
   const checkins: DailyCheckIn[] = [];
 
   for (const def of PATIENT_DEFS) {
-    patients.push({ ...def.patient, conditions: [...def.patient.conditions] });
+    patients.push({
+      ...def.patient,
+      conditions: [...def.patient.conditions],
+      phone: null,
+      status: "active",
+    });
     def.rows.forEach((row, i) => {
       const date = DEMO_DATES[i];
       const pid = def.patient.id;

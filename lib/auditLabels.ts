@@ -14,4 +14,8 @@ export const AUDIT_LABEL: Record<AuditAction, string> = {
   csv_imported: "CSV imported",
   demo_data_reset: "Demo data reset",
   risky_checkin_replayed: "Risky check-in replayed",
+  patient_created: "Patient created",
+  patient_updated: "Patient updated",
+  patient_archived: "Patient archived",
+  user_invited: "User invited",
 };

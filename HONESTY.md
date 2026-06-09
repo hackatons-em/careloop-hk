@@ -86,8 +86,8 @@ Naming these honestly is a strength, not a flaw.
 
 - **Twilio trial daily message cap.** On a trial account, replies fail with error `63038` once the daily quota is used; sustained multi-user testing needs the account upgraded off trial (no code change).
 - **Single shared demo dataset.** All testers act on the same patients unless they onboard their own via WhatsApp; the one-click reset reseeds a known state for everyone.
-- **No nurse-side authentication or access control** — the dashboard and demo/agent endpoints are open (synthetic data only). The database itself is locked down (RLS, server-only service-role key) and inbound media fetches are host-allowlisted to Twilio.
-- **Inbound webhook Twilio-signature verification is currently disabled** for demo reliability (it was prototyped); production would re-enable it and set a cron secret.
+- **Nurse-side authentication is now implemented** (June 2026 production-hardening): Supabase Auth login with `admin`/`nurse` roles, every page and API endpoint server-checked, org-scoped data access, zod input validation, and rate limiting. Demo tooling is gated behind `DEMO_MODE` + admin. The database remains locked down (RLS, server-only service-role key) and inbound media fetches are host-allowlisted to Twilio.
+- **Inbound webhook Twilio-signature verification is now enforced** (HMAC-SHA1, timing-safe, pinned to `TWILIO_WEBHOOK_URL`) whenever Twilio is configured; in production it fails closed. Agent/cron endpoints require a bearer `CRON_SECRET` (also fail-closed in production).
 - **Cantonese STT and the risk thresholds are not clinically validated** — demonstration values informed by ESC/HFSA and ACC/AHA guidance, not certified for clinical use.
 - **No real device, hospital EHR, or Hong Kong eHealth+ integration** — wearable data is CSV/seed; FHIR export is illustrative.
-- **Next:** production WhatsApp Business API · real device + EHR integrations · per-clinic data isolation + authentication · clinical validation of the rules · photo/short-video replies (vision, not yet processed).
+- **Next:** production WhatsApp Business API · real device + EHR integrations · multi-organization management UI (the schema is already org-scoped) · clinical validation of the rules · photo/short-video replies (vision, not yet processed).

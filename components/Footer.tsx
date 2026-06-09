@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { HeartPulse } from "lucide-react";
 
 export function Footer() {
@@ -9,10 +10,21 @@ export function Footer() {
           <span className="font-medium text-foreground">CareLoop</span>
           <span className="hidden sm:inline">— remote chronic-care monitoring, Hong Kong.</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-2 sm:items-end">
+          <nav className="flex items-center gap-4 text-xs">
+            <Link href="/privacy" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link href="/business" className="hover:text-foreground">
+              Business case
+            </Link>
+          </nav>
           <span className="max-w-md text-xs">
             CareLoop flags monitoring risks for professional review. It does not diagnose or
-            prescribe. Demo data only.
+            prescribe.
           </span>
         </div>
       </div>

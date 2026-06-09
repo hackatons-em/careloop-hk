@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   MessageCircle,
   MoreHorizontal,
+  Pencil,
   Upload,
   History,
 } from "lucide-react";
@@ -41,6 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useApp } from "@/components/AppProvider";
+import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { api } from "@/lib/api";
 import { formatDay } from "@/lib/format";
 import type { DailyCheckIn, PatientTimeline } from "@/lib/types";
@@ -103,10 +105,28 @@ export function PatientDetail({
     <div className="flex flex-col gap-4 lg:h-[calc(100dvh-12rem)]">
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ChevronLeft className="size-4" /> Back to dashboard
       </Link>
+
+      {/* Pending review: auto-created from WhatsApp, awaiting nurse confirmation */}
+      {patient.status === "pending_review" && (
+        <div className="cl-rise flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-primary/20 bg-accent p-4">
+          <div className="flex items-center gap-3">
+            <NeedsReviewBadge />
+            <p className="text-sm text-accent-foreground">
+              Auto-created from a WhatsApp check-in — confirm this patient&apos;s details.
+            </p>
+          </div>
+          <Link
+            href={`/patients/${patientId}/edit`}
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            <Pencil className="size-3.5" /> Review details
+          </Link>
+        </div>
+      )}
 
       {/* Header */}
       <div className="cl-rise rounded-2xl border border-border bg-card p-5">
@@ -117,7 +137,9 @@ export function PatientDetail({
               <RiskBadge severity={risk.severity} />
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
-              {patient.age} years · {patient.gender} · {patient.conditions.join(", ")}
+              {patient.age > 0 ? `${patient.age} years` : "Age unknown"}
+              {patient.gender ? ` · ${patient.gender}` : ""}
+              {patient.conditions.length > 0 ? ` · ${patient.conditions.join(", ")}` : ""}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               Monitoring alert only. Not diagnosis or treatment advice.
@@ -127,6 +149,12 @@ export function PatientDetail({
             <Button variant="outline" size="sm" onClick={sendCheckin} className="gap-1.5">
               <MessageCircle className="size-4" /> Send check-in
             </Button>
+            <Link
+              href={`/patients/${patientId}/edit`}
+              className="inline-flex h-7 items-center gap-1 rounded-[min(var(--radius-md),12px)] border border-border bg-background px-2.5 text-[0.8rem] font-medium outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <Pencil className="size-3.5" /> Edit
+            </Link>
             <DropdownMenu>
               <DropdownMenuTrigger
                 render={
@@ -149,13 +177,16 @@ export function PatientDetail({
 
         <p className="mt-4 text-sm text-muted-foreground">
           Nurse <span className="font-medium text-foreground">{patient.assigned_nurse}</span>
-          {" · "}Caregiver{" "}
-          <span className="font-medium text-foreground">{patient.caregiver_name}</span>
-          {patient.caregiver_phone ? ` (${patient.caregiver_phone})` : ""}
-          {" · "}
-          {patient.living_status}
-          {" · "}
-          {patient.language}
+          {patient.caregiver_name ? (
+            <>
+              {" · "}Caregiver{" "}
+              <span className="font-medium text-foreground">{patient.caregiver_name}</span>
+              {patient.caregiver_phone ? ` (${patient.caregiver_phone})` : ""}
+            </>
+          ) : null}
+          {patient.living_status ? ` · ${patient.living_status}` : ""}
+          {patient.language ? ` · ${patient.language}` : ""}
+          {patient.phone ? ` · WhatsApp ${patient.phone}` : ""}
         </p>
       </div>
 
@@ -199,6 +230,7 @@ export function PatientDetail({
                 series={[{ key: "weight", name: "Weight", color: "var(--chart-1)" }]}
                 unit="kg"
                 refLines={[{ y: patient.baseline_weight, label: "baseline" }]}
+                ariaLabel={`Weight trend chart for ${patient.name} over the monitored period, in kilograms`}
               />
             </ChartCard>
             <ChartCard icon={HeartPulse} title="Blood pressure (mmHg)">
@@ -209,6 +241,7 @@ export function PatientDetail({
                   { key: "diastolic", name: "Diastolic", color: "var(--chart-5)" },
                 ]}
                 unit="mmHg"
+                ariaLabel={`Blood pressure trend chart for ${patient.name}: systolic and diastolic, in millimetres of mercury`}
               />
             </ChartCard>
           </div>
@@ -228,6 +261,7 @@ export function PatientDetail({
                     { y: patient.baseline_steps, label: "baseline" },
                     { y: stepsThreshold, label: "-40%", color: "var(--destructive)" },
                   ]}
+                  ariaLabel={`Daily activity trend chart for ${patient.name}, in steps, with baseline and 40 percent drop threshold`}
                 />
               </ChartCard>
               <AdherenceStrip checkins={checkins} />
@@ -239,6 +273,7 @@ export function PatientDetail({
                     domain={[0, 3]}
                     step
                     yTickFormatter={(v) => ["Stable", "Watch", "Review", "Escalate"][v] ?? ""}
+                    ariaLabel={`Risk level over time for ${patient.name}, from stable to escalate`}
                   />
                 </ChartCard>
               </div>
@@ -249,7 +284,9 @@ export function PatientDetail({
         <TabsContent value="checkins" className="cl-fade pt-4">
           <div className="rounded-2xl border border-border bg-card p-5">
             <h2 className="mb-2 text-sm font-medium">Daily check-in responses</h2>
-            <CheckInTable checkins={checkins} />
+            <div className="overflow-x-auto">
+              <CheckInTable checkins={checkins} />
+            </div>
           </div>
         </TabsContent>
 

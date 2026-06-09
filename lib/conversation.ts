@@ -79,52 +79,65 @@ function emptyCollected(): Collected {
   };
 }
 
-/** Clear conversation state for a clean demo. The careloop_truncate_conversations
- * RPC truncates messages + sessions but KEEPS careloop_links, so captured phone
- * numbers (and the sticky sender->patient mapping) survive a reset and the
- * outbound "send check-in" still works afterwards. */
-export async function resetConversations(): Promise<void> {
-  const { error } = await supa().rpc("careloop_truncate_conversations");
-  if (error) throw new Error(`Supabase: ${error.message}`);
-}
-
 // --- phone <-> patient links (careloop_links) -----------------------------
 
-// The webhook creates a fresh mock patient per new number (lib/store
-// createPatientFromMock); these helpers manage the persisted phone <-> patient
-// links so replies and outbound check-ins always route back.
-async function linkPatientForPhone(phone: string): Promise<string | null> {
+// The webhook creates a patient per new number (lib/store
+// createPatientFromWhatsApp); these helpers manage the persisted phone <->
+// patient links so replies and outbound check-ins always route back.
+//
+// Keys are ALWAYS the Twilio `whatsapp:+<E.164>` form, and the PK is
+// (phone, org_id) — a number maps to one patient per organization, and one
+// org's link can never be silently reassigned by another org's traffic.
+
+/** Normalize any phone input to the Twilio link-key form. */
+function linkKey(phone: string): string {
+  return phone.startsWith("whatsapp:") ? phone : `whatsapp:${phone}`;
+}
+
+async function linkPatientForPhone(orgId: string, phone: string): Promise<string | null> {
   const { data, error } = await supa()
     .from("careloop_links")
     .select("patient_id")
-    .eq("phone", phone)
+    .eq("org_id", orgId)
+    .eq("phone", linkKey(phone))
     .maybeSingle();
   if (error) throw new Error(`Supabase: ${error.message}`);
   return (data?.patient_id as string | undefined) ?? null;
 }
 
 /** Insert/overwrite a phone -> patient link (used for outbound capture + fixed
- * presenter mode). phone is the PK; on conflict we update the patient. */
-async function linkUpsert(phone: string, patientId: string): Promise<void> {
+ * presenter mode). On conflict (same phone, same org) the patient is updated. */
+async function linkUpsert(orgId: string, phone: string, patientId: string): Promise<void> {
   const { error } = await supa()
     .from("careloop_links")
-    .upsert({ phone, patient_id: patientId }, { onConflict: "phone" });
+    .upsert(
+      { phone: linkKey(phone), patient_id: patientId, org_id: orgId },
+      { onConflict: "phone,org_id" },
+    );
   if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
-/** The patient a phone is already linked to, or null (no new assignment). */
-export async function getPatientForPhone(phone: string): Promise<string | null> {
-  return phone ? linkPatientForPhone(phone) : null;
+/** The patient a phone is already linked to in this org, or null. */
+export async function getPatientForPhone(orgId: string, phone: string): Promise<string | null> {
+  return phone ? linkPatientForPhone(orgId, phone) : null;
 }
 
-export async function setPatientPhone(patientId: string, phone: string): Promise<void> {
-  if (phone) await linkUpsert(phone, patientId);
+export async function setPatientPhone(
+  orgId: string,
+  patientId: string,
+  phone: string,
+): Promise<void> {
+  if (phone) await linkUpsert(orgId, phone, patientId);
 }
 
-export async function getPatientPhone(patientId: string): Promise<string | undefined> {
+export async function getPatientPhone(
+  orgId: string,
+  patientId: string,
+): Promise<string | undefined> {
   const { data, error } = await supa()
     .from("careloop_links")
     .select("phone")
+    .eq("org_id", orgId)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: false })
     .limit(1);
@@ -211,13 +224,14 @@ function rowToSession(r: Record<string, unknown>): CheckInSession {
 
 /** Persist a session (upsert by patient_id+date). Call after mutating a session
  * via mergeExtraction or status/pending_field changes. */
-export async function saveSession(session: CheckInSession): Promise<void> {
+export async function saveSession(orgId: string, session: CheckInSession): Promise<void> {
   session.updated_at = nowIso();
   const { error } = await supa()
     .from("careloop_sessions")
     .upsert(
       {
         patient_id: session.patient_id,
+        org_id: orgId,
         date: session.date,
         status: session.status,
         collected: session.collected,
@@ -225,18 +239,20 @@ export async function saveSession(session: CheckInSession): Promise<void> {
         pending_field: session.pending_field,
         updated_at: session.updated_at,
       },
-      { onConflict: "patient_id,date" },
+      { onConflict: "patient_id,date,org_id" },
     );
   if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
 export async function getSession(
+  orgId: string,
   patientId: string,
   date: string,
 ): Promise<CheckInSession | undefined> {
   const { data, error } = await supa()
     .from("careloop_sessions")
     .select("*")
+    .eq("org_id", orgId)
     .eq("patient_id", patientId)
     .eq("date", date)
     .maybeSingle();
@@ -245,12 +261,13 @@ export async function getSession(
 }
 
 export async function getOrCreateSession(
+  orgId: string,
   patientId: string,
   date: string,
 ): Promise<CheckInSession> {
-  const existing = await getSession(patientId, date);
+  const existing = await getSession(orgId, patientId, date);
   if (existing) return existing;
-  const patient = await getPatient(patientId);
+  const patient = await getPatient(orgId, patientId);
   const session: CheckInSession = {
     patient_id: patientId,
     date,
@@ -260,14 +277,18 @@ export async function getOrCreateSession(
     pending_field: null,
     updated_at: nowIso(),
   };
-  await saveSession(session);
+  await saveSession(orgId, session);
   return session;
 }
 
 /** Start a fresh daily check-in session — used when the agent sends the morning
  * prompt. Resets today's collected data and waits on the mood answer. */
-export async function beginSession(patientId: string, date: string): Promise<CheckInSession> {
-  const patient = await getPatient(patientId);
+export async function beginSession(
+  orgId: string,
+  patientId: string,
+  date: string,
+): Promise<CheckInSession> {
+  const patient = await getPatient(orgId, patientId);
   const session: CheckInSession = {
     patient_id: patientId,
     date,
@@ -277,7 +298,7 @@ export async function beginSession(patientId: string, date: string): Promise<Che
     pending_field: "mood",
     updated_at: nowIso(),
   };
-  await saveSession(session);
+  await saveSession(orgId, session);
   return session;
 }
 
@@ -300,13 +321,17 @@ function rowToMessage(r: Record<string, unknown>): Message {
   return m;
 }
 
-export async function appendMessage(m: Omit<Message, "id" | "created_at">): Promise<Message> {
+export async function appendMessage(
+  orgId: string,
+  m: Omit<Message, "id" | "created_at">,
+): Promise<Message> {
   const msg: Message = { ...m, id: genId("msg"), created_at: nowIso() };
   const { error } = await supa()
     .from("careloop_messages")
     .insert({
       id: msg.id,
       patient_id: msg.patient_id,
+      org_id: orgId,
       created_at: msg.created_at,
       direction: msg.direction,
       channel: msg.channel,
@@ -321,23 +346,14 @@ export async function appendMessage(m: Omit<Message, "id" | "created_at">): Prom
   return msg;
 }
 
-export async function getThread(patientId: string): Promise<Message[]> {
+export async function getThread(orgId: string, patientId: string): Promise<Message[]> {
   const { data, error } = await supa()
     .from("careloop_messages")
     .select("*")
+    .eq("org_id", orgId)
     .eq("patient_id", patientId)
     .order("created_at", { ascending: true })
     .order("id", { ascending: true }); // stable tiebreaker for same-millisecond inserts
-  if (error) throw new Error(`Supabase: ${error.message}`);
-  return (data ?? []).map((r) => rowToMessage(r as Record<string, unknown>));
-}
-
-export async function getAllMessages(): Promise<Message[]> {
-  const { data, error } = await supa()
-    .from("careloop_messages")
-    .select("*")
-    .order("created_at", { ascending: true })
-    .order("id", { ascending: true });
   if (error) throw new Error(`Supabase: ${error.message}`);
   return (data ?? []).map((r) => rowToMessage(r as Record<string, unknown>));
 }

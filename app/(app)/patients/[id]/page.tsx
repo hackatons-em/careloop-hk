@@ -1,23 +1,15 @@
-import Link from "next/link";
+import { notFound } from "next/navigation";
 import { PatientDetail } from "@/components/PatientDetail";
+import { requireAuthOrRedirect } from "@/lib/auth";
 import { getTimeline } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
 export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
+  const ctx = await requireAuthOrRedirect();
   const { id } = await params;
-  const timeline = await getTimeline(id);
-
-  if (!timeline) {
-    return (
-      <div className="py-16 text-center">
-        <p className="text-muted-foreground">Patient not found.</p>
-        <Link href="/dashboard" className="mt-2 inline-block text-primary hover:underline">
-          Back to dashboard
-        </Link>
-      </div>
-    );
-  }
+  const timeline = await getTimeline(ctx.orgId, id);
+  if (!timeline) notFound();
 
   return <PatientDetail patientId={id} initialTimeline={timeline} />;
 }

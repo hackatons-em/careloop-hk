@@ -38,6 +38,8 @@ interface TrendChartProps {
   domain?: [number | "auto" | "dataMin", number | "auto" | "dataMax"];
   yTickFormatter?: (value: number) => string;
   step?: boolean;
+  /** Screen-reader description of the chart (e.g. "Weight over the last 7 days"). */
+  ariaLabel?: string;
 }
 
 export function TrendChart({
@@ -49,10 +51,16 @@ export function TrendChart({
   domain = ["auto", "auto"],
   yTickFormatter,
   step = false,
+  ariaLabel,
 }: TrendChartProps) {
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+    <div role={ariaLabel ? "img" : undefined} aria-label={ariaLabel}>
+      <ResponsiveContainer width="100%" height={height}>
+      <AreaChart
+        data={data}
+        margin={{ top: 8, right: 12, left: -8, bottom: 0 }}
+        accessibilityLayer
+      >
         <defs>
           {series.map((s) => (
             <linearGradient key={s.key} id={`grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -120,6 +128,7 @@ export function TrendChart({
           />
         ))}
       </AreaChart>
-    </ResponsiveContainer>
+      </ResponsiveContainer>
+    </div>
   );
 }

@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export default function GlobalError({
+export default function AppError({
   error,
   reset,
 }: {
@@ -14,6 +15,7 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[careloop] unhandled error:", error);
+    Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -23,7 +25,7 @@ export default function GlobalError({
       </span>
       <h1 className="mt-4 text-xl font-semibold">Something went wrong</h1>
       <p className="mt-1 max-w-md text-sm text-muted-foreground">
-        An unexpected error occurred. Your demo data is safe — try again, or reset the demo from the
+        An unexpected error occurred. Your data is safe — try again, or head back to the
         dashboard.
       </p>
       <div className="mt-5 flex gap-2">

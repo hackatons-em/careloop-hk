@@ -16,8 +16,9 @@ function ensureInit() {
   initialized = true;
 }
 
-/** Renders a Mermaid diagram from a definition string (client-side). */
-export function Mermaid({ chart }: { chart: string }) {
+/** Renders a Mermaid diagram from a definition string (client-side).
+ * `label` is announced to screen readers in place of the SVG content. */
+export function Mermaid({ chart, label }: { chart: string; label: string }) {
   const id = `m${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const [svg, setSvg] = useState("");
 
@@ -37,6 +38,8 @@ export function Mermaid({ chart }: { chart: string }) {
 
   return (
     <div
+      role="img"
+      aria-label={label}
       className="flex justify-center [&_svg]:!h-auto [&_svg]:!w-auto [&_svg]:!max-h-[62vh] [&_svg]:!max-w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />

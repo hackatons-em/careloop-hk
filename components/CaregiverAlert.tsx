@@ -64,7 +64,7 @@ export function CaregiverAlert({
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
               className={cn(
-                "rounded-md px-2 py-0.5 font-medium transition-colors",
+                "rounded-md px-2 py-0.5 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                 lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >

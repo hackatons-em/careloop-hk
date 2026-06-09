@@ -8,6 +8,8 @@
 // the moment a key is added. No STT provider ever decides severity; it only
 // produces text for the deterministic engine downstream.
 
+import { logger } from "./logger";
+
 interface SttProvider {
   name: string;
   baseUrl: string;
@@ -61,7 +63,7 @@ export async function transcribeAudio(
   const provider = resolveProvider();
   if (!provider) return null;
   if (!isAllowedMediaUrl(url)) {
-    console.error("[careloop] STT refused a non-Twilio media URL (possible SSRF); using fallback.");
+    logger.error("STT refused a non-Twilio media URL (possible SSRF); using fallback.");
     return null;
   }
 
@@ -99,7 +101,7 @@ export async function transcribeAudio(
     const data = (await sttRes.json()) as { text?: string };
     return data.text?.trim() || null;
   } catch (err) {
-    console.error("[careloop] STT failed; caller will fall back to pinned transcript.", err);
+    logger.error("STT failed; caller will fall back to pinned transcript.", { err });
     return null;
   }
 }

@@ -78,7 +78,7 @@ export function AlertQueue() {
               onClick={() => setView(v.key)}
               aria-pressed={active}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium transition-colors",
+                "inline-flex items-center gap-1.5 rounded-md px-3 py-1 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                 active ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
@@ -139,7 +139,7 @@ function AlertCard({
     setBusy(true);
     try {
       const finalStatus = nextStatus ?? status;
-      await api.patchAlert(alert.id, { status: finalStatus, nurse_note: note || null, actor: "Nurse" });
+      await api.patchAlert(alert.id, { status: finalStatus, nurse_note: note || null });
       setStatus(finalStatus);
       await onChanged();
       if (!opts?.quiet) toast.success(`Alert ${ALERT_STATUS_LABEL[finalStatus].toLowerCase()}`);
@@ -209,7 +209,7 @@ function AlertCard({
           value={status}
           onChange={(e) => setStatus(e.target.value as AlertStatus)}
           aria-label="Alert status"
-          className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none focus-visible:border-ring"
+          className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring"
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>

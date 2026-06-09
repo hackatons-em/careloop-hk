@@ -8,6 +8,7 @@
 // matcher is used instead, so the pipeline never hard-fails.
 
 import Anthropic from "@anthropic-ai/sdk";
+import { logger } from "./logger";
 
 export interface ExtractedCheckIn {
   mood: "good" | "okay" | "tired" | "unwell" | null;
@@ -138,7 +139,7 @@ export async function extractSymptoms(message: string, context?: string): Promis
       const parsed = JSON.parse(stripFences(text)) as Record<string, unknown>;
       return normalize(parsed, "ai");
     } catch (err) {
-      console.error("[careloop] AI symptom extraction failed; using keyword fallback.", err);
+      logger.error("AI symptom extraction failed; using keyword fallback.", { err });
     }
   }
   return keywordExtract(message);

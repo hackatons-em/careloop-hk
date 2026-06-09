@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { AuditEvent, PatientRow, RiskAlert } from "@/lib/types";
@@ -10,6 +10,8 @@ interface AppState {
   alerts: RiskAlert[];
   audit: AuditEvent[];
   busy: boolean;
+  /** True while live refresh is failing (connectivity / server trouble). */
+  degraded: boolean;
   refresh: () => Promise<void>;
   resetDemo: () => Promise<void>;
   runRiskyCheckIn: () => Promise<string | null>; // returns affected patient id
@@ -40,6 +42,9 @@ export function AppProvider({
   const [alerts, setAlerts] = useState<RiskAlert[]>(initialAlerts);
   const [audit, setAudit] = useState<AuditEvent[]>(initialAudit);
   const [busy, setBusy] = useState(false);
+  const [degraded, setDegraded] = useState(false);
+  // Toast once per outage, not every 5s poll tick.
+  const failStreak = useRef(0);
 
   const refresh = useCallback(async () => {
     try {
@@ -47,8 +52,17 @@ export function AppProvider({
       setRows(r);
       setAlerts(a);
       setAudit(ev);
+      if (failStreak.current >= 2) toast.success("Connection restored");
+      failStreak.current = 0;
+      setDegraded(false);
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to refresh data");
+      failStreak.current += 1;
+      if (failStreak.current === 2) {
+        setDegraded(true);
+        toast.error(e instanceof Error ? e.message : "Failed to refresh data", {
+          description: "Live updates are paused until the connection recovers.",
+        });
+      }
     }
   }, []);
 
@@ -82,7 +96,7 @@ export function AppProvider({
     }
   }, [refresh]);
 
-  // Live demo: poll so the dashboard/alerts update when WhatsApp messages arrive.
+  // Live updates: poll so the dashboard/alerts update when WhatsApp messages arrive.
   useEffect(() => {
     const t = setInterval(() => {
       void refresh();
@@ -91,7 +105,9 @@ export function AppProvider({
   }, [refresh]);
 
   return (
-    <Ctx.Provider value={{ rows, alerts, audit, busy, refresh, resetDemo, runRiskyCheckIn }}>
+    <Ctx.Provider
+      value={{ rows, alerts, audit, busy, degraded, refresh, resetDemo, runRiskyCheckIn }}
+    >
       {children}
     </Ctx.Provider>
   );

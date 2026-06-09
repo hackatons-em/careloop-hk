@@ -1,5 +1,5 @@
 {
   "crons": [
-    { "path": "/api/agent/send-checkin", "schedule": "0 0 * * *" }
+    { "path": "/api/agent/send-round", "schedule": "0 0 * * *" }
   ]
 }

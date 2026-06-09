@@ -19,8 +19,8 @@ import {
   saveSession,
   type Lang,
 } from "./conversation";
+import { todayISO } from "./dates";
 import { generateConfirmation, generateFollowUp } from "./followup";
-import { WEEK_END } from "./seed";
 import { getPatient, submitCheckIn } from "./store";
 import { extractSymptoms } from "./symptomExtraction";
 import { SEVERITY_ORDER, type RiskResult } from "./types";
@@ -31,6 +31,7 @@ export const PINNED_DEMO_TRANSCRIPT =
   "今日有啲氣促，行幾步就要抖，對腳同腳踝腫咗，今日又唔記得食藥。";
 
 export interface IngestInput {
+  orgId: string;
   patientId: string;
   text?: string | null;
   audioUrl?: string | null;
@@ -51,9 +52,10 @@ function detectLang(text: string): Lang {
 }
 
 export async function ingestCheckInMessage(input: IngestInput): Promise<IngestResult | null> {
-  const patient = await getPatient(input.patientId);
+  const { orgId } = input;
+  const patient = await getPatient(orgId, input.patientId);
   if (!patient) return null;
-  const date = WEEK_END;
+  const date = todayISO();
 
   // 1. resolve transcript (text, or STT for a voice note, or pinned fallback)
   let transcript = (input.text ?? "").trim();
@@ -74,7 +76,7 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   const language = detectLang(transcript);
 
   // 2. session + context-aware extraction (knows what we last asked)
-  const session = await getOrCreateSession(input.patientId, date);
+  const session = await getOrCreateSession(orgId, input.patientId, date);
   const context = session.pending_field ? questionFor(session.pending_field, language) : undefined;
   const extracted = await extractSymptoms(transcript, context);
   mergeExtraction(session, extracted);
@@ -82,6 +84,7 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   // 3. derive the structured check-in from the accumulated session, run engine
   const c = session.collected;
   const result = await submitCheckIn(
+    orgId,
     input.patientId,
     {
       date,
@@ -100,7 +103,7 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   if (!result) return null;
 
   // 4. log the inbound message (with what was extracted + the resulting risk)
-  await appendMessage({
+  await appendMessage(orgId, {
     patient_id: input.patientId,
     direction: "inbound",
     channel: "whatsapp",
@@ -137,8 +140,8 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
   }
 
   // 6. persist the updated session, then log the outbound reply
-  await saveSession(session);
-  await appendMessage({
+  await saveSession(orgId, session);
+  await appendMessage(orgId, {
     patient_id: input.patientId,
     direction: "outbound",
     channel: "whatsapp",

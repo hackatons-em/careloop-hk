@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { buildFhirBundle } from "./fhirService";
 import { parseVitalsCsv } from "./csv";
+import { getDefaultOrgId } from "./org";
 import { evaluateRisk, riskTrend } from "./riskEngine";
 import { buildSeed } from "./seed";
 import {
@@ -178,21 +179,28 @@ describe("FHIR-style export", () => {
 });
 
 // --- store-backed flows: gated on a configured Supabase project --------------
+// Requires migrations 0001–0003 applied (org-scoped store API).
 describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
+  let ORG = "";
+
+  beforeAll(async () => {
+    ORG = await getDefaultOrgId();
+  });
+
   beforeEach(async () => {
-    await resetDemo();
+    await resetDemo(ORG);
   });
 
   describe("demo reset is deterministic and reproducible", () => {
     it("restores the same dashboard state every time", async () => {
-      await resetDemo();
-      const a = (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]);
-      await resetDemo();
-      const b = (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]);
+      await resetDemo(ORG);
+      const a = (await getPatientRows(ORG)).map((r) => [r.patient.id, r.risk.severity]);
+      await resetDemo(ORG);
+      const b = (await getPatientRows(ORG)).map((r) => [r.patient.id, r.risk.severity]);
       expect(b).toEqual(a);
 
       const sev = Object.fromEntries(
-        (await getPatientRows()).map((r) => [r.patient.id, r.risk.severity]),
+        (await getPatientRows(ORG)).map((r) => [r.patient.id, r.risk.severity]),
       );
       expect(sev["patient-mrs-chan"]).toBe("escalate");
       expect(sev["patient-mr-lee"]).toBe("watch");
@@ -202,7 +210,7 @@ describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
     });
 
     it("shows 4 check-ins today (Mr. Lee missed his)", async () => {
-      const rows = await getPatientRows();
+      const rows = await getPatientRows(ORG);
       const dates = rows.map((r) => r.last_checkin_date).filter(Boolean).sort() as string[];
       const latest = dates[dates.length - 1];
       expect(rows.filter((r) => r.last_checkin_date === latest)).toHaveLength(4);
@@ -213,7 +221,7 @@ describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
 
   describe("risky check-in replay", () => {
     it("escalates Mrs. Chan with HF-001 + HF-002 and creates an alert", async () => {
-      const res = await runRiskyCheckIn();
+      const res = await runRiskyCheckIn(ORG);
       expect(res).not.toBeNull();
       expect(res!.risk.severity).toBe("escalate");
       const codes = res!.risk.matched_rules.map((m) => m.code);
@@ -222,7 +230,7 @@ describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
       expect(res!.checkin.shortness_of_breath).toBe(true);
       expect(res!.checkin.swelling).toBe(true);
       expect(res!.checkin.medication_taken).toBe(false);
-      const alerts = await getAlerts();
+      const alerts = await getAlerts(ORG);
       expect(
         alerts.some((a) => a.patient_id === "patient-mrs-chan" && a.severity === "escalate"),
       ).toBe(true);
@@ -231,24 +239,24 @@ describe.skipIf(!HAS_DB)("store (Supabase) — demo flows", () => {
 
   describe("audit events", () => {
     it("emits the required actions with the correct shape", async () => {
-      await runRiskyCheckIn();
-      const actions = (await getAuditEvents()).map((e) => e.action);
+      await runRiskyCheckIn(ORG);
+      const actions = (await getAuditEvents(ORG)).map((e) => e.action);
       expect(actions).toContain("risk_evaluated");
       expect(actions).toContain("alert_created"); // from the reset/seed
       expect(actions).toContain("checkin_submitted");
       expect(actions).toContain("risky_checkin_replayed");
 
-      const event = (await getAuditEvents())[0];
+      const event = (await getAuditEvents(ORG))[0];
       for (const key of ["id", "actor", "action", "target_type", "target_id", "metadata", "created_at"]) {
         expect(event).toHaveProperty(key);
       }
     });
 
     it("logs alert_acknowledged when a nurse acknowledges", async () => {
-      const chanAlert = (await getAlerts()).find((a) => a.patient_id === "patient-mrs-chan");
+      const chanAlert = (await getAlerts(ORG)).find((a) => a.patient_id === "patient-mrs-chan");
       expect(chanAlert).toBeTruthy();
-      await updateAlert(chanAlert!.id, { status: "acknowledged" });
-      expect((await getAuditEvents()).map((e) => e.action)).toContain("alert_acknowledged");
+      await updateAlert(ORG, chanAlert!.id, { status: "acknowledged" }, "test-nurse");
+      expect((await getAuditEvents(ORG)).map((e) => e.action)).toContain("alert_acknowledged");
     });
   });
 });

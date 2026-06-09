@@ -73,32 +73,47 @@ join code), then reply to the check-in and watch the dashboard update.
 
 ```bash
 npm install
-cp .env.example .env.local     # set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (required)
+cp .env.example .env.local     # set the four Supabase vars (required — see DEPLOYMENT.md)
 npm run dev                    # http://localhost:3000
 ```
 
 ```bash
-npm test                       # Vitest — risk engine + seed/CSV/FHIR (DB-backed tests skip without SUPABASE_*)
+npm test                       # Vitest — risk engine, validation, security helpers (DB-backed tests skip without SUPABASE_*)
+npm run typecheck              # tsc --noEmit
+npm run e2e                    # Playwright — needs a TEST Supabase project, DEMO_MODE=true,
+                               # and E2E_ADMIN_EMAIL/E2E_ADMIN_PASSWORD in the env (see DEPLOYMENT.md §7)
 npm run build                  # production build
 ```
 
-A Supabase project is required (apply `supabase/migrations/*.sql`). Seed or reset the demo data with
-`POST /api/demo/reset`. AI / WhatsApp / STT keys are optional — without them the app falls back to
-templates and a pinned transcript, so it still runs end-to-end (see `.env.example`).
+A Supabase project is required: apply `supabase/migrations/*.sql` in order, then create the first
+admin user (steps in [`DEPLOYMENT.md`](./DEPLOYMENT.md)). Sign in, then seed demo data from
+**Settings → Demo** (requires `DEMO_MODE=true`). AI / WhatsApp / STT keys are optional — without
+them the app falls back to templates and a pinned transcript, so it still runs end-to-end.
 
 ## Environment variables
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | yes | Postgres backend (server-only) |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | yes | Nurse/admin login session (anon key has zero data access) |
+| `CRON_SECRET` | production | Agent endpoints fail closed in production without it |
 | `ANTHROPIC_API_KEY` | no | Symptom extraction + message/summary wording (else templates) |
-| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` | no | WhatsApp send + voice-note download |
+| `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WEBHOOK_URL` | no | WhatsApp send + signed inbound webhook |
 | `GROQ_API_KEY` (or `OPENAI_API_KEY`) | no | Voice-note speech-to-text (else pinned transcript) |
 
-See `.env.example` for the full list (scheduler, sandbox onboarding, model overrides).
+See `.env.example` for the full list (rate limiting, Sentry, scheduler, model overrides).
+
+## Production
+
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — Supabase setup (migrations + first admin), Vercel,
+  Twilio webhook, Docker self-hosting, monitoring, CI/E2E secrets.
+- **[SECURITY.md](./SECURITY.md)** — security architecture and vulnerability reporting.
+- Auth: Supabase Auth with `admin`/`nurse` roles; multi-tenant-ready schema (org-scoped rows);
+  zod-validated APIs; rate limiting; signed Twilio webhooks; CSP/HSTS headers; Sentry; structured
+  JSON logs; append-only audit trail.
 
 ## Safety & honesty
 
 CareLoop is monitoring support — not a diagnosis or treatment tool, and not a replacement for a
 clinician or emergency service. All demo data is synthetic; no secrets are committed.
-[`HONESTY.md`](./HONESTY.md) and the in-app `/honesty` page document exactly what is real vs mocked.
+[`HONESTY.md`](./HONESTY.md) documents exactly what is real vs mocked.

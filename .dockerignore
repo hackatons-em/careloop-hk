@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.github
+.vercel
+.claude
+.env*
+!.env.example
+playwright-report
+test-results
+e2e/.auth
+docs
+*.md

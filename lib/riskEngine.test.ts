@@ -19,6 +19,8 @@ function patient(overrides: Partial<Patient> = {}): Patient {
     assigned_nurse: "Nurse Test",
     baseline_weight: 60,
     baseline_steps: 3000,
+    phone: null,
+    status: "active",
     ...overrides,
   };
 }

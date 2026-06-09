@@ -1,5 +1,6 @@
 import QRCode from "qrcode";
 
+export const metadata = { title: "Onboard a patient" };
 export const dynamic = "force-dynamic";
 
 // Twilio sandbox number + join code (overridable; defaults from the sandbox).
@@ -56,8 +57,8 @@ export default async function OnboardPage() {
             <p className="font-medium text-foreground">Write your first message</p>
             <p className="mt-0.5 text-muted-foreground">
               Reply with how you feel today — type, or send a Cantonese voice note (e.g.
-              “今日有啲氣促，對腳腫咗”). CareLoop replies telling you which patient you are, and your
-              patient goes live on the nurse dashboard.
+              “今日有啲氣促，對腳腫咗”). CareLoop confirms your enrolment, and your patient record
+              appears on the nurse dashboard for review.
             </p>
           </div>
         </li>

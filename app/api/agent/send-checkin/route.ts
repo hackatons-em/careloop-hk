@@ -1,19 +1,22 @@
 import { sendDailyCheckIn } from "@/lib/agent";
+import { requireAuth } from "@/lib/auth";
 import { requireCronAuthIfConfigured } from "@/lib/cronAuth";
+import { getDefaultOrgId } from "@/lib/org";
+import { parseBody, sendCheckinSchema } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
 const DEFAULT_PATIENT = process.env.CARELOOP_WHATSAPP_PATIENT ?? "patient-mrs-chan";
 
-// POST /api/agent/send-checkin — trigger the agent's outbound daily check-in for
-// one patient (body { patientId }, defaults to the demo patient). Same action the
-// scheduler runs; the demo uses it so you don't wait for the scheduled time.
+// POST /api/agent/send-checkin — in-app trigger: send the outbound daily
+// check-in to one patient (body { patientId }). Requires a signed-in user.
 export async function POST(req: Request) {
-  const denied = requireCronAuthIfConfigured(req);
-  if (denied) return denied;
-  const body = (await req.json().catch(() => ({}))) as { patientId?: string };
-  const patientId = body.patientId ?? DEFAULT_PATIENT;
-  const result = await sendDailyCheckIn(patientId);
+  const auth = await requireAuth(req);
+  if (auth.response) return auth.response;
+  const body = await parseBody(req, sendCheckinSchema);
+  if (!body.ok) return body.response;
+  const patientId = body.data.patientId ?? DEFAULT_PATIENT;
+  const result = await sendDailyCheckIn(auth.ctx.orgId, patientId);
   if (!result.ok) {
     const status = result.error?.includes("phone") ? 400 : 502;
     return Response.json({ error: result.error }, { status });
@@ -21,14 +24,14 @@ export async function POST(req: Request) {
   return Response.json(result);
 }
 
-// GET /api/agent/send-checkin — Vercel Cron invokes scheduled jobs with GET (and
-// sends `Authorization: Bearer <CRON_SECRET>` when configured). Sends the daily
-// check-in to the default demo patient. Kept separate from POST so the in-app
-// button (POST { patientId }) and the scheduler both work.
+// GET /api/agent/send-checkin — DEPRECATED cron target (kept one release so an
+// old vercel.json cron firing mid-deploy doesn't 404). The production cron now
+// hits GET /api/agent/send-round. Sends to the default demo patient only.
 export async function GET(req: Request) {
   const denied = requireCronAuthIfConfigured(req);
   if (denied) return denied;
-  const result = await sendDailyCheckIn(DEFAULT_PATIENT);
+  const orgId = await getDefaultOrgId();
+  const result = await sendDailyCheckIn(orgId, DEFAULT_PATIENT);
   if (!result.ok) {
     const status = result.error?.includes("phone") ? 400 : 502;
     return Response.json({ error: result.error }, { status });

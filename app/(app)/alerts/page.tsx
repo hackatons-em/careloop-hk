@@ -1,7 +1,7 @@
 import { AlertQueue } from "@/components/AlertQueue";
 import { SafetyLabels } from "@/components/SafetyLabels";
 
-export const metadata = { title: "Nurse review queue — CareLoop" };
+export const metadata = { title: "Nurse review queue" };
 
 export default function AlertsPage() {
   return (

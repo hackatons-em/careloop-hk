@@ -8,6 +8,7 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { buildCaregiverAlert } from "./caregiver";
+import { logger } from "./logger";
 import { weightGain3d as computeWeightGain3d } from "./riskEngine";
 import { SEVERITY_LABEL, type PatientTimeline, type Severity, type WeeklySummary } from "./types";
 import { series } from "./vitals";
@@ -210,7 +211,7 @@ async function polishWithClaude(draft: string): Promise<string | null> {
       .trim();
     return text || null;
   } catch (err) {
-    console.error("[careloop] AI summary wording failed; falling back to deterministic template.", err);
+    logger.error("AI summary wording failed; falling back to deterministic template.", { err });
     return null;
   }
 }

@@ -1,6 +1,10 @@
 import { Users, TrendingUp, Target, AlertTriangle, ShieldCheck } from "lucide-react";
 
-export const metadata = { title: "Business case — CareLoop" };
+export const metadata = {
+  title: "Business case",
+  description:
+    "Who pays for CareLoop and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
+};
 
 const SECTIONS: { icon: React.ElementType; title: string; items: string[]; tone?: "warn" }[] = [
   {

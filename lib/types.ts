@@ -44,6 +44,11 @@ export type VitalType =
 export type CheckInSource = "simulated_call" | "web_form" | "imported";
 export type VitalSource = "manual" | "wearable_csv" | "mock";
 
+/** Lifecycle of a patient record. `pending_review` = auto-created from an
+ * unknown WhatsApp number, awaiting nurse confirmation. `archived` = soft
+ * deleted (hidden from lists, history preserved). */
+export type PatientStatus = "active" | "pending_review" | "archived";
+
 export interface Patient {
   id: string;
   name: string;
@@ -57,6 +62,9 @@ export interface Patient {
   assigned_nurse: string;
   baseline_weight: number;
   baseline_steps: number;
+  /** Patient's own WhatsApp number (E.164), if known. */
+  phone: string | null;
+  status: PatientStatus;
 }
 
 export interface DailyCheckIn {
@@ -150,7 +158,11 @@ export type AuditAction =
   | "fhir_exported"
   | "csv_imported"
   | "demo_data_reset"
-  | "risky_checkin_replayed";
+  | "risky_checkin_replayed"
+  | "patient_created"
+  | "patient_updated"
+  | "patient_archived"
+  | "user_invited";
 
 /** Pivoted per-day view used by charts and the risk engine. */
 export interface DailyVitals {

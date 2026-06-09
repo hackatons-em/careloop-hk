@@ -2,11 +2,11 @@
 //
 // sendDailyCheckIn() is the "we message first" step: it sends the bilingual
 // morning prompt to a patient's WhatsApp and opens a fresh session waiting on
-// their reply. Shared by the manual trigger (button / API) and the scheduler
-// (lib/scheduler.ts), so both behave identically.
+// their reply. Shared by the manual trigger (button / API), Vercel Cron, and
+// the self-hosted scheduler (lib/scheduler.ts), so all behave identically.
 
 import { appendMessage, beginSession, getPatientPhone } from "./conversation";
-import { WEEK_END } from "./seed";
+import { todayISO } from "./dates";
 import { getPatient, getPatients } from "./store";
 import { sendWhatsApp } from "./whatsapp";
 
@@ -28,16 +28,22 @@ export interface DailyCheckInResult {
   error?: string;
 }
 
-export async function sendDailyCheckIn(patientId: string): Promise<DailyCheckInResult> {
-  const patient = await getPatient(patientId);
+export async function sendDailyCheckIn(
+  orgId: string,
+  patientId: string,
+): Promise<DailyCheckInResult> {
+  const patient = await getPatient(orgId, patientId);
   if (!patient) return { ok: false, error: "Patient not found" };
 
-  const to = (await getPatientPhone(patientId)) ?? process.env.CARELOOP_DEMO_PATIENT_PHONE;
+  const to =
+    (await getPatientPhone(orgId, patientId)) ??
+    (patient.phone ? `whatsapp:${patient.phone}` : undefined) ??
+    process.env.CARELOOP_DEMO_PATIENT_PHONE;
   if (!to) {
     return {
       ok: false,
       error:
-        "No patient phone known yet. Set CARELOOP_DEMO_PATIENT_PHONE in .env.local, or have the patient send one WhatsApp message first so we capture the number.",
+        "No patient phone known yet. Add the patient's WhatsApp number on their profile, or have the patient send one WhatsApp message first so we capture the number.",
     };
   }
 
@@ -49,8 +55,8 @@ export async function sendDailyCheckIn(patientId: string): Promise<DailyCheckInR
   const sent = await sendWhatsApp(to, prompt);
   if (!sent.ok) return { ok: false, error: sent.error };
 
-  await beginSession(patientId, WEEK_END);
-  await appendMessage({
+  await beginSession(orgId, patientId, todayISO());
+  await appendMessage(orgId, {
     patient_id: patientId,
     direction: "outbound",
     channel: "whatsapp",
@@ -63,20 +69,20 @@ export async function sendDailyCheckIn(patientId: string): Promise<DailyCheckInR
 }
 
 /** The agent's daily "round": message every patient we have a WhatsApp number
- * for. The scheduler can call this; the demo triggers it with a button. */
-export async function sendDailyCheckInRound(): Promise<{
+ * for. Vercel Cron / the scheduler calls this; the demo triggers it manually. */
+export async function sendDailyCheckInRound(orgId: string): Promise<{
   sent: number;
   total: number;
   results: (DailyCheckInResult & { patientId: string })[];
 }> {
-  const patients = await getPatients();
+  const patients = await getPatients(orgId);
   const targets: typeof patients = [];
   for (const p of patients) {
-    if (await getPatientPhone(p.id)) targets.push(p);
+    if (p.phone || (await getPatientPhone(orgId, p.id))) targets.push(p);
   }
   const results: (DailyCheckInResult & { patientId: string })[] = [];
   for (const p of targets) {
-    results.push({ patientId: p.id, ...(await sendDailyCheckIn(p.id)) });
+    results.push({ patientId: p.id, ...(await sendDailyCheckIn(orgId, p.id)) });
   }
   return { sent: results.filter((r) => r.ok).length, total: targets.length, results };
 }

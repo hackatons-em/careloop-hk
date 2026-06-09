@@ -1,6 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const metadata = { title: "Presentation — CareLoop" };
+export const metadata = {
+  title: "Presentation",
+  robots: { index: false, follow: false },
+};
 
 interface Slide {
   n: number;
