@@ -2,7 +2,12 @@ import { getPatientForPhone, setPatientPhone } from "@/lib/conversation";
 import { ingestCheckInMessage } from "@/lib/ingest";
 import { getDefaultOrgId } from "@/lib/org";
 import { enforceRateLimit } from "@/lib/rateLimit";
-import { createPatientFromWhatsApp, getPatient, optOutFamilyMessaging } from "@/lib/store";
+import {
+  createPatientFromWhatsApp,
+  findPatientsByCaregiverPhone,
+  getPatient,
+  optOutFamilyMessaging,
+} from "@/lib/store";
 import { requireTwilioSignature } from "@/lib/twilioSig";
 
 // Keyword opt-out for family-bound auto-sends (PDPO). Check-ins themselves
@@ -61,19 +66,28 @@ export async function POST(req: Request) {
   // a link pointing at a patient that no longer exists (e.g. after a demo reset)
   // is treated as a new number — recreate rather than dead-end.
   if (linked && !(await getPatient(orgId, linked))) linked = null;
+
+  // Opt-out keyword — handled BEFORE any auto-create. Family alerts go to the
+  // caregiver's number (a DIFFERENT person from the patient), so a STOP usually
+  // arrives from a number that is some patient's caregiver_phone, not a linked
+  // patient. Resolve against caregiver_phone first; fall back to the linked
+  // patient (a patient opting their OWN family messaging off). Never mint a
+  // ghost patient for an opt-out from an unknown number.
+  if (OPT_OUT_KEYWORDS.has(body.toLowerCase())) {
+    const caregiverFor = from ? await findPatientsByCaregiverPhone(orgId, from) : [];
+    const targets = caregiverFor.length > 0 ? caregiverFor : linked ? [linked] : [];
+    for (const pid of targets) await optOutFamilyMessaging(orgId, pid);
+    return twiml(
+      "已為你取消家人通知，日常報到會照常繼續。\n" +
+        "Family notifications are switched off. Daily check-ins continue as usual.",
+    );
+  }
+
   const isNewPatient = !fixed && !linked;
   // createPatientFromWhatsApp is race-safe: a unique (org_id, phone) index on
   // patients makes the loser of two concurrent first messages re-read the winner.
   const patientId = fixed ?? linked ?? (await createPatientFromWhatsApp(orgId, from));
   if (from) await setPatientPhone(orgId, patientId, from);
-
-  if (OPT_OUT_KEYWORDS.has(body.toLowerCase())) {
-    await optOutFamilyMessaging(orgId, patientId);
-    return twiml(
-      "已為你取消家人通知，日常報到會照常繼續。\n" +
-        "Family notifications are switched off. Your daily check-ins continue as usual.",
-    );
-  }
 
   let audioUrl: string | null = null;
   let audioContentType: string | null = null;

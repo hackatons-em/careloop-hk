@@ -173,6 +173,7 @@ function rowToAlert(r: Record<string, unknown>): RiskAlert {
     acknowledged_at: (r.acknowledged_at as string | null) ?? null,
     resolved_at: (r.resolved_at as string | null) ?? null,
     last_notified_at: (r.last_notified_at as string | null) ?? null,
+    last_caregiver_notified_at: (r.last_caregiver_notified_at as string | null) ?? null,
     engine_version: (r.engine_version as string | null) ?? null,
     config_version: (r.config_version as number | null) ?? null,
   };
@@ -405,6 +406,7 @@ async function upsertAlertFor(
     acknowledged_at: null,
     resolved_at: null,
     last_notified_at: null,
+    last_caregiver_notified_at: null,
     engine_version: ENGINE_VERSION,
     config_version: ruleConfig.version,
   };
@@ -487,33 +489,27 @@ async function afterAlertWrite(
   const raised = prevSeverity !== null && SEVERITY_ORDER[alert.severity] > SEVERITY_ORDER[prevSeverity];
 
   try {
-    // Debounce re-rises: a flapping borderline alert (escalate→lower→escalate
-    // on the same open row) would otherwise notify on every up-tick. A
-    // brand-new alert always fires; a re-rise fires at most once per SLA
-    // window, reusing last_notified_at. Covers BOTH nurse paging and caregiver
-    // delivery — families especially must not be re-spammed on flapping.
-    const settings = created || raised ? await getOrgSettings(orgId) : null;
-    const debounceMs =
-      (alert.severity === "escalate"
-        ? (settings?.sla_ack_minutes_escalate ?? 0)
-        : (settings?.sla_ack_minutes_review ?? 0)) * 60_000;
-    const recentlyPaged =
-      alert.last_notified_at != null &&
-      Date.now() - Date.parse(alert.last_notified_at) < debounceMs;
-    const shouldNotify = created || (raised && !recentlyPaged);
-    if (settings && shouldNotify) {
-      // Stamp last_notified_at if EITHER channel actually delivers, so the
-      // debounce protects BOTH nurse and family on the next re-rise — even when
-      // nurse paging doesn't send (empty inbox / Resend failure) but caregiver
-      // delivery does. Otherwise last_notified_at would stay null and a
-      // flapping alert would re-spam the family on every up-tick.
-      let delivered = false;
+    // Nurse paging and family delivery are debounced INDEPENDENTLY (separate
+    // stamps), so a sub-threshold nurse page can never suppress the first
+    // family escalation, and neither channel re-spams on a flapping alert.
+    const mightNotify = created || raised || alert.severity === "escalate";
+    const settings = mightNotify ? await getOrgSettings(orgId) : null;
+    if (settings) {
+      const windowMs =
+        (alert.severity === "escalate"
+          ? settings.sla_ack_minutes_escalate
+          : settings.sla_ack_minutes_review) * 60_000;
 
-      if (meetsNotifyThreshold(settings, alert.severity)) {
+      // --- Nurse paging: fire on create or a genuine re-rise, debounced on
+      //     last_notified_at so a flapping alert pages at most once per window.
+      const recentlyPaged =
+        alert.last_notified_at != null &&
+        Date.now() - Date.parse(alert.last_notified_at) < windowMs;
+      let nurseSent = false;
+      if ((created || (raised && !recentlyPaged)) && meetsNotifyThreshold(settings, alert.severity)) {
         const inbox = alertsInbox(settings);
-        const sent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
-        if (sent) {
-          delivered = true;
+        nurseSent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
+        if (nurseSent) {
           await pushAudit(orgId, "nurse_notified", "system", "alert", alert.id, {
             channel: "email",
             kind: created ? "created" : "raised",
@@ -523,9 +519,17 @@ async function afterAlertWrite(
         }
       }
 
-      // Caregiver auto-delivery: escalation only, and ONLY with recorded consent.
+      // --- Caregiver auto-delivery: escalation only, consent-gated, debounced
+      //     INDEPENDENTLY on last_caregiver_notified_at. The first escalate of
+      //     an episode always reaches the family (stamp null → fires), even if
+      //     a review_today nurse page already stamped last_notified_at.
+      let caregiverSent = false;
+      const recentlyCaregiver =
+        alert.last_caregiver_notified_at != null &&
+        Date.now() - Date.parse(alert.last_caregiver_notified_at) < windowMs;
       if (
         alert.severity === "escalate" &&
+        !recentlyCaregiver &&
         patient.consent_caregiver_alerts &&
         (patient.caregiver_phone || patient.caregiver_email)
       ) {
@@ -546,7 +550,7 @@ async function afterAlertWrite(
           }
         }
         if (channels.length > 0) {
-          delivered = true;
+          caregiverSent = true;
           await pushAudit(orgId, "caregiver_notified", "system", "patient", patient.id, {
             channels,
             severity: alert.severity,
@@ -555,7 +559,8 @@ async function afterAlertWrite(
         }
       }
 
-      if (delivered) await stampAlertNotified(orgId, alert.id);
+      if (nurseSent) await stampAlertNotified(orgId, alert.id);
+      if (caregiverSent) await stampCaregiverNotified(orgId, alert.id);
     }
   } catch (err) {
     logger.error("Alert side effects failed.", { err, alert_id: alert.id });
@@ -568,6 +573,15 @@ async function stampAlertNotified(orgId: string, alertId: string): Promise<void>
   const { error } = await supa()
     .from("careloop_alerts")
     .update({ last_notified_at: now() })
+    .eq("org_id", orgId)
+    .eq("id", alertId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+}
+
+async function stampCaregiverNotified(orgId: string, alertId: string): Promise<void> {
+  const { error } = await supa()
+    .from("careloop_alerts")
+    .update({ last_caregiver_notified_at: now() })
     .eq("org_id", orgId)
     .eq("id", alertId);
   if (error) throw new Error(`Supabase: ${error.message}`);
@@ -888,6 +902,29 @@ export async function optOutFamilyMessaging(orgId: string, patientId: string): P
     consent_family_digest: false,
     via: "whatsapp_keyword",
   });
+}
+
+/**
+ * Patients in the org for whom `phone` is the caregiver_phone — i.e. the family
+ * member who receives the alerts. Used by the WhatsApp opt-out so a STOP from a
+ * caregiver's (separate) number flips consent on the RIGHT patient(s) instead
+ * of minting a ghost patient. Normalizes whitespace + the whatsapp: prefix;
+ * caregiver_phone is short free text per org, so an in-memory match is fine.
+ */
+export async function findPatientsByCaregiverPhone(orgId: string, phone: string): Promise<string[]> {
+  const target = phone.replace(/^whatsapp:/, "").replace(/\s+/g, "");
+  if (!target) return [];
+  const data = rows(
+    await supa().from("careloop_patients").select("id, caregiver_phone").eq("org_id", orgId),
+  );
+  return data
+    .filter(
+      (r) =>
+        ((r as { caregiver_phone?: string }).caregiver_phone ?? "")
+          .replace(/^whatsapp:/, "")
+          .replace(/\s+/g, "") === target,
+    )
+    .map((r) => (r as { id: string }).id);
 }
 
 // --- public write API -----------------------------------------------------
@@ -1548,7 +1585,7 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
   // HK, misaligned with the date-column check-in window (.gte("date", ...)).
   const windowStartTs = localMidnightUtcISO(windowStart, process.env.CARELOOP_TZ ?? "Asia/Hong_Kong");
 
-  const [patientRows, checkinRows, alertRows, ackAlertRows, auditRows] = await Promise.all([
+  const [patientRows, checkinRows, alertRows, ackAlertRows, openAlertRows, auditRows] = await Promise.all([
     getPatientRows(orgId),
     rows(
       await supa()
@@ -1557,7 +1594,7 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
         .eq("org_id", orgId)
         .gte("date", windowStart),
     ),
-    // Created-in-window cohort: alert volume by severity + current ward load.
+    // Created-in-window cohort: alert volume by severity.
     rows(
       await supa()
         .from("careloop_alerts")
@@ -1575,6 +1612,15 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
         .eq("org_id", orgId)
         .gte("acknowledged_at", windowStartTs),
     ),
+    // Currently-open alerts (window-independent): the live ward-load view. A
+    // long-standing open alert created before the window is still current load.
+    rows(
+      await supa()
+        .from("careloop_alerts")
+        .select("assigned_to, status")
+        .eq("org_id", orgId)
+        .neq("status", "resolved"),
+    ),
     rows(
       await supa()
         .from("careloop_audit_events")
@@ -1586,11 +1632,18 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
   ]);
 
   // Enrolled cohort only: pending_review patients (auto-created from unknown
-  // WhatsApp numbers, ~zero check-ins until a nurse confirms them) would drag
-  // the headline completion rate — the contractual ≥70% pilot metric — below
-  // the true active-cohort rate. getPatientRows already excludes archived.
-  const active = patientRows.filter((r) => r.patient.status === "active").length;
-  const checkins = checkinRows as { patient_id: string; date: string; medication_taken: boolean | null }[];
+  // WhatsApp numbers, ~zero check-ins until a nurse confirms them) and archived
+  // patients' retained check-ins must be excluded from BOTH sides of the rate —
+  // filtering only the denominator would inflate it. getPatientRows already
+  // excludes archived from patientRows; restrict the check-in numerator to the
+  // active cohort's ids so numerator and denominator describe the same patients.
+  const activeIds = new Set(
+    patientRows.filter((r) => r.patient.status === "active").map((r) => r.patient.id),
+  );
+  const active = activeIds.size;
+  const checkins = (checkinRows as { patient_id: string; date: string; medication_taken: boolean | null }[]).filter(
+    (c) => activeIds.has(c.patient_id),
+  );
   const alerts = (alertRows as Record<string, unknown>[]).map(rowToAlert);
 
   const completion =
@@ -1612,8 +1665,9 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
 
   const slaBreaches = (auditRows as { action: string }[]).length;
 
+  // Live ward load from the window-independent open-alert query.
   const byNurse: Record<string, number> = {};
-  for (const a of alerts.filter((x) => x.status !== "resolved")) {
+  for (const a of openAlertRows as { assigned_to: string; status: string }[]) {
     byNurse[a.assigned_to] = (byNurse[a.assigned_to] ?? 0) + 1;
   }
 

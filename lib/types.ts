@@ -128,8 +128,11 @@ export interface RiskAlert {
   /** First transition out of "new" — basis for time-to-acknowledge metrics. */
   acknowledged_at: string | null;
   resolved_at: string | null;
-  /** Last outbound notification for this alert — SLA-sweep dedupe stamp. */
+  /** Last nurse-paging notification — SLA-sweep + re-rise dedupe stamp. */
   last_notified_at: string | null;
+  /** Last consent-gated family delivery — independent debounce so a nurse
+   *  page never suppresses the first family escalation. */
+  last_caregiver_notified_at: string | null;
   /** Rule-catalog version that produced this alert (ENGINE_VERSION). */
   engine_version: string | null;
   /** Org threshold-config version in force when this alert was produced
