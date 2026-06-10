@@ -107,7 +107,7 @@ export async function LandingHero() {
               {["HF-001", "HF-002"].map((r) => (
                 <span
                   key={r}
-                  className="rounded-md border border-border bg-muted px-2 py-0.5 font-mono text-xs"
+                  className="rounded-md border border-border bg-muted px-2 py-0.5 text-xs [font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace]"
                 >
                   {r}
                 </span>
