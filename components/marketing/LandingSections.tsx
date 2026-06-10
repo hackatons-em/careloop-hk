@@ -152,7 +152,8 @@ export async function LandingSections() {
             <div
               key={f.title}
               className="cl-rise cl-card rounded-2xl border border-border bg-card p-5"
-              style={{ animationDelay: `${n * 50}ms` }}
+              // Reveal in row waves (3-up at lg) — one story per section, ≤3 delay steps.
+              style={{ animationDelay: `${Math.floor(n / 3) * 90}ms` }}
             >
               <span className="flex size-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
                 <f.icon className="size-5" />
@@ -191,7 +192,9 @@ export async function LandingSections() {
 
       {/* CTA band */}
       <section className="rounded-2xl border border-border bg-card p-8 text-center md:p-12">
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("cta.title")}</h2>
+        <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
+          {t("cta.title")}
+        </h2>
         <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">{t("cta.sub")}</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Link

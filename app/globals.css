@@ -130,6 +130,11 @@
   html[lang="zh-HK"] .tracking-tight {
     letter-spacing: 0;
   }
+  /* Never split CJK compounds (守護, 覆診) inside the hero headline — the
+     catalog marks the one extra allowed break with a zero-width space. */
+  html[lang="zh-HK"] h1 {
+    word-break: keep-all;
+  }
 }
 
 /* Print: weekly clinician summary should print cleanly to PDF. */

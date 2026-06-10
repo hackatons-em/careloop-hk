@@ -71,9 +71,7 @@ export async function LandingHero() {
             style={{ animationDelay: "120ms" }}
           >
             <p>{t("preview.bubbleText")}</p>
-            <p className="mt-0.5 text-right text-[10px] text-neutral-500">
-              {t("preview.bubbleMeta")}
-            </p>
+            <p className="mt-0.5 text-[10px] text-neutral-600">{t("preview.bubbleMeta")}</p>
           </div>
 
           {/* the effect: the escalation card */}

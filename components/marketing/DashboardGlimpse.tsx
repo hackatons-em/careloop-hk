@@ -31,7 +31,7 @@ export async function DashboardGlimpse() {
           <span className="text-xs font-medium text-muted-foreground">
             {t("glimpse.panelLabel")}
           </span>
-          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-slate-600">
             {t("glimpse.panelCount")}
           </span>
         </div>
