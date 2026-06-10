@@ -132,6 +132,9 @@ export interface RiskAlert {
   last_notified_at: string | null;
   /** Rule-catalog version that produced this alert (ENGINE_VERSION). */
   engine_version: string | null;
+  /** Org threshold-config version in force when this alert was produced
+   *  (0 = code defaults; see careloop_rule_config). */
+  config_version: number | null;
 }
 
 export interface WeeklySummary {
@@ -184,7 +187,8 @@ export type AuditAction =
   | "alert_reassigned"
   | "task_created"
   | "task_completed"
-  | "handover_generated";
+  | "handover_generated"
+  | "rule_config_updated";
 
 /** Pivoted per-day view used by charts and the risk engine. */
 export interface DailyVitals {

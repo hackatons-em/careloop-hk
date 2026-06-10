@@ -57,6 +57,8 @@ export const REASON_TAG_STYLE: Record<string, string> = {
   "missed meds": "bg-slate-100 text-slate-700 border-slate-200",
   "high BP": "bg-red-50 text-red-700 border-red-200",
   "low activity": "bg-blue-50 text-blue-700 border-blue-200",
+  // Operational (not clinical) state — deliberately grey, never a severity color.
+  "no response": "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export const ALERT_STATUS_STYLE: Record<AlertStatus, string> = {

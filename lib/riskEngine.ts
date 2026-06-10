@@ -66,6 +66,32 @@ const REASON_TAG: Record<string, string> = {
 };
 
 /**
+ * Org-tunable rule thresholds. Rule STRUCTURE (which signals combine, which
+ * severity a rule carries) is fixed in code and versioned by ENGINE_VERSION;
+ * only these numeric thresholds are configurable, inside guardrailed bounds
+ * (lib/validation.ts). Defaults are the original build-spec values.
+ */
+export interface RuleConfig {
+  hf001_weight_gain_kg: number;
+  hf002_weight_gain_kg: number;
+  bp_systolic_max: number;
+  bp_diastolic_max: number;
+  act_drop_fraction: number;
+  act_days: number;
+  nr002_silent_days: number;
+}
+
+export const DEFAULT_RULE_CONFIG: RuleConfig = {
+  hf001_weight_gain_kg: HF001_WEIGHT_GAIN_KG,
+  hf002_weight_gain_kg: HF002_WEIGHT_GAIN_KG,
+  bp_systolic_max: BP_SYSTOLIC_MAX,
+  bp_diastolic_max: BP_DIASTOLIC_MAX,
+  act_drop_fraction: ACT_DROP_FRACTION,
+  act_days: ACT_DAYS,
+  nr002_silent_days: NR002_SILENT_DAYS,
+};
+
+/**
  * Caller-supplied facts the engine cannot derive from vitals/check-ins alone.
  * Passing them keeps evaluateRisk pure: same inputs, same output.
  */
@@ -74,6 +100,8 @@ export interface EvaluationContext {
   today?: string;
   /** Set by the silence sweep when today's prompt got no reply — fires NR-001. */
   promptUnansweredToday?: { sentAt: string };
+  /** Org-tuned thresholds; missing fields fall back to the defaults. */
+  config?: Partial<RuleConfig>;
 }
 
 const RECOMMENDED_ACTION: Record<Severity, string> = {
@@ -186,6 +214,7 @@ export function evaluateRisk(
   checkins: DailyCheckIn[],
   ctx?: EvaluationContext,
 ): RiskResult {
+  const cfg: RuleConfig = { ...DEFAULT_RULE_CONFIG, ...ctx?.config };
   const daily = toDailyVitals(vitals);
   const sortedCheckins = [...checkins].sort((a, b) => a.date.localeCompare(b.date));
   const latestCheckin = sortedCheckins[sortedCheckins.length - 1];
@@ -194,7 +223,7 @@ export function evaluateRisk(
   // --- HF-001 / HF-002: weight & fluid-retention signals ---
   const wc = weightChangeOverDays(series(daily, "weight"), WEIGHT_WINDOW_DAYS);
 
-  if (wc && wc.gain >= HF001_WEIGHT_GAIN_KG) {
+  if (wc && wc.gain >= cfg.hf001_weight_gain_kg) {
     matched.push({
       code: "HF-001",
       ...RULE_META["HF-001"],
@@ -204,7 +233,7 @@ export function evaluateRisk(
 
   if (
     wc &&
-    wc.gain >= HF002_WEIGHT_GAIN_KG &&
+    wc.gain >= cfg.hf002_weight_gain_kg &&
     latestCheckin?.shortness_of_breath === true &&
     latestCheckin?.swelling === true
   ) {
@@ -235,8 +264,8 @@ export function evaluateRisk(
   if (bpDay) {
     const { systolic, diastolic } = bpDay;
     if (
-      (systolic !== null && systolic > BP_SYSTOLIC_MAX) ||
-      (diastolic !== null && diastolic > BP_DIASTOLIC_MAX)
+      (systolic !== null && systolic > cfg.bp_systolic_max) ||
+      (diastolic !== null && diastolic > cfg.bp_diastolic_max)
     ) {
       matched.push({
         code: "BP-001",
@@ -248,16 +277,16 @@ export function evaluateRisk(
 
   // --- ACT-001: sustained activity drop over 3 CONSECUTIVE days ---
   const steps = series(daily, "steps");
-  if (steps.length >= ACT_DAYS && patient.baseline_steps > 0) {
-    const threshold = patient.baseline_steps * (1 - ACT_DROP_FRACTION);
-    const lastN = steps.slice(-ACT_DAYS);
+  if (steps.length >= cfg.act_days && patient.baseline_steps > 0) {
+    const threshold = patient.baseline_steps * (1 - cfg.act_drop_fraction);
+    const lastN = steps.slice(-cfg.act_days);
     if (areConsecutiveDays(lastN) && lastN.every((s) => s.value < threshold)) {
       const avg = Math.round(lastN.reduce((sum, s) => sum + s.value, 0) / lastN.length);
       const dropPct = Math.round((1 - avg / patient.baseline_steps) * 100);
       matched.push({
         code: "ACT-001",
         ...RULE_META["ACT-001"],
-        evidence: `Activity averaged ${avg} steps over ${ACT_DAYS} days, ~${dropPct}% below the ${patient.baseline_steps} baseline.`,
+        evidence: `Activity averaged ${avg} steps over ${cfg.act_days} days, ~${dropPct}% below the ${patient.baseline_steps} baseline.`,
       });
     }
   }
@@ -293,7 +322,7 @@ export function evaluateRisk(
   // history is an onboarding state, not a silence signal.
   if (ctx?.today && latestCheckin) {
     const gap = diffDays(latestCheckin.date, ctx.today);
-    if (gap >= NR002_SILENT_DAYS) {
+    if (gap >= cfg.nr002_silent_days) {
       matched.push({
         code: "NR-002",
         ...RULE_META["NR-002"],
@@ -341,58 +370,64 @@ function buildReason(matched: MatchedRule[], severity: Severity): string {
   return [...lead, ...rest].map((m) => m.evidence).join(" ");
 }
 
-/**
- * Human-readable catalog of every deterministic rule — the single source for
- * the in-app "Monitoring rules" transparency page. Derived from the same
- * constants the evaluator uses, so the page can never drift from the code.
- */
-export const RULE_CATALOG: {
+export interface CatalogRule {
   code: string;
   condition: string;
   severity: Severity;
   description: string;
-}[] = [
-  {
-    code: "HF-001",
-    condition: `Weight up ≥ ${HF001_WEIGHT_GAIN_KG} kg over ${WEIGHT_WINDOW_DAYS} days`,
-    ...RULE_META["HF-001"],
-  },
-  {
-    code: "HF-002",
-    condition: `Weight up ≥ ${HF002_WEIGHT_GAIN_KG} kg over ${WEIGHT_WINDOW_DAYS} days + shortness of breath + swelling`,
-    ...RULE_META["HF-002"],
-  },
-  {
-    code: "MED-001",
-    condition: "Medication reported missed 2 consecutive days",
-    ...RULE_META["MED-001"],
-  },
-  {
-    code: "BP-001",
-    condition: `Systolic > ${BP_SYSTOLIC_MAX} or diastolic > ${BP_DIASTOLIC_MAX} mmHg`,
-    ...RULE_META["BP-001"],
-  },
-  {
-    code: "ACT-001",
-    condition: `Steps > ${Math.round(ACT_DROP_FRACTION * 100)}% below baseline for ${ACT_DAYS} consecutive days`,
-    ...RULE_META["ACT-001"],
-  },
-  {
-    code: "SYM-001",
-    condition: "Patient reports breathlessness, swelling, or chest discomfort",
-    ...RULE_META["SYM-001"],
-  },
-  {
-    code: "NR-001",
-    condition: "Today's check-in prompt unanswered by the afternoon sweep",
-    ...RULE_META["NR-001"],
-  },
-  {
-    code: "NR-002",
-    condition: `No completed check-in for ≥ ${NR002_SILENT_DAYS} days`,
-    ...RULE_META["NR-002"],
-  },
-];
+}
+
+/**
+ * Human-readable catalog of every deterministic rule — the single source for
+ * the in-app "Monitoring rules" transparency page. Derived from the same
+ * values the evaluator uses (org config merged over defaults), so the page
+ * can never drift from the code.
+ */
+export function ruleCatalog(config?: Partial<RuleConfig>): CatalogRule[] {
+  const cfg = { ...DEFAULT_RULE_CONFIG, ...config };
+  return [
+    {
+      code: "HF-001",
+      condition: `Weight up ≥ ${cfg.hf001_weight_gain_kg} kg over ${WEIGHT_WINDOW_DAYS} days`,
+      ...RULE_META["HF-001"],
+    },
+    {
+      code: "HF-002",
+      condition: `Weight up ≥ ${cfg.hf002_weight_gain_kg} kg over ${WEIGHT_WINDOW_DAYS} days + shortness of breath + swelling`,
+      ...RULE_META["HF-002"],
+    },
+    {
+      code: "MED-001",
+      condition: "Medication reported missed 2 consecutive days",
+      ...RULE_META["MED-001"],
+    },
+    {
+      code: "BP-001",
+      condition: `Systolic > ${cfg.bp_systolic_max} or diastolic > ${cfg.bp_diastolic_max} mmHg`,
+      ...RULE_META["BP-001"],
+    },
+    {
+      code: "ACT-001",
+      condition: `Steps > ${Math.round(cfg.act_drop_fraction * 100)}% below baseline for ${cfg.act_days} consecutive days`,
+      ...RULE_META["ACT-001"],
+    },
+    {
+      code: "SYM-001",
+      condition: "Patient reports breathlessness, swelling, or chest discomfort",
+      ...RULE_META["SYM-001"],
+    },
+    {
+      code: "NR-001",
+      condition: "Today's check-in prompt unanswered by the afternoon sweep",
+      ...RULE_META["NR-001"],
+    },
+    {
+      code: "NR-002",
+      condition: `No completed check-in for ≥ ${cfg.nr002_silent_days} days`,
+      ...RULE_META["NR-002"],
+    },
+  ];
+}
 
 /** Per-day risk severity, recomputed cumulatively for the timeline chart. */
 export function riskTrend(

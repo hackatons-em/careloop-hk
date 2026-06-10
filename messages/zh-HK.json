@@ -16,6 +16,7 @@
   "nav": {
     "dashboard": "儀表板",
     "alerts": "警示",
+    "program": "計劃成效",
     "howItWorks": "運作方式",
     "pricing": "收費模式",
     "security": "安全保障",
@@ -388,6 +389,29 @@
     "prevPage": "上一頁",
     "nextPage": "下一頁"
   },
+  "program": {
+    "metaTitle": "計劃成效",
+    "title": "計劃成效",
+    "sub": "過去 {days} 天，全部根據實際紀錄計算——絕無推算數字。",
+    "downloadPdf": "董事會報告（PDF）",
+    "completion": "報到完成率",
+    "completionOnTarget": "達到試行協議 ≥70% 承諾",
+    "completionBelowTarget": "低於試行協議 70% 承諾",
+    "adherence": "服藥依從率",
+    "adherenceSub": "以有申報服藥的報到計",
+    "timeToAck": "確認時間中位數",
+    "timeToAckSub": "p90 {p90}・{n} 個警示",
+    "activePatients": "在監測病人",
+    "silentNow": "{count} 位現時未有回覆",
+    "dailyCheckins": "每日完成報到",
+    "dailyCheckinsRange": "{from} – {to}",
+    "alertVolume": "警示數量（按嚴重程度）",
+    "slaBreaches": "審計紀錄中有 {count} 次超過確認時限",
+    "nurseLoad": "未結警示（按負責人）",
+    "noOpenAlerts": "沒有未結警示。",
+    "openCount": "{count} 個未結",
+    "note": "本頁每個數字都由實際監測紀錄計算——報到、生命表徵、警示及只可追加的審計紀錄。董事會 PDF 報告使用相同數字。"
+  },
   "tasks": {
     "title": "待辦跟進",
     "due": "到期",
@@ -665,7 +689,32 @@
       "title": "監測規則",
       "sub": "決定嚴重程度的確定性規則一覽。此決定不經 AI——相同數據，相同結果。",
       "version": "引擎 {version}",
-      "note": "每個警示都記錄產生它的引擎版本，每條規則命中都附有數據證據。規則變更以新版本發佈——歷史警示可永久追溯。"
+      "configVersion": "門檻 v{version}",
+      "note": "每個警示都記錄產生它的引擎及門檻版本，每條規則命中都附有數據證據。變更以新版本發佈——歷史警示可永久追溯。",
+      "historyTitle": "門檻變更紀錄",
+      "historyVersion": "版本 {version}",
+      "editor": {
+        "title": "調整門檻",
+        "sub": "在臨床安全界限內調整敏感度。規則結構及嚴重程度固定不變；每次儲存都建立新的審計版本。",
+        "fields": {
+          "hf001_weight_gain_kg": "體重增加→今日覆查",
+          "hf002_weight_gain_kg": "體重增加（連症狀）→需立即跟進",
+          "bp_systolic_max": "收縮壓上限",
+          "bp_diastolic_max": "舒張壓上限",
+          "act_drop_fraction": "活動量下降比例",
+          "act_days": "活動量下降日數",
+          "nr002_silent_days": "靜默日數→今日覆查"
+        },
+        "bounds": "{min}–{max} {unit}",
+        "note": "變更原因",
+        "notePlaceholder": "為何作此變更？（會顯示在變更紀錄中）",
+        "activeVersion": "現行：門檻 v{version}",
+        "save": "儲存為新版本",
+        "saving": "儲存中…",
+        "saved": "門檻已儲存為 v{version}",
+        "saveFailed": "未能儲存門檻",
+        "fixFields": "請修正標示的門檻"
+      }
     },
     "org": {
       "title": "機構",
@@ -884,7 +933,12 @@
       "caregiver_notified": "已通知照顧者",
       "consent_changed": "同意設定已變更",
       "weekly_digest_sent": "已發送每週摘要",
-      "org_settings_updated": "機構設定已更新"
+      "org_settings_updated": "機構設定已更新",
+      "alert_reassigned": "警示已重新指派",
+      "task_created": "已建立跟進事項",
+      "task_completed": "跟進事項已完成",
+      "handover_generated": "已產生交更表",
+      "rule_config_updated": "規則門檻已更新"
     },
     "safety": {
       "label1": "並非診斷",

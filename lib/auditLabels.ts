@@ -28,4 +28,5 @@ export const AUDIT_LABEL: Record<AuditAction, string> = {
   task_created: "Task created",
   task_completed: "Task completed",
   handover_generated: "Handover generated",
+  rule_config_updated: "Rule thresholds updated",
 };

@@ -19,12 +19,17 @@ export function TasksLane() {
   const { rows, audit } = useApp();
   const { formatDay } = useFormat();
   const [tasks, setTasks] = useState<FollowUpTask[]>([]);
+  // Overdue is judged against fetch time (event code), keeping render pure.
+  const [loadedAt, setLoadedAt] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api
       .openTasks()
-      .then(setTasks)
+      .then((ts) => {
+        setTasks(ts);
+        setLoadedAt(Date.now());
+      })
       .catch(() => {
         /* lane is auxiliary — stay quiet on transient failures */
       });
@@ -52,7 +57,6 @@ export function TasksLane() {
   if (tasks.length === 0) return null;
 
   const nameById = new Map(rows.map((r) => [r.patient.id, r.patient.name]));
-  const now = Date.now();
 
   return (
     <div className="cl-rise rounded-2xl border border-border bg-card p-5">
@@ -65,7 +69,7 @@ export function TasksLane() {
       </div>
       <ul className="mt-3 divide-y divide-border">
         {tasks.slice(0, 6).map((task) => {
-          const overdue = Date.parse(task.due_at) < now;
+          const overdue = Date.parse(task.due_at) < loadedAt;
           return (
             <li key={task.id} className="flex items-center justify-between gap-3 py-2.5">
               <div className="min-w-0">

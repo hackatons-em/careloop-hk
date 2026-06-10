@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -44,7 +44,12 @@ function ageLabel(age: number): string {
 
 /** Client-side CSV of the current (filtered) worklist — ward-scale export. */
 function exportCsv(rows: PatientRow[]) {
-  const esc = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  // Quote + neutralize spreadsheet formula injection (=, +, -, @ prefixes).
+  const esc = (v: string | number | null) => {
+    let s = String(v ?? "");
+    if (/^[=+\-@]/.test(s)) s = `'${s}`;
+    return `"${s.replace(/"/g, '""')}"`;
+  };
   const header = ["name", "age", "conditions", "severity", "reasons", "last_checkin", "assigned_nurse"];
   const lines = [
     header.join(","),
@@ -75,12 +80,19 @@ export function Dashboard() {
   const { formatDay } = useFormat();
   const { rows } = useApp();
   const router = useRouter();
-  const [filter, setFilter] = useState<Filter>("all");
-  const [query, setQuery] = useState("");
+  const [filter, setFilterState] = useState<Filter>("all");
+  const [query, setQueryState] = useState("");
   const [page, setPage] = useState(0);
 
   // Any filter/search change resets to the first page.
-  useEffect(() => setPage(0), [filter, query]);
+  const setFilter = (f: Filter) => {
+    setFilterState(f);
+    setPage(0);
+  };
+  const setQuery = (q: string) => {
+    setQueryState(q);
+    setPage(0);
+  };
 
   const filterLabel = (f: Filter): string => {
     if (f === "all") return t("filters.all");
@@ -199,6 +211,9 @@ export function Dashboard() {
         </button>
         <Link
           href="/handover"
+          // No prefetch: rendering /handover records a handover_generated
+          // audit event — only deliberate visits should do that.
+          prefetch={false}
           className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ClipboardList className="size-4" /> {t("handover")}

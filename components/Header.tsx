@@ -19,6 +19,8 @@ export function Header({ user }: { user: HeaderUser }) {
   const nav = [
     { href: "/dashboard", label: t("dashboard") },
     { href: "/alerts", label: t("alerts") },
+    // Program outcomes is the admin/renewal view.
+    ...(user.role === "admin" ? [{ href: "/program", label: t("program") }] : []),
   ];
 
   return (

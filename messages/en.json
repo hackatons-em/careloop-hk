@@ -16,6 +16,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "alerts": "Alerts",
+    "program": "Program",
     "howItWorks": "How it works",
     "pricing": "Pricing",
     "security": "Security",
@@ -388,6 +389,29 @@
     "prevPage": "Previous",
     "nextPage": "Next"
   },
+  "program": {
+    "metaTitle": "Program outcomes",
+    "title": "Program outcomes",
+    "sub": "Last {days} days, computed from recorded data only — no projections.",
+    "downloadPdf": "Board report (PDF)",
+    "completion": "Check-in completion",
+    "completionOnTarget": "Meets the ≥70% pilot commitment",
+    "completionBelowTarget": "Below the 70% pilot commitment",
+    "adherence": "Medication adherence",
+    "adherenceSub": "Of check-ins reporting medication",
+    "timeToAck": "Median time to acknowledge",
+    "timeToAckSub": "p90 {p90} · {n} alerts",
+    "activePatients": "Patients monitored",
+    "silentNow": "{count} currently not responding",
+    "dailyCheckins": "Daily completed check-ins",
+    "dailyCheckinsRange": "{from} – {to}",
+    "alertVolume": "Alerts raised, by severity",
+    "slaBreaches": "{count} acknowledgement-window breach event(s) in the audit trail",
+    "nurseLoad": "Open alerts by assignee",
+    "noOpenAlerts": "No open alerts.",
+    "openCount": "{count} open",
+    "note": "Every figure on this page is computed from recorded monitoring data — check-ins, vitals, alerts, and the append-only audit trail. The board PDF reports the same numbers."
+  },
   "tasks": {
     "title": "Follow-ups due",
     "due": "Due",
@@ -665,7 +689,32 @@
       "title": "Monitoring rules",
       "sub": "The exact deterministic rules that decide severity. No AI in this decision — same data in, same severity out.",
       "version": "Engine {version}",
-      "note": "Every alert stores the engine version that produced it, and every rule match carries its data evidence. Rule changes ship as a new version — historical alerts stay traceable."
+      "configVersion": "Thresholds v{version}",
+      "note": "Every alert stores the engine and threshold versions that produced it, and every rule match carries its data evidence. Changes ship as a new version — historical alerts stay traceable.",
+      "historyTitle": "Threshold history",
+      "historyVersion": "Version {version}",
+      "editor": {
+        "title": "Tune thresholds",
+        "sub": "Adjust sensitivity inside clinical guardrails. Rule structure and severities are fixed; every save creates a new audited version.",
+        "fields": {
+          "hf001_weight_gain_kg": "Weight gain → review",
+          "hf002_weight_gain_kg": "Weight gain (+symptoms) → escalate",
+          "bp_systolic_max": "Systolic ceiling",
+          "bp_diastolic_max": "Diastolic ceiling",
+          "act_drop_fraction": "Activity drop fraction",
+          "act_days": "Activity-drop days",
+          "nr002_silent_days": "Silent days → review"
+        },
+        "bounds": "{min}–{max} {unit}",
+        "note": "Change note",
+        "notePlaceholder": "Why this change? (shown in the version history)",
+        "activeVersion": "Active: thresholds v{version}",
+        "save": "Save as new version",
+        "saving": "Saving…",
+        "saved": "Thresholds saved as v{version}",
+        "saveFailed": "Could not save thresholds",
+        "fixFields": "Fix the highlighted thresholds"
+      }
     },
     "org": {
       "title": "Organization",
@@ -884,7 +933,12 @@
       "caregiver_notified": "Caregiver notified",
       "consent_changed": "Consent changed",
       "weekly_digest_sent": "Weekly digest sent",
-      "org_settings_updated": "Organization settings updated"
+      "org_settings_updated": "Organization settings updated",
+      "alert_reassigned": "Alert reassigned",
+      "task_created": "Task created",
+      "task_completed": "Task completed",
+      "handover_generated": "Handover generated",
+      "rule_config_updated": "Rule thresholds updated"
     },
     "safety": {
       "label1": "Not diagnosis",

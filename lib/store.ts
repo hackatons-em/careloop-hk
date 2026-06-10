@@ -16,7 +16,7 @@
 // Never from a Client Component — it uses the service-role key.
 
 import { buildCaregiverAlert } from "./caregiver";
-import { todayISO } from "./dates";
+import { addDays, todayISO } from "./dates";
 import { isDemoMode } from "./flags";
 import { logger } from "./logger";
 import {
@@ -27,6 +27,7 @@ import {
 } from "./notify";
 import { getOrgSettings } from "./orgSettings";
 import { broadcastOrgEvent } from "./realtime";
+import { getActiveRuleConfig } from "./ruleConfig";
 import {
   ENGINE_VERSION,
   evaluateRisk,
@@ -173,6 +174,7 @@ function rowToAlert(r: Record<string, unknown>): RiskAlert {
     resolved_at: (r.resolved_at as string | null) ?? null,
     last_notified_at: (r.last_notified_at as string | null) ?? null,
     engine_version: (r.engine_version as string | null) ?? null,
+    config_version: (r.config_version as number | null) ?? null,
   };
 }
 
@@ -296,11 +298,12 @@ async function upsertAlertFor(
   const patient = await fetchPatient(orgId, patientId);
   if (!patient) return { risk: emptyRisk(), alert: null };
 
-  const [vitals, checkins] = await Promise.all([
+  const [vitals, checkins, ruleConfig] = await Promise.all([
     fetchVitals(orgId, patientId),
     fetchCheckins(orgId, patientId),
+    getActiveRuleConfig(orgId),
   ]);
-  const risk = evaluateRisk(patient, vitals, checkins, ctx);
+  const risk = evaluateRisk(patient, vitals, checkins, { ...ctx, config: ruleConfig.config });
   await pushAudit(orgId, "risk_evaluated", actor, "patient", patientId, {
     severity: risk.severity,
     matched_rules: risk.matched_rules.map((m) => m.code),
@@ -331,6 +334,7 @@ async function upsertAlertFor(
       recommended_action: risk.recommended_action,
       // The refresh re-ran the engine, so the alert now reflects this version.
       engine_version: ENGINE_VERSION,
+      config_version: ruleConfig.version,
     };
     const { error } = await supa()
       .from("careloop_alerts")
@@ -371,6 +375,7 @@ async function upsertAlertFor(
     resolved_at: null,
     last_notified_at: null,
     engine_version: ENGINE_VERSION,
+    config_version: ruleConfig.version,
   };
   const { error } = await supa()
     .from("careloop_alerts")
@@ -399,6 +404,7 @@ async function upsertAlertFor(
           reason: risk.reason,
           recommended_action: risk.recommended_action,
           engine_version: ENGINE_VERSION,
+          config_version: ruleConfig.version,
         };
         const { error: updErr } = await supa()
           .from("careloop_alerts")
@@ -528,7 +534,7 @@ export async function getPatient(orgId: string, id: string): Promise<Patient | u
  * trips total, not per-patient). Archived patients are excluded. */
 export async function getPatientRows(orgId: string): Promise<PatientRow[]> {
   const db = supa();
-  const [patientsRes, vitalsRes, checkinsRes, alertsRes] = await Promise.all([
+  const [patientsRes, vitalsRes, checkinsRes, alertsRes, ruleConfig] = await Promise.all([
     db.from("careloop_patients").select("*").eq("org_id", orgId).neq("status", "archived"),
     db.from("careloop_vitals").select("*").eq("org_id", orgId).order("ts", { ascending: true }),
     db.from("careloop_checkins").select("*").eq("org_id", orgId).order("date", { ascending: true }),
@@ -537,6 +543,7 @@ export async function getPatientRows(orgId: string): Promise<PatientRow[]> {
       .select("*")
       .eq("org_id", orgId)
       .order("created_at", { ascending: false }),
+    getActiveRuleConfig(orgId),
   ]);
   const patients = rows(patientsRes).map((r) => rowToPatient(r as Record<string, unknown>));
   const allVitals = rows<VitalRow>(vitalsRes).map(rowToVital);
@@ -550,7 +557,10 @@ export async function getPatientRows(orgId: string): Promise<PatientRow[]> {
     const vitals = vitalsBy.get(patient.id) ?? [];
     const checkins = checkinsBy.get(patient.id) ?? [];
     // today enables the NR-002 silence rule on the live dashboard view.
-    const risk = evaluateRisk(patient, vitals, checkins, { today: todayISO() });
+    const risk = evaluateRisk(patient, vitals, checkins, {
+      today: todayISO(),
+      config: ruleConfig.config,
+    });
     const lastCheckin = checkins.map((c) => c.date).sort().pop() ?? null;
     const daily = toDailyVitals(vitals);
     let latestWeight: number | null = null;
@@ -588,16 +598,20 @@ export async function getTimeline(
 ): Promise<PatientTimeline | undefined> {
   const patient = await fetchPatient(orgId, id);
   if (!patient) return undefined;
-  const [vitals, checkins] = await Promise.all([
+  const [vitals, checkins, ruleConfig] = await Promise.all([
     fetchVitals(orgId, id),
     fetchCheckins(orgId, id),
+    getActiveRuleConfig(orgId),
   ]);
   const sortedCheckins = [...checkins].sort((a, b) => a.date.localeCompare(b.date));
   return {
     patient,
     daily: toDailyVitals(vitals),
     checkins: sortedCheckins,
-    risk: evaluateRisk(patient, vitals, checkins, { today: todayISO() }),
+    risk: evaluateRisk(patient, vitals, checkins, {
+      today: todayISO(),
+      config: ruleConfig.config,
+    }),
     risk_trend: riskTrend(patient, vitals, checkins),
   };
 }
@@ -605,11 +619,12 @@ export async function getTimeline(
 export async function getRisk(orgId: string, id: string): Promise<RiskResult | undefined> {
   const patient = await fetchPatient(orgId, id);
   if (!patient) return undefined;
-  const [vitals, checkins] = await Promise.all([
+  const [vitals, checkins, ruleConfig] = await Promise.all([
     fetchVitals(orgId, id),
     fetchCheckins(orgId, id),
+    getActiveRuleConfig(orgId),
   ]);
-  return evaluateRisk(patient, vitals, checkins);
+  return evaluateRisk(patient, vitals, checkins, { config: ruleConfig.config });
 }
 
 export async function getAlerts(orgId: string): Promise<RiskAlert[]> {
@@ -1016,10 +1031,13 @@ export async function createTask(
   actor: string,
 ): Promise<FollowUpTask | null> {
   if (!(await fetchPatient(orgId, input.patient_id))) return null;
+  // A linked alert must exist in THIS org — reject cross-org/garbage ids.
+  let alertId = input.alert_id ?? null;
+  if (alertId && !(await getAlert(orgId, alertId))) alertId = null;
   const task: FollowUpTask = {
     id: genId("task"),
     patient_id: input.patient_id,
-    alert_id: input.alert_id ?? null,
+    alert_id: alertId,
     description: input.description,
     due_at: input.due_at,
     assigned_to: input.assigned_to ?? "",
@@ -1134,7 +1152,9 @@ export async function buildHandover(
       patient_name: nameById.get(alert.patient_id) ?? alert.patient_id,
     })),
     new_escalations: bySeverity
-      .filter((a) => a.severity === "escalate" && a.created_at >= sinceIso)
+      // Numeric compare: created_at is UTC ("Z") while the window start
+      // carries a +08:00 offset — string comparison would misorder them.
+      .filter((a) => a.severity === "escalate" && Date.parse(a.created_at) >= Date.parse(sinceIso))
       .map((alert) => ({
         alert,
         patient_name: nameById.get(alert.patient_id) ?? alert.patient_id,
@@ -1359,6 +1379,127 @@ export async function recordAudit(
   metadata: Record<string, unknown> = {},
 ): Promise<void> {
   await pushAudit(orgId, action, actor, target_type, target_id, metadata);
+}
+
+// --- program outcomes (admin analytics) -------------------------------------
+
+export interface ProgramMetrics {
+  window_days: number;
+  active_patients: number;
+  /** Completed check-ins ÷ (active patients × days) over the window — the
+   * pilot-agreement ≥70% commitment is measured exactly here. */
+  checkin_completion_rate: number;
+  /** medication_taken=true ÷ all check-ins reporting medication, window-wide. */
+  adherence_rate: number;
+  /** Alerts created per severity within the window. */
+  alerts_by_severity: Record<string, number>;
+  /** Time-to-acknowledge stats (minutes) for alerts acknowledged in-window. */
+  ack_minutes: { median: number | null; p90: number | null; samples: number };
+  /** Open alerts currently past their org SLA window. */
+  sla_breaches_in_window: number;
+  /** Open alerts per assignee (ward load view). */
+  open_alerts_by_nurse: Record<string, number>;
+  /** Patients currently flagged silent (NR rules). */
+  silent_patients: number;
+  /** Per-day completed check-in counts, oldest first (sparkline data). */
+  daily_checkins: { date: string; count: number }[];
+}
+
+function percentile(sortedAsc: number[], p: number): number | null {
+  if (sortedAsc.length === 0) return null;
+  const idx = Math.min(sortedAsc.length - 1, Math.ceil((p / 100) * sortedAsc.length) - 1);
+  return sortedAsc[Math.max(0, idx)];
+}
+
+/**
+ * Deterministic program metrics from recorded data only — every number on the
+ * admin Program page (and the board PDF) is computed here and nowhere else,
+ * so it can be hand-verified against the tables.
+ */
+export async function getProgramMetrics(orgId: string, windowDays = 30): Promise<ProgramMetrics> {
+  const today = todayISO();
+  const windowStart = addDays(today, -(windowDays - 1));
+  const windowStartTs = `${windowStart}T00:00:00Z`;
+
+  const [patientRows, checkinRows, alertRows, auditRows] = await Promise.all([
+    getPatientRows(orgId),
+    rows(
+      await supa()
+        .from("careloop_checkins")
+        .select("patient_id, date, medication_taken")
+        .eq("org_id", orgId)
+        .gte("date", windowStart),
+    ),
+    rows(
+      await supa()
+        .from("careloop_alerts")
+        .select("*")
+        .eq("org_id", orgId)
+        .gte("created_at", windowStartTs),
+    ),
+    rows(
+      await supa()
+        .from("careloop_audit_events")
+        .select("action, created_at")
+        .eq("org_id", orgId)
+        .eq("action", "alert_sla_breached")
+        .gte("created_at", windowStartTs),
+    ),
+  ]);
+
+  const active = patientRows.length;
+  const checkins = checkinRows as { patient_id: string; date: string; medication_taken: boolean | null }[];
+  const alerts = (alertRows as Record<string, unknown>[]).map(rowToAlert);
+
+  const completion =
+    active > 0 && windowDays > 0 ? Math.min(1, checkins.length / (active * windowDays)) : 0;
+
+  const medReported = checkins.filter((c) => c.medication_taken !== null);
+  const adherence =
+    medReported.length > 0
+      ? medReported.filter((c) => c.medication_taken === true).length / medReported.length
+      : 0;
+
+  const bySeverity: Record<string, number> = { watch: 0, review_today: 0, escalate: 0 };
+  for (const a of alerts) bySeverity[a.severity] = (bySeverity[a.severity] ?? 0) + 1;
+
+  const ackMinutes = alerts
+    .filter((a) => a.acknowledged_at)
+    .map((a) => Math.round((Date.parse(a.acknowledged_at as string) - Date.parse(a.created_at)) / 60_000))
+    .filter((m) => m >= 0)
+    .sort((a, b) => a - b);
+
+  const slaBreaches = (auditRows as { action: string }[]).length;
+
+  const byNurse: Record<string, number> = {};
+  for (const a of alerts.filter((x) => x.status !== "resolved")) {
+    byNurse[a.assigned_to] = (byNurse[a.assigned_to] ?? 0) + 1;
+  }
+
+  const perDay = new Map<string, number>();
+  for (const c of checkins) perDay.set(c.date, (perDay.get(c.date) ?? 0) + 1);
+  const daily: { date: string; count: number }[] = [];
+  for (let i = 0; i < windowDays; i++) {
+    const d = addDays(windowStart, i);
+    daily.push({ date: d, count: perDay.get(d) ?? 0 });
+  }
+
+  return {
+    window_days: windowDays,
+    active_patients: active,
+    checkin_completion_rate: completion,
+    adherence_rate: adherence,
+    alerts_by_severity: bySeverity,
+    ack_minutes: {
+      median: percentile(ackMinutes, 50),
+      p90: percentile(ackMinutes, 90),
+      samples: ackMinutes.length,
+    },
+    sla_breaches_in_window: slaBreaches,
+    open_alerts_by_nurse: byNurse,
+    silent_patients: patientRows.filter((r) => r.risk.reason_tags.includes("no response")).length,
+    daily_checkins: daily,
+  };
 }
 
 // --- seed + demo controls -------------------------------------------------

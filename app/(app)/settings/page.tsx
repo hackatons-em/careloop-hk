@@ -50,7 +50,7 @@ export default async function SettingsPage() {
         </TabsContent>
 
         <TabsContent value="rules" className="cl-fade pt-4">
-          <RulesPanel />
+          <RulesPanel orgId={ctx.orgId} />
         </TabsContent>
 
         <TabsContent value="leads" className="cl-fade pt-4">

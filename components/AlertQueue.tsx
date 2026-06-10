@@ -185,9 +185,15 @@ function AlertCard({
     if (!description) return;
     setBusy(true);
     try {
-      // Due end of day, local clinical timezone — a handover-friendly default.
+      // Due 18:00 today — or 09:00 tomorrow when 18:00 already passed, so a
+      // task never starts life overdue.
       const due = new Date();
-      due.setHours(18, 0, 0, 0);
+      if (due.getHours() >= 18) {
+        due.setDate(due.getDate() + 1);
+        due.setHours(9, 0, 0, 0);
+      } else {
+        due.setHours(18, 0, 0, 0);
+      }
       await api.createTask({
         patient_id: alert.patient_id,
         alert_id: alert.id,

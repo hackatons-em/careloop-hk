@@ -275,6 +275,29 @@ export const orgSettingsSchema = z
 
 export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
 
+// --- rule thresholds (admin, guardrailed) -------------------------------------
+
+/** Bounds are clinical guardrails: an org can tune sensitivity, not disable
+ * monitoring. Structure/severity of rules is fixed in code. */
+export const ruleConfigSchema = z
+  .object({
+    hf001_weight_gain_kg: z.number().min(1).max(5),
+    hf002_weight_gain_kg: z.number().min(0.5).max(4),
+    bp_systolic_max: z.number().int().min(140).max(220),
+    bp_diastolic_max: z.number().int().min(90).max(130),
+    act_drop_fraction: z.number().min(0.2).max(0.8),
+    act_days: z.number().int().min(2).max(7),
+    nr002_silent_days: z.number().int().min(2).max(7),
+    note: z.string().trim().max(300).default(""),
+  })
+  .strict()
+  .refine((c) => c.hf002_weight_gain_kg <= c.hf001_weight_gain_kg, {
+    message: "The HF-002 escalation threshold cannot exceed the HF-001 review threshold",
+    path: ["hf002_weight_gain_kg"],
+  });
+
+export type RuleConfigInput = z.infer<typeof ruleConfigSchema>;
+
 // --- helper -----------------------------------------------------------------------
 
 export type ParseResult<T> = { ok: true; data: T } | { ok: false; response: Response };

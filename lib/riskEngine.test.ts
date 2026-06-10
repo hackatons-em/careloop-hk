@@ -368,3 +368,56 @@ describe("risk engine — silence rules (NR-001 / NR-002)", () => {
     expect(r.reason_tags).toContain("no response");
   });
 });
+
+// --- org-tuned thresholds (RuleConfig) --------------------------------------
+
+describe("risk engine — configurable thresholds", () => {
+  it("raising the HF-001 threshold stops a 2.1 kg gain from firing", () => {
+    const p = patient();
+    const v = vitalsFrom(p.id, [
+      { date: D[0], weight: 60.0 },
+      { date: D[3], weight: 62.1 },
+    ]);
+    const c = [checkin(p.id, D[3])];
+    // Default (2.0 kg): fires.
+    expect(codes(evaluateRisk(p, v, c))).toContain("HF-001");
+    // Org-tuned to 3.0 kg: same data, no longer fires.
+    expect(codes(evaluateRisk(p, v, c, { config: { hf001_weight_gain_kg: 3.0 } }))).not.toContain(
+      "HF-001",
+    );
+  });
+
+  it("lowering the BP ceiling makes 165/95 fire BP-001", () => {
+    const p = patient();
+    const v = vitalsFrom(p.id, [{ date: D[3], weight: 60, sys: 165, dia: 95 }]);
+    const c = [checkin(p.id, D[3])];
+    expect(codes(evaluateRisk(p, v, c))).not.toContain("BP-001");
+    expect(
+      codes(evaluateRisk(p, v, c, { config: { bp_systolic_max: 160, bp_diastolic_max: 130 } })),
+    ).toContain("BP-001");
+    });
+
+  it("nr002_silent_days=3 tolerates a 2-day gap", () => {
+    const p = patient();
+    const c = [checkin(p.id, "2026-06-02")];
+    expect(
+      codes(evaluateRisk(p, [], c, { today: "2026-06-04", config: { nr002_silent_days: 3 } })),
+    ).not.toContain("NR-002");
+    expect(
+      codes(evaluateRisk(p, [], c, { today: "2026-06-05", config: { nr002_silent_days: 3 } })),
+    ).toContain("NR-002");
+  });
+
+  it("partial config merges over defaults — untouched rules behave identically", () => {
+    const p = patient();
+    const v = vitalsFrom(p.id, [
+      { date: D[0], weight: 60.0 },
+      { date: D[3], weight: 62.5 },
+    ]);
+    const c = [checkin(p.id, D[3], { shortness_of_breath: true, swelling: true })];
+    const tuned = evaluateRisk(p, v, c, { config: { bp_systolic_max: 200 } });
+    // HF-001 + HF-002 + SYM-001 still fire on the default weight thresholds.
+    expect(codes(tuned)).toEqual(["HF-001", "HF-002", "SYM-001"]);
+    expect(tuned.severity).toBe("escalate");
+  });
+});
