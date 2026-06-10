@@ -3,6 +3,13 @@
 Everything here is OUTSIDE the codebase — accounts, approvals, and contracts
 only you can do. The product is ready; these unlock selling it.
 
+> **Status decisions (2026-06-10, founder-confirmed):** Resend → deferred
+> (DB-only leads accepted for now); Sentry → deferred (JSON logs + GitHub
+> uptime monitor cover ops); domain → `careloop-hk.vercel.app` accepted for
+> pilots; WABA application, legal review, and native zh-HK sign-off → owned
+> by the founder per the sections below. Each item activates in minutes once
+> its credential/approval exists — the wiring is already shipped.
+
 ## Domain & brand
 - [ ] Buy the production domain (e.g. `careloop.health` / `careloop.hk`)
 - [ ] Add it to the Vercel vendor project; update `NEXT_PUBLIC_SITE_URL`
