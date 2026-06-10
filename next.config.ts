@@ -31,6 +31,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Inline the (small, ~16KB) stylesheet into the document: removes the
+  // render-blocking CSS request from the LCP critical chain.
+  experimental: { inlineCss: true },
   // @react-pdf/renderer is a heavy Node library; keep it out of the bundler so
   // server-side PDF generation works reliably.
   serverExternalPackages: ["@react-pdf/renderer"],
