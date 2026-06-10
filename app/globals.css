@@ -177,6 +177,22 @@
   animation: cl-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes cl-rise-solid {
+  from {
+    transform: translateY(10px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* transform-only rise for above-the-fold copy: content that fades from
+   opacity 0 never registers as an LCP candidate, so the hero headline must
+   stay painted from first render. */
+.cl-rise-solid {
+  animation: cl-rise-solid 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .cl-fade {
   animation: cl-fade 0.3s ease both;
 }

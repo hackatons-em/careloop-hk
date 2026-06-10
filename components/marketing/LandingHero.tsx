@@ -31,7 +31,7 @@ export async function LandingHero() {
     <section className="flex flex-col justify-center gap-12 py-8 lg:min-h-[calc(100svh-9rem)]">
       <div className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         {/* Left: message */}
-        <div className="cl-rise">
+        <div className="cl-rise-solid">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
             <HeartPulse className="size-3.5" /> {t("badge")}
           </span>

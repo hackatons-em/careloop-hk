@@ -12,6 +12,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://careloop-hk.vercel
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  // "optional": paint immediately with the metric-adjusted fallback instead
+  // of re-painting (and re-timing LCP) when the webfont lands; Geist still
+  // renders on fast and repeat visits.
+  display: "optional",
 });
 
 const geistMono = Geist_Mono({
