@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { ArrowRight, CheckCircle2, ChevronRight, Stethoscope } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, ListPlus, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/AppProvider";
 import { AlertStatusBadge, RiskBadge } from "@/components/RiskBadge";
@@ -44,6 +44,13 @@ export function AlertQueue() {
       all: alerts.length,
     }),
     [alerts],
+  );
+
+  // Known nurse names for the reassignment picker (from patient records).
+  const nurseNames = useMemo(
+    () =>
+      [...new Set(rows.map((r) => r.patient.assigned_nurse).filter((n) => n && n !== "Unassigned"))].sort(),
+    [rows],
   );
 
   const visible = useMemo(() => {
@@ -106,6 +113,7 @@ export function AlertQueue() {
             key={alert.id}
             alert={alert}
             patient={patientById.get(alert.patient_id)}
+            nurseNames={nurseNames}
             onChanged={refresh}
           />
         ))}
@@ -117,10 +125,12 @@ export function AlertQueue() {
 function AlertCard({
   alert,
   patient,
+  nurseNames,
   onChanged,
 }: {
   alert: RiskAlert;
   patient: PatientRow | undefined;
+  nurseNames: string[];
   onChanged: () => Promise<void> | void;
 }) {
   const t = useTranslations("alerts");
@@ -128,6 +138,10 @@ function AlertCard({
   const { formatDay, formatDateTime } = useFormat();
   const [status, setStatus] = useState<AlertStatus>(alert.status);
   const [note, setNote] = useState(alert.nurse_note ?? "");
+  const [assignee, setAssignee] = useState(alert.assigned_to);
+  const [reassigning, setReassigning] = useState(false);
+  const [taskOpen, setTaskOpen] = useState(false);
+  const [taskText, setTaskText] = useState("");
   const [busy, setBusy] = useState(false);
 
   async function save(nextStatus?: AlertStatus, opts?: { quiet?: boolean }) {
@@ -138,6 +152,53 @@ function AlertCard({
       setStatus(finalStatus);
       await onChanged();
       if (!opts?.quiet) toast.success(t(`toasts.${finalStatus}`));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("toasts.failed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reassign() {
+    const to = assignee.trim();
+    if (!to || to === alert.assigned_to) {
+      setReassigning(false);
+      setAssignee(alert.assigned_to);
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.patchAlert(alert.id, { assigned_to: to });
+      await onChanged();
+      toast.success(t("card.reassigned", { name: to }));
+      setReassigning(false);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("toasts.failed"));
+      setAssignee(alert.assigned_to);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addTask() {
+    const description = taskText.trim();
+    if (!description) return;
+    setBusy(true);
+    try {
+      // Due end of day, local clinical timezone — a handover-friendly default.
+      const due = new Date();
+      due.setHours(18, 0, 0, 0);
+      await api.createTask({
+        patient_id: alert.patient_id,
+        alert_id: alert.id,
+        description,
+        due_at: due.toISOString(),
+        assigned_to: assignee || alert.assigned_to,
+      });
+      setTaskText("");
+      setTaskOpen(false);
+      toast.success(t("card.taskCreated"));
+      await onChanged();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("toasts.failed"));
     } finally {
@@ -172,10 +233,49 @@ function AlertCard({
       <p className="mt-2 text-sm">{alert.reason}</p>
 
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <Stethoscope className="size-3.5 text-primary" />
-          {alert.assigned_to}
-        </span>
+        {reassigning ? (
+          <span className="inline-flex items-center gap-1.5">
+            <Stethoscope className="size-3.5 text-primary" />
+            <input
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void reassign();
+                if (e.key === "Escape") {
+                  setReassigning(false);
+                  setAssignee(alert.assigned_to);
+                }
+              }}
+              list={`nurses-${alert.id}`}
+              autoFocus
+              aria-label={t("card.reassignLabel")}
+              className="h-7 w-40 rounded-md border border-border bg-card px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            />
+            <datalist id={`nurses-${alert.id}`}>
+              {nurseNames.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void reassign()}
+              className="rounded-md border border-border px-2 py-0.5 text-xs font-medium hover:bg-muted"
+            >
+              {t("card.reassignConfirm")}
+            </button>
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setReassigning(true)}
+            title={t("card.reassignLabel")}
+            className="inline-flex items-center gap-1.5 rounded-md outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Stethoscope className="size-3.5 text-primary" />
+            {alert.assigned_to}
+          </button>
+        )}
         <span aria-hidden>·</span>
         <span>{patient?.latest_weight != null ? `${patient.latest_weight} kg` : "—"}</span>
         <span aria-hidden>·</span>
@@ -223,6 +323,43 @@ function AlertCard({
             {t("card.save")} <ChevronRight className="size-4" />
           </Button>
         </div>
+      </div>
+
+      {/* follow-up task quick add */}
+      <div className="mt-2">
+        {taskOpen ? (
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              value={taskText}
+              onChange={(e) => setTaskText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void addTask();
+                if (e.key === "Escape") setTaskOpen(false);
+              }}
+              autoFocus
+              maxLength={500}
+              placeholder={t("card.taskPlaceholder")}
+              aria-label={t("card.addTask")}
+              className="h-9 w-full rounded-lg border border-border bg-card px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+            />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={busy} onClick={() => setTaskOpen(false)}>
+                {t("card.taskCancel")}
+              </Button>
+              <Button size="sm" disabled={busy || !taskText.trim()} onClick={() => void addTask()}>
+                {t("card.taskAdd")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setTaskOpen(true)}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <ListPlus className="size-3.5" /> {t("card.addTask")}
+          </button>
+        )}
       </div>
     </div>
   );

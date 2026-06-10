@@ -83,11 +83,30 @@ export const alertPatchSchema = z
       .enum(["new", "acknowledged", "family_contacted", "clinician_review_requested", "resolved"])
       .optional(),
     nurse_note: noteText.nullable().optional(),
+    assigned_to: z.string().trim().min(1).max(120).optional(),
   })
   .strict()
-  .refine((p) => p.status !== undefined || p.nurse_note !== undefined, {
-    message: "Provide a status or a nurse note",
+  .refine((p) => p.status !== undefined || p.nurse_note !== undefined || p.assigned_to !== undefined, {
+    message: "Provide a status, a nurse note, or an assignee",
   });
+
+// --- follow-up tasks ------------------------------------------------------------
+
+export const taskCreateSchema = z
+  .object({
+    patient_id: z.string().min(1).max(80),
+    alert_id: z.string().max(80).nullable().optional(),
+    description: z.string().trim().min(1, "Describe the follow-up").max(500),
+    due_at: z.string().datetime({ offset: true, local: true }),
+    assigned_to: z.string().trim().max(120).default(""),
+  })
+  .strict();
+
+export const taskPatchSchema = z
+  .object({
+    status: z.literal("done"),
+  })
+  .strict();
 
 // --- CSV import -----------------------------------------------------------------
 

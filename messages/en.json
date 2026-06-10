@@ -380,7 +380,48 @@
       "highestPriority": "Highest priority",
       "assignedTo": "Assigned to",
       "openPatient": "Open patient"
-    }
+    },
+    "searchPlaceholder": "Search name, phone, condition, nurse…",
+    "exportCsv": "Export CSV",
+    "handover": "Handover",
+    "pageInfo": "Showing {from}–{to} of {total}",
+    "prevPage": "Previous",
+    "nextPage": "Next"
+  },
+  "tasks": {
+    "title": "Follow-ups due",
+    "due": "Due",
+    "overdue": "Overdue —",
+    "markDone": "Done",
+    "completed": "Follow-up completed",
+    "completeFailed": "Could not complete the task",
+    "more": "+{count} more — see the handover sheet for the full list"
+  },
+  "handover": {
+    "metaTitle": "Shift handover",
+    "title": "Shift handover",
+    "sub": "Ward state since this morning's round — print it, hand it over.",
+    "back": "Dashboard",
+    "print": "Print",
+    "generatedAt": "Generated",
+    "activePatients": "Active patients",
+    "checkinsToday": "Check-ins today",
+    "openAlertsCount": "Open alerts",
+    "newEscalations": "New escalations this shift",
+    "openAlerts": "All open alerts",
+    "silentPatients": "Not responding",
+    "openTasks": "Follow-ups for the next shift",
+    "noneNew": "No new escalations this shift.",
+    "noneOpen": "No open alerts.",
+    "noneSilent": "Everyone has been heard from.",
+    "noneTasks": "No open follow-ups.",
+    "assignedTo": "assigned to",
+    "lastCheckin": "Last check-in",
+    "noteLabel": "Note",
+    "noteTitle": "Outgoing-shift note",
+    "noteHint": "Saved into the audit trail with this handover.",
+    "notePlaceholder": "e.g. Called Mrs. Chan's daughter, call back after 15:00",
+    "noteSave": "Attach note"
   },
   "alerts": {
     "metaTitle": "Nurse review queue",
@@ -401,7 +442,15 @@
       "statusLabel": "Alert status",
       "acknowledge": "Acknowledge",
       "save": "Save",
-      "lastCheckin": "Last check-in {date}"
+      "lastCheckin": "Last check-in {date}",
+      "reassignLabel": "Reassign alert",
+      "reassignConfirm": "Reassign",
+      "reassigned": "Alert reassigned to {name}",
+      "addTask": "Add follow-up task",
+      "taskPlaceholder": "e.g. Call patient at 16:00 to recheck breathing",
+      "taskAdd": "Add task",
+      "taskCancel": "Cancel",
+      "taskCreated": "Follow-up task created"
     },
     "toasts": {
       "new": "Alert reopened",
@@ -554,6 +603,15 @@
       "sub": "Update the patient's details, WhatsApp number, and monitoring baselines.",
       "subPending": "This patient was auto-created from a WhatsApp message. Confirm the details to finish enrolment.",
       "back": "Back to {name}"
+    },
+    "archive": {
+      "title": "Archive patient",
+      "hint": "Hides the patient from lists and resolves any open alert. History is preserved; this is recorded in the audit trail.",
+      "button": "Archive…",
+      "cancel": "Keep monitoring",
+      "confirm": "Yes, archive {name}",
+      "done": "{name} archived",
+      "failed": "Could not archive the patient"
     },
     "notFoundFallback": "Patient not found."
   },

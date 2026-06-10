@@ -24,4 +24,8 @@ export const AUDIT_LABEL: Record<AuditAction, string> = {
   consent_changed: "Consent changed",
   weekly_digest_sent: "Weekly digest sent",
   org_settings_updated: "Organization settings updated",
+  alert_reassigned: "Alert reassigned",
+  task_created: "Task created",
+  task_completed: "Task completed",
+  handover_generated: "Handover generated",
 };

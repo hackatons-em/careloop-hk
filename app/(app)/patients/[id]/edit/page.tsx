@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ChevronLeft } from "lucide-react";
+import { ArchivePatientButton } from "@/components/ArchivePatientButton";
 import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { PatientForm } from "@/components/PatientForm";
 import { requireAuthOrRedirect } from "@/lib/auth";
@@ -46,6 +47,9 @@ export default async function EditPatientPage({
         </p>
       </div>
       <PatientForm mode="edit" patient={patient} markReviewedOnSave={pending} />
+      {patient.status !== "archived" && (
+        <ArchivePatientButton id={patient.id} name={patient.name} />
+      )}
     </div>
   );
 }

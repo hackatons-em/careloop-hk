@@ -48,6 +48,7 @@ import type {
   AuditAction,
   AuditEvent,
   DailyCheckIn,
+  FollowUpTask,
   Patient,
   PatientRow,
   PatientStatus,
@@ -935,6 +936,8 @@ export async function evaluatePatient(
 export interface AlertPatch {
   status?: AlertStatus;
   nurse_note?: string | null;
+  /** Reassign the alert to another nurse (free text, like patient records). */
+  assigned_to?: string;
 }
 
 export async function updateAlert(
@@ -948,6 +951,9 @@ export async function updateAlert(
   const next: Partial<RiskAlert> = {};
   if (patch.status) next.status = patch.status;
   if (patch.nurse_note !== undefined) next.nurse_note = patch.nurse_note;
+  if (patch.assigned_to !== undefined && patch.assigned_to !== current.assigned_to) {
+    next.assigned_to = patch.assigned_to;
+  }
   // Any first transition out of "new" counts as acknowledgement (a nurse
   // jumping straight to family_contacted has still seen the alert).
   if (patch.status && patch.status !== "new" && current.status === "new" && !current.acknowledged_at) {
@@ -970,8 +976,190 @@ export async function updateAlert(
     status: updated.status,
     patient_id: updated.patient_id,
   });
+  if (next.assigned_to !== undefined) {
+    await pushAudit(orgId, "alert_reassigned", actor, "alert", id, {
+      from: current.assigned_to,
+      to: updated.assigned_to,
+      patient_id: updated.patient_id,
+    });
+  }
   await broadcastOrgEvent(orgId, "alerts_changed");
   return updated;
+}
+
+// --- follow-up tasks --------------------------------------------------------
+
+function rowToTask(r: Record<string, unknown>): FollowUpTask {
+  return {
+    id: r.id as string,
+    patient_id: r.patient_id as string,
+    alert_id: (r.alert_id as string | null) ?? null,
+    description: r.description as string,
+    due_at: r.due_at as string,
+    assigned_to: (r.assigned_to as string) ?? "",
+    status: r.status as FollowUpTask["status"],
+    created_by: (r.created_by as string) ?? "",
+    created_at: r.created_at as string,
+    done_at: (r.done_at as string | null) ?? null,
+  };
+}
+
+export async function createTask(
+  orgId: string,
+  input: {
+    patient_id: string;
+    alert_id?: string | null;
+    description: string;
+    due_at: string;
+    assigned_to?: string;
+  },
+  actor: string,
+): Promise<FollowUpTask | null> {
+  if (!(await fetchPatient(orgId, input.patient_id))) return null;
+  const task: FollowUpTask = {
+    id: genId("task"),
+    patient_id: input.patient_id,
+    alert_id: input.alert_id ?? null,
+    description: input.description,
+    due_at: input.due_at,
+    assigned_to: input.assigned_to ?? "",
+    status: "open",
+    created_by: actor,
+    created_at: now(),
+    done_at: null,
+  };
+  const { error } = await supa()
+    .from("careloop_tasks")
+    .insert({ ...task, org_id: orgId });
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  await pushAudit(orgId, "task_created", actor, "task", task.id, {
+    patient_id: task.patient_id,
+    due_at: task.due_at,
+  });
+  await broadcastOrgEvent(orgId, "data_changed");
+  return task;
+}
+
+/** Open tasks for the org, soonest due first (the dashboard lane). */
+export async function getOpenTasks(orgId: string): Promise<FollowUpTask[]> {
+  const data = rows(
+    await supa()
+      .from("careloop_tasks")
+      .select("*")
+      .eq("org_id", orgId)
+      .eq("status", "open")
+      .order("due_at", { ascending: true })
+      .limit(200),
+  );
+  return data.map((r) => rowToTask(r as Record<string, unknown>));
+}
+
+export async function completeTask(
+  orgId: string,
+  id: string,
+  actor: string,
+): Promise<FollowUpTask | null> {
+  const r = maybe(
+    await supa()
+      .from("careloop_tasks")
+      .select("*")
+      .eq("org_id", orgId)
+      .eq("id", id)
+      .maybeSingle(),
+  );
+  if (!r) return null;
+  const task = rowToTask(r as Record<string, unknown>);
+  if (task.status === "done") return task;
+  const done_at = now();
+  const { error } = await supa()
+    .from("careloop_tasks")
+    .update({ status: "done", done_at })
+    .eq("org_id", orgId)
+    .eq("id", id);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  await pushAudit(orgId, "task_completed", actor, "task", id, {
+    patient_id: task.patient_id,
+  });
+  await broadcastOrgEvent(orgId, "data_changed");
+  return { ...task, status: "done", done_at };
+}
+
+// --- shift handover ---------------------------------------------------------
+
+export interface HandoverSnapshot {
+  generated_at: string;
+  since: string;
+  open_alerts: { alert: RiskAlert; patient_name: string }[];
+  new_escalations: { alert: RiskAlert; patient_name: string }[];
+  silent_patients: { id: string; name: string; last_checkin_date: string | null }[];
+  open_tasks: { task: FollowUpTask; patient_name: string }[];
+  checkins_today: number;
+  active_patients: number;
+}
+
+/**
+ * Deterministic ward-state snapshot for shift handover: open alerts by
+ * severity, escalations raised since the window start, silent patients,
+ * open follow-up tasks, and today's check-in count. Pure read + one audit
+ * event — the outgoing nurse's note travels in the audit metadata.
+ */
+export async function buildHandover(
+  orgId: string,
+  sinceIso: string,
+  actor: string,
+  note?: string,
+): Promise<HandoverSnapshot> {
+  const [patientRows, openTasks] = await Promise.all([getPatientRows(orgId), getOpenTasks(orgId)]);
+  const nameById = new Map(patientRows.map((r) => [r.patient.id, r.patient.name]));
+
+  const openAlertRows = rows(
+    await supa()
+      .from("careloop_alerts")
+      .select("*")
+      .eq("org_id", orgId)
+      .neq("status", "resolved")
+      .order("severity", { ascending: false })
+      .order("created_at", { ascending: true }),
+  ).map((r) => rowToAlert(r as Record<string, unknown>));
+  const known = openAlertRows.filter((a) => nameById.has(a.patient_id));
+  const bySeverity = [...known].sort(
+    (a, b) => SEVERITY_ORDER[b.severity] - SEVERITY_ORDER[a.severity],
+  );
+
+  const snapshot: HandoverSnapshot = {
+    generated_at: now(),
+    since: sinceIso,
+    open_alerts: bySeverity.map((alert) => ({
+      alert,
+      patient_name: nameById.get(alert.patient_id) ?? alert.patient_id,
+    })),
+    new_escalations: bySeverity
+      .filter((a) => a.severity === "escalate" && a.created_at >= sinceIso)
+      .map((alert) => ({
+        alert,
+        patient_name: nameById.get(alert.patient_id) ?? alert.patient_id,
+      })),
+    silent_patients: patientRows
+      .filter((r) => r.risk.reason_tags.includes("no response"))
+      .map((r) => ({
+        id: r.patient.id,
+        name: r.patient.name,
+        last_checkin_date: r.last_checkin_date,
+      })),
+    open_tasks: openTasks.map((task) => ({
+      task,
+      patient_name: nameById.get(task.patient_id) ?? task.patient_id,
+    })),
+    checkins_today: patientRows.filter((r) => r.last_checkin_date === todayISO()).length,
+    active_patients: patientRows.length,
+  };
+
+  await pushAudit(orgId, "handover_generated", actor, "organization", orgId, {
+    since: sinceIso,
+    open_alerts: snapshot.open_alerts.length,
+    note: note?.slice(0, 500) ?? null,
+  });
+  return snapshot;
 }
 
 /**

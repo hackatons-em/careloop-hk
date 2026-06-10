@@ -5,6 +5,7 @@
 import type {
   AlertStatus,
   AuditEvent,
+  FollowUpTask,
   Patient,
   PatientRow,
   PatientTimeline,
@@ -113,12 +114,37 @@ export const api = {
       body: JSON.stringify(payload),
     }).then(json<{ checkin: DailyCheckIn; risk: RiskResult; alert: RiskAlert | null }>),
 
-  patchAlert: (id: string, patch: { status?: AlertStatus; nurse_note?: string | null }) =>
+  patchAlert: (
+    id: string,
+    patch: { status?: AlertStatus; nurse_note?: string | null; assigned_to?: string },
+  ) =>
     fetch(`/api/alerts/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
     }).then(json<RiskAlert>),
+
+  openTasks: () => fetch("/api/tasks").then(json<FollowUpTask[]>),
+
+  createTask: (payload: {
+    patient_id: string;
+    alert_id?: string | null;
+    description: string;
+    due_at: string;
+    assigned_to?: string;
+  }) =>
+    fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(json<FollowUpTask>),
+
+  completeTask: (id: string) =>
+    fetch(`/api/tasks/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "done" }),
+    }).then(json<FollowUpTask>),
 
   reset: () =>
     fetch("/api/demo/reset", { method: "POST" }).then(json<{ ok: boolean; rows: PatientRow[] }>),

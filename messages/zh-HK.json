@@ -380,7 +380,48 @@
       "highestPriority": "最高優先",
       "assignedTo": "負責護士",
       "openPatient": "開啟病人檔案"
-    }
+    },
+    "searchPlaceholder": "搜尋姓名、電話、病況、護士…",
+    "exportCsv": "匯出 CSV",
+    "handover": "交更",
+    "pageInfo": "顯示第 {from}–{to} 項，共 {total} 項",
+    "prevPage": "上一頁",
+    "nextPage": "下一頁"
+  },
+  "tasks": {
+    "title": "待辦跟進",
+    "due": "到期",
+    "overdue": "已逾期——",
+    "markDone": "完成",
+    "completed": "跟進已完成",
+    "completeFailed": "未能完成此跟進",
+    "more": "還有 {count} 項——完整清單見交更表"
+  },
+  "handover": {
+    "metaTitle": "交更",
+    "title": "交更",
+    "sub": "今早巡房以來的病房狀況——可直接列印交更。",
+    "back": "儀表板",
+    "print": "列印",
+    "generatedAt": "產生時間",
+    "activePatients": "在監測病人",
+    "checkinsToday": "今日報到",
+    "openAlertsCount": "未結警示",
+    "newEscalations": "本更新增升級警示",
+    "openAlerts": "所有未結警示",
+    "silentPatients": "未有回覆",
+    "openTasks": "交下更跟進事項",
+    "noneNew": "本更沒有新增升級警示。",
+    "noneOpen": "沒有未結警示。",
+    "noneSilent": "所有病人都有回覆。",
+    "noneTasks": "沒有待辦跟進。",
+    "assignedTo": "負責人",
+    "lastCheckin": "最後報到",
+    "noteLabel": "備註",
+    "noteTitle": "交更備註",
+    "noteHint": "會連同本次交更記錄在審計紀錄中。",
+    "notePlaceholder": "例如：已致電陳太女兒，下午三時後回電",
+    "noteSave": "附加備註"
   },
   "alerts": {
     "metaTitle": "護士覆查隊列",
@@ -401,7 +442,15 @@
       "statusLabel": "警示狀態",
       "acknowledge": "確認",
       "save": "儲存",
-      "lastCheckin": "最後報到 {date}"
+      "lastCheckin": "最後報到 {date}",
+      "reassignLabel": "重新指派警示",
+      "reassignConfirm": "指派",
+      "reassigned": "警示已指派給{name}",
+      "addTask": "新增跟進事項",
+      "taskPlaceholder": "例如：下午四時致電病人覆查呼吸情況",
+      "taskAdd": "新增",
+      "taskCancel": "取消",
+      "taskCreated": "已建立跟進事項"
     },
     "toasts": {
       "new": "警示已重新開啟",
@@ -554,6 +603,15 @@
       "sub": "更新病人資料、WhatsApp 號碼及監測基線。",
       "subPending": "此病人由 WhatsApp 訊息自動建立。請確認資料以完成登記。",
       "back": "返回{name}"
+    },
+    "archive": {
+      "title": "封存病人",
+      "hint": "病人會從清單隱藏，未結警示會自動標示為已解決。歷史紀錄保留，此操作會記入審計紀錄。",
+      "button": "封存…",
+      "cancel": "繼續監測",
+      "confirm": "確定封存{name}",
+      "done": "已封存{name}",
+      "failed": "未能封存病人"
     },
     "notFoundFallback": "找不到病人。"
   },

@@ -1,13 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Users, AlertTriangle, Eye, ClipboardCheck, ChevronRight, ArrowRight } from "lucide-react";
+import {
+  Users,
+  AlertTriangle,
+  Eye,
+  ClipboardCheck,
+  ChevronRight,
+  ArrowRight,
+  ClipboardList,
+  Download,
+  Search,
+} from "lucide-react";
 import { useApp } from "@/components/AppProvider";
 import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { ReasonTags, RiskBadge } from "@/components/RiskBadge";
+import { TasksLane } from "@/components/TasksLane";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -24,9 +36,37 @@ import { cn } from "@/lib/utils";
 type Filter = "all" | Severity | "needs_review";
 
 const FILTER_KEYS: Filter[] = ["all", "stable", "watch", "review_today", "escalate", "needs_review"];
+const PAGE_SIZE = 50;
 
 function ageLabel(age: number): string {
   return age > 0 ? String(age) : "—";
+}
+
+/** Client-side CSV of the current (filtered) worklist — ward-scale export. */
+function exportCsv(rows: PatientRow[]) {
+  const esc = (v: string | number | null) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const header = ["name", "age", "conditions", "severity", "reasons", "last_checkin", "assigned_nurse"];
+  const lines = [
+    header.join(","),
+    ...rows.map((r) =>
+      [
+        esc(r.patient.name),
+        esc(r.patient.age || ""),
+        esc(r.patient.conditions.join("; ")),
+        esc(r.risk.severity),
+        esc(r.risk.reason_tags.join("; ")),
+        esc(r.last_checkin_date),
+        esc(r.patient.assigned_nurse),
+      ].join(","),
+    ),
+  ];
+  const blob = new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `careloop-worklist-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 export function Dashboard() {
@@ -36,6 +76,11 @@ export function Dashboard() {
   const { rows } = useApp();
   const router = useRouter();
   const [filter, setFilter] = useState<Filter>("all");
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
+
+  // Any filter/search change resets to the first page.
+  useEffect(() => setPage(0), [filter, query]);
 
   const filterLabel = (f: Filter): string => {
     if (f === "all") return t("filters.all");
@@ -80,12 +125,25 @@ export function Dashboard() {
   }, [rows]);
 
   const focus = sortedAll.find((r) => r.risk.severity !== "stable") ?? null;
-  const visible =
+  const filtered =
     filter === "all"
       ? sortedAll
       : filter === "needs_review"
         ? sortedAll.filter((r) => r.patient.status === "pending_review")
         : sortedAll.filter((r) => r.risk.severity === filter);
+  const q = query.trim().toLowerCase();
+  const searched = q
+    ? filtered.filter(
+        (r) =>
+          r.patient.name.toLowerCase().includes(q) ||
+          (r.patient.phone ?? "").includes(q) ||
+          r.patient.conditions.some((c) => c.toLowerCase().includes(q)) ||
+          r.patient.assigned_nurse.toLowerCase().includes(q),
+      )
+    : filtered;
+  const pageCount = Math.max(1, Math.ceil(searched.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount - 1);
+  const visible = searched.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -116,6 +174,36 @@ export function Dashboard() {
 
       {/* focused high-risk patient */}
       {focus && <FocusedCard row={focus} />}
+
+      {/* follow-up tasks due */}
+      <TasksLane />
+
+      {/* search + worklist actions */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative min-w-[220px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchPlaceholder")}
+            className="pl-9"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => exportCsv(searched)}
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Download className="size-4" /> {t("exportCsv")}
+        </button>
+        <Link
+          href="/handover"
+          className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <ClipboardList className="size-4" /> {t("handover")}
+        </Link>
+      </div>
 
       {/* filter segmented control */}
       <div className="flex flex-wrap gap-1.5">
@@ -257,6 +345,37 @@ export function Dashboard() {
           </Link>
         ))}
       </div>
+
+      {/* pager — only when the worklist exceeds one page */}
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs text-muted-foreground">
+            {t("pageInfo", {
+              from: safePage * PAGE_SIZE + 1,
+              to: Math.min((safePage + 1) * PAGE_SIZE, searched.length),
+              total: searched.length,
+            })}
+          </p>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              disabled={safePage === 0}
+              onClick={() => setPage(safePage - 1)}
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+            >
+              {t("prevPage")}
+            </button>
+            <button
+              type="button"
+              disabled={safePage >= pageCount - 1}
+              onClick={() => setPage(safePage + 1)}
+              className="h-9 rounded-lg border border-border bg-card px-3 text-sm font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-40"
+            >
+              {t("nextPage")}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

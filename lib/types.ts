@@ -180,7 +180,11 @@ export type AuditAction =
   | "caregiver_notified"
   | "consent_changed"
   | "weekly_digest_sent"
-  | "org_settings_updated";
+  | "org_settings_updated"
+  | "alert_reassigned"
+  | "task_created"
+  | "task_completed"
+  | "handover_generated";
 
 /** Pivoted per-day view used by charts and the risk engine. */
 export interface DailyVitals {
@@ -209,4 +213,18 @@ export interface PatientRow {
   last_checkin_date: string | null;
   alert_status: AlertStatus | null;
   latest_weight: number | null;
+}
+
+/** Ward follow-up task, optionally linked to the alert that prompted it. */
+export interface FollowUpTask {
+  id: string;
+  patient_id: string;
+  alert_id: string | null;
+  description: string;
+  due_at: string;
+  assigned_to: string;
+  status: "open" | "done";
+  created_by: string;
+  created_at: string;
+  done_at: string | null;
 }
