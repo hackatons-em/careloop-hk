@@ -52,9 +52,31 @@
     "heroTitle": "CareLoop watches the",
     "heroTitleAccent": "gaps between visits.",
     "heroSub": "WhatsApp check-ins, vital signals, and explainable rules help nurses monitor elderly chronic-care patients between clinic visits.",
+    "heroCtaSecondary": "See how it works",
     "safetyLine": "Monitoring support only. Not diagnosis. No treatment recommendation.",
+    "proof": {
+      "label": "Built for hospital evaluation",
+      "item1": "Deterministic rules — no AI diagnosis",
+      "item2": "English + 繁體中文",
+      "item3": "Audit-ready",
+      "item4": "Dedicated instance per hospital"
+    },
+    "glimpse": {
+      "title": "One queue. Only the exceptions.",
+      "sub": "Nurses don't scan 24 patients — CareLoop surfaces the few who need review and says exactly why.",
+      "panelLabel": "Nurse dashboard · exceptions first",
+      "panelCount": "3 of 24 need review",
+      "row1Note": "Weight up 2.3 kg · breathless",
+      "row2Name": "Mr. Cheung, 81",
+      "row2Note": "BP high two mornings in a row",
+      "row3Name": "Ms. Lam, 74",
+      "row3Note": "Missed yesterday's check-in",
+      "stableLine": "21 stable patients — checked automatically, nothing to do"
+    },
     "preview": {
       "label": "Patient · CareLoop",
+      "bubbleText": "Feeling more tired today… my legs look swollen.",
+      "bubbleMeta": "WhatsApp · 08:14",
       "escalate": "Escalate",
       "name": "Mrs. Chan, 78",
       "profile": "Heart failure + hypertension · lives alone",
@@ -84,14 +106,6 @@
       "bottleneck1": "Elderly patients may not open new apps or remember daily check-ins.",
       "bottleneck2": "Families and care teams have limited visibility.",
       "bottleneck3": "Delays can lead to avoidable deterioration and urgent care."
-    },
-    "controls": {
-      "slide": "Slide {n}",
-      "back": "Back",
-      "next": "Next slide",
-      "requestDemo": "Request a demo",
-      "signIn": "Sign in",
-      "scrollCue": "How it works"
     }
   },
   "sections": {
@@ -128,6 +142,7 @@
       "item2": "Encrypted in transit and at rest",
       "item3": "No AI diagnosis — deterministic rules",
       "item4": "Full audit trail",
+      "honesty": "Not yet SOC 2 certified — we're early and say so. Security documentation is shared with every evaluating hospital.",
       "link": "Read our security overview →"
     },
     "cta": {

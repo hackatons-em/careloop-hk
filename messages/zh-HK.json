@@ -52,9 +52,31 @@
     "heroTitle": "CareLoop 守護",
     "heroTitleAccent": "覆診之間的空白期。",
     "heroSub": "透過 WhatsApp 每日報到、生命體徵信號及可解釋的規則，協助護士在覆診之間監測長者慢性病患者。",
+    "heroCtaSecondary": "了解運作方式",
     "safetyLine": "僅屬監測支援。不作診斷，亦不提供治療建議。",
+    "proof": {
+      "label": "為醫院評估而設",
+      "item1": "確定性規則——不用 AI 診斷",
+      "item2": "英文＋繁體中文",
+      "item3": "審計就緒",
+      "item4": "每間醫院獨立專屬系統"
+    },
+    "glimpse": {
+      "title": "一條隊列，只看例外。",
+      "sub": "護士毋須逐一檢視 24 位病人——CareLoop 只列出需要覆查的幾位，並清楚說明原因。",
+      "panelLabel": "護士儀表板 · 例外為先",
+      "panelCount": "24 位中 3 位需覆查",
+      "row1Note": "體重增加 2.3 公斤 · 呼吸急促",
+      "row2Name": "張伯，81歲",
+      "row2Note": "連續兩朝血壓偏高",
+      "row3Name": "林女士，74歲",
+      "row3Note": "昨日未有報到",
+      "stableLine": "21 位病情穩定——已自動覆檢，毋須跟進"
+    },
     "preview": {
       "label": "病人 · CareLoop",
+      "bubbleText": "今日好攰……對腳腫咗。",
+      "bubbleMeta": "WhatsApp · 上午 8:14",
       "escalate": "需立即跟進",
       "name": "陳太，78歲",
       "profile": "心臟衰竭＋高血壓 · 獨居",
@@ -84,14 +106,6 @@
       "bottleneck1": "長者未必會使用新應用程式，或記得每日報到。",
       "bottleneck2": "家人與護理團隊難以掌握情況。",
       "bottleneck3": "延誤可能導致本可避免的惡化與急症求醫。"
-    },
-    "controls": {
-      "slide": "第 {n} 頁",
-      "back": "返回",
-      "next": "下一頁",
-      "requestDemo": "預約示範",
-      "signIn": "登入",
-      "scrollCue": "運作方式"
     }
   },
   "sections": {
@@ -128,6 +142,7 @@
       "item2": "傳輸與儲存均加密",
       "item3": "不用 AI 診斷——以確定性規則決策",
       "item4": "完整審計紀錄",
+      "honesty": "尚未取得 SOC 2 認證——我們仍在早期階段，並坦誠相告。所有評估中的醫院均可索取安全文件。",
       "link": "閱讀安全保障概覽 →"
     },
     "cta": {

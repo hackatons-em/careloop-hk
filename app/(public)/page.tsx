@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { LandingHero } from "@/components/marketing/LandingHero";
 import { LandingSections } from "@/components/marketing/LandingSections";
-import { LandingSlides } from "@/components/LandingSlides";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata");
@@ -30,7 +30,7 @@ export default function Landing() {
         // Static, trusted JSON-LD literal — no user input flows in.
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
       />
-      <LandingSlides />
+      <LandingHero />
       <LandingSections />
     </>
   );
