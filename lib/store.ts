@@ -303,7 +303,17 @@ async function upsertAlertFor(
     fetchCheckins(orgId, patientId),
     getActiveRuleConfig(orgId),
   ]);
-  const risk = evaluateRisk(patient, vitals, checkins, { ...ctx, config: ruleConfig.config });
+  // Default `today` so the silence rule NR-002 persists on EVERY write path
+  // (check-in, vital, import, manual re-eval), matching what the read views
+  // already display — not only when the daily silence sweep supplies it. An
+  // explicit ctx.today (e.g. from the sweep, which also carries
+  // promptUnansweredToday for NR-001) still wins. config is always the org's
+  // active config, never a caller override.
+  const risk = evaluateRisk(patient, vitals, checkins, {
+    today: todayISO(),
+    ...ctx,
+    config: ruleConfig.config,
+  });
   await pushAudit(orgId, "risk_evaluated", actor, "patient", patientId, {
     severity: risk.severity,
     matched_rules: risk.matched_rules.map((m) => m.code),
@@ -412,6 +422,14 @@ async function upsertAlertFor(
           .eq("org_id", orgId)
           .eq("id", open.id);
         if (updErr) throw new Error(`Supabase: ${updErr.message}`);
+        // Mirror the normal refresh path's audit row — without this, the write
+        // that produced the persisted severity leaves no alert lifecycle event
+        // in the append-only trail (only the earlier risk_evaluated).
+        await pushAudit(orgId, "alert_updated", actor, "alert", open.id, {
+          severity: risk.severity,
+          patient_id: patientId,
+          recovered_from_race: true,
+        });
         const recovered = { ...open, ...patch };
         await afterAlertWrite(orgId, patient, recovered, open.severity, vitals, checkins);
         return { risk, alert: recovered };
@@ -448,8 +466,21 @@ async function afterAlertWrite(
   const raised = prevSeverity !== null && SEVERITY_ORDER[alert.severity] > SEVERITY_ORDER[prevSeverity];
 
   try {
-    if (created || raised) {
-      const settings = await getOrgSettings(orgId);
+    // Debounce re-rises: a flapping borderline alert (escalate→lower→escalate
+    // on the same open row) would otherwise notify on every up-tick. A
+    // brand-new alert always fires; a re-rise fires at most once per SLA
+    // window, reusing last_notified_at. Covers BOTH nurse paging and caregiver
+    // delivery — families especially must not be re-spammed on flapping.
+    const settings = created || raised ? await getOrgSettings(orgId) : null;
+    const debounceMs =
+      (alert.severity === "escalate"
+        ? (settings?.sla_ack_minutes_escalate ?? 0)
+        : (settings?.sla_ack_minutes_review ?? 0)) * 60_000;
+    const recentlyPaged =
+      alert.last_notified_at != null &&
+      Date.now() - Date.parse(alert.last_notified_at) < debounceMs;
+    const shouldNotify = created || (raised && !recentlyPaged);
+    if (settings && shouldNotify) {
       if (meetsNotifyThreshold(settings, alert.severity)) {
         const inbox = alertsInbox(settings);
         const sent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
@@ -1074,9 +1105,15 @@ export async function getOpenTasks(orgId: string): Promise<FollowUpTask[]> {
   return data.map((r) => rowToTask(r as Record<string, unknown>));
 }
 
-export async function completeTask(
+/**
+ * Resolve an open task — either "done" (genuinely completed) or "cancelled"
+ * (created in error / wrong patient). Cancel keeps the trail honest instead of
+ * forcing a false completion. Org-scoped; no-op if already resolved.
+ */
+export async function resolveTask(
   orgId: string,
   id: string,
+  status: "done" | "cancelled",
   actor: string,
 ): Promise<FollowUpTask | null> {
   const r = maybe(
@@ -1089,19 +1126,19 @@ export async function completeTask(
   );
   if (!r) return null;
   const task = rowToTask(r as Record<string, unknown>);
-  if (task.status === "done") return task;
+  if (task.status !== "open") return task;
   const done_at = now();
   const { error } = await supa()
     .from("careloop_tasks")
-    .update({ status: "done", done_at })
+    .update({ status, done_at })
     .eq("org_id", orgId)
     .eq("id", id);
   if (error) throw new Error(`Supabase: ${error.message}`);
-  await pushAudit(orgId, "task_completed", actor, "task", id, {
+  await pushAudit(orgId, status === "done" ? "task_completed" : "task_cancelled", actor, "task", id, {
     patient_id: task.patient_id,
   });
   await broadcastOrgEvent(orgId, "data_changed");
-  return { ...task, status: "done", done_at };
+  return { ...task, status, done_at };
 }
 
 // --- shift handover ---------------------------------------------------------
@@ -1120,14 +1157,14 @@ export interface HandoverSnapshot {
 /**
  * Deterministic ward-state snapshot for shift handover: open alerts by
  * severity, escalations raised since the window start, silent patients,
- * open follow-up tasks, and today's check-in count. Pure read + one audit
- * event — the outgoing nurse's note travels in the audit metadata.
+ * open follow-up tasks, and today's check-in count. PURE READ — no audit
+ * write, so rendering the page is side-effect free. The audited
+ * "handover generated" event (with the outgoing nurse's note) is recorded
+ * separately by recordHandover, called only on explicit note submit.
  */
-export async function buildHandover(
+export async function getHandoverSnapshot(
   orgId: string,
   sinceIso: string,
-  actor: string,
-  note?: string,
 ): Promise<HandoverSnapshot> {
   const [patientRows, openTasks] = await Promise.all([getPatientRows(orgId), getOpenTasks(orgId)]);
   const nameById = new Map(patientRows.map((r) => [r.patient.id, r.patient.name]));
@@ -1176,10 +1213,26 @@ export async function buildHandover(
     active_patients: patientRows.length,
   };
 
+  return snapshot;
+}
+
+/**
+ * Record an audited shift handover with the outgoing nurse's note. The note
+ * lives in the append-only audit metadata (capped), never in a URL — called
+ * from the handover page's Server Action so the note posts in the request
+ * body. Returns the snapshot for re-render.
+ */
+export async function recordHandover(
+  orgId: string,
+  sinceIso: string,
+  actor: string,
+  note: string,
+): Promise<HandoverSnapshot> {
+  const snapshot = await getHandoverSnapshot(orgId, sinceIso);
   await pushAudit(orgId, "handover_generated", actor, "organization", orgId, {
     since: sinceIso,
     open_alerts: snapshot.open_alerts.length,
-    note: note?.slice(0, 500) ?? null,
+    note: note.slice(0, 500),
   });
   return snapshot;
 }
@@ -1210,6 +1263,11 @@ export async function sweepAlertSlas(
   const nowMs = Date.now();
 
   for (const alert of open) {
+    // Consistency with creation-time paging: if the org opted out of paging
+    // this severity (notify_min_severity), the SLA chain must not re-page it
+    // either — otherwise a review_today alert the org chose to handle silently
+    // gets paged a window later.
+    if (!meetsNotifyThreshold(settings, alert.severity)) continue;
     const windowMin =
       alert.severity === "escalate"
         ? settings.sla_ack_minutes_escalate
@@ -1383,6 +1441,32 @@ export async function recordAudit(
   await pushAudit(orgId, action, actor, target_type, target_id, metadata);
 }
 
+/**
+ * Has a weekly family digest already been SENT for this patient/week? Keyed on
+ * the weekly_digest_sent audit event (not the existence of a summary, which a
+ * nurse may generate manually without sending) — the precise idempotency guard
+ * for the at-least-once digest cron + manual admin endpoint.
+ */
+export async function digestAlreadySent(
+  orgId: string,
+  patientId: string,
+  weekStart: string,
+): Promise<boolean> {
+  const data = rows(
+    await supa()
+      .from("careloop_audit_events")
+      .select("metadata")
+      .eq("org_id", orgId)
+      .eq("action", "weekly_digest_sent")
+      .eq("target_id", patientId)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  );
+  return data.some(
+    (r) => (r as { metadata?: { week_start?: string } }).metadata?.week_start === weekStart,
+  );
+}
+
 // --- program outcomes (admin analytics) -------------------------------------
 
 export interface ProgramMetrics {
@@ -1397,7 +1481,8 @@ export interface ProgramMetrics {
   alerts_by_severity: Record<string, number>;
   /** Time-to-acknowledge stats (minutes) for alerts acknowledged in-window. */
   ack_minutes: { median: number | null; p90: number | null; samples: number };
-  /** Open alerts currently past their org SLA window. */
+  /** Count of alert_sla_breached audit events recorded within the window
+   *  (cumulative breach events, not the live open-breach backlog). */
   sla_breaches_in_window: number;
   /** Open alerts per assignee (ward load view). */
   open_alerts_by_nurse: Record<string, number>;
@@ -1423,7 +1508,7 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
   const windowStart = addDays(today, -(windowDays - 1));
   const windowStartTs = `${windowStart}T00:00:00Z`;
 
-  const [patientRows, checkinRows, alertRows, auditRows] = await Promise.all([
+  const [patientRows, checkinRows, alertRows, ackAlertRows, auditRows] = await Promise.all([
     getPatientRows(orgId),
     rows(
       await supa()
@@ -1432,12 +1517,23 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
         .eq("org_id", orgId)
         .gte("date", windowStart),
     ),
+    // Created-in-window cohort: alert volume by severity + current ward load.
     rows(
       await supa()
         .from("careloop_alerts")
         .select("*")
         .eq("org_id", orgId)
         .gte("created_at", windowStartTs),
+    ),
+    // Acknowledged-in-window cohort: time-to-acknowledge, independent of when
+    // the alert was created (an alert created before the window but ack'd
+    // inside it counts; one created late but ack'd after the window does not).
+    rows(
+      await supa()
+        .from("careloop_alerts")
+        .select("created_at, acknowledged_at")
+        .eq("org_id", orgId)
+        .gte("acknowledged_at", windowStartTs),
     ),
     rows(
       await supa()
@@ -1449,7 +1545,11 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
     ),
   ]);
 
-  const active = patientRows.length;
+  // Enrolled cohort only: pending_review patients (auto-created from unknown
+  // WhatsApp numbers, ~zero check-ins until a nurse confirms them) would drag
+  // the headline completion rate — the contractual ≥70% pilot metric — below
+  // the true active-cohort rate. getPatientRows already excludes archived.
+  const active = patientRows.filter((r) => r.patient.status === "active").length;
   const checkins = checkinRows as { patient_id: string; date: string; medication_taken: boolean | null }[];
   const alerts = (alertRows as Record<string, unknown>[]).map(rowToAlert);
 
@@ -1465,10 +1565,9 @@ export async function getProgramMetrics(orgId: string, windowDays = 30): Promise
   const bySeverity: Record<string, number> = { watch: 0, review_today: 0, escalate: 0 };
   for (const a of alerts) bySeverity[a.severity] = (bySeverity[a.severity] ?? 0) + 1;
 
-  const ackMinutes = alerts
-    .filter((a) => a.acknowledged_at)
-    .map((a) => Math.round((Date.parse(a.acknowledged_at as string) - Date.parse(a.created_at)) / 60_000))
-    .filter((m) => m >= 0)
+  const ackMinutes = (ackAlertRows as { created_at: string; acknowledged_at: string }[])
+    .map((a) => Math.round((Date.parse(a.acknowledged_at) - Date.parse(a.created_at)) / 60_000))
+    .filter((m) => m >= 0) // guard against clock skew (ack before create)
     .sort((a, b) => a - b);
 
   const slaBreaches = (auditRows as { action: string }[]).length;
@@ -1665,6 +1764,18 @@ async function createPatientFromMock(orgId: string, e164?: string): Promise<stri
     phone: e164 ?? null,
     status: "pending_review",
     org_id: orgId,
+    // A WhatsApp auto-onboard is an UNCONFIRMED patient: it must match the
+    // production createPatientFromWhatsApp contract, not inherit the template's
+    // demonstrable consent / synthetic caregiver contact / assigned nurse.
+    // Otherwise a clone could escalate and fire family sends to a fake number
+    // with a fabricated consent timestamp before any nurse has reviewed it.
+    caregiver_name: "",
+    caregiver_phone: "",
+    caregiver_email: "",
+    assigned_nurse: "Unassigned",
+    consent_caregiver_alerts: false,
+    consent_family_digest: false,
+    consent_updated_at: null,
   };
   const e1 = (await db.from("careloop_patients").insert(patient)).error;
   if (e1) {

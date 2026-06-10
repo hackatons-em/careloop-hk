@@ -13,7 +13,7 @@
 // wall-clock timestamps on careloop_messages.
 
 import { appendMessage, getSession } from "./conversation";
-import { todayISO } from "./dates";
+import { localMidnightUtcISO, todayISO } from "./dates";
 import { logger } from "./logger";
 import { evaluatePatient, getPatients } from "./store";
 import { supa } from "./supabase";
@@ -31,14 +31,18 @@ interface TodayTraffic {
 
 /** Per-patient inbound/outbound counts since local midnight (real clock). */
 async function todaysTraffic(orgId: string): Promise<Map<string, TodayTraffic>> {
-  const realToday = new Date().toLocaleDateString("en-CA", {
-    timeZone: process.env.CARELOOP_TZ ?? "Asia/Hong_Kong",
-  });
+  const tz = process.env.CARELOOP_TZ ?? "Asia/Hong_Kong";
+  const realToday = new Date().toLocaleDateString("en-CA", { timeZone: tz });
+  // created_at is timestamptz; bound on the true UTC instant of local midnight
+  // so a reply between local midnight and the DB-zone midnight (08:00 in HK)
+  // still counts as "answered today" — otherwise the afternoon sweep would
+  // raise a spurious NR-001 for a patient who actually replied.
+  const sinceUtc = localMidnightUtcISO(realToday, tz);
   const { data, error } = await supa()
     .from("careloop_messages")
     .select("patient_id, direction, created_at")
     .eq("org_id", orgId)
-    .gte("created_at", `${realToday}T00:00:00`);
+    .gte("created_at", sinceUtc);
   if (error) throw new Error(`Supabase: ${error.message}`);
   const map = new Map<string, TodayTraffic>();
   for (const r of data ?? []) {

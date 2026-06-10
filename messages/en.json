@@ -417,8 +417,10 @@
     "due": "Due",
     "overdue": "Overdue —",
     "markDone": "Done",
+    "cancel": "Cancel task",
     "completed": "Follow-up completed",
-    "completeFailed": "Could not complete the task",
+    "cancelled": "Follow-up cancelled",
+    "resolveFailed": "Could not update the task",
     "more": "+{count} more — see the handover sheet for the full list"
   },
   "handover": {
@@ -445,7 +447,8 @@
     "noteTitle": "Outgoing-shift note",
     "noteHint": "Saved into the audit trail with this handover.",
     "notePlaceholder": "e.g. Called Mrs. Chan's daughter, call back after 15:00",
-    "noteSave": "Attach note"
+    "noteSave": "Attach note",
+    "noteSaved": "Note attached to the handover audit trail."
   },
   "alerts": {
     "metaTitle": "Nurse review queue",
@@ -937,6 +940,7 @@
       "alert_reassigned": "Alert reassigned",
       "task_created": "Task created",
       "task_completed": "Task completed",
+      "task_cancelled": "Task cancelled",
       "handover_generated": "Handover generated",
       "rule_config_updated": "Rule thresholds updated"
     },

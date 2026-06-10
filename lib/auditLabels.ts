@@ -27,6 +27,7 @@ export const AUDIT_LABEL: Record<AuditAction, string> = {
   alert_reassigned: "Alert reassigned",
   task_created: "Task created",
   task_completed: "Task completed",
+  task_cancelled: "Task cancelled",
   handover_generated: "Handover generated",
   rule_config_updated: "Rule thresholds updated",
 };

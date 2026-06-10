@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, ListTodo } from "lucide-react";
+import { CheckCircle2, ListTodo, X } from "lucide-react";
 import { toast } from "sonner";
 import { useApp } from "@/components/AppProvider";
 import { api } from "@/lib/api";
@@ -41,14 +41,14 @@ export function TasksLane() {
     load();
   }, [load, audit]);
 
-  async function done(id: string) {
+  async function resolve(id: string, status: "done" | "cancelled") {
     setBusyId(id);
     try {
-      await api.completeTask(id);
+      await api.resolveTask(id, status);
       setTasks((ts) => ts.filter((x) => x.id !== id));
-      toast.success(t("completed"));
+      toast.success(status === "done" ? t("completed") : t("cancelled"));
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("completeFailed"));
+      toast.error(e instanceof Error ? e.message : t("resolveFailed"));
     } finally {
       setBusyId(null);
     }
@@ -91,14 +91,26 @@ export function TasksLane() {
                   {task.assigned_to ? ` · ${task.assigned_to}` : ""}
                 </p>
               </div>
-              <button
-                type="button"
-                disabled={busyId === task.id}
-                onClick={() => done(task.id)}
-                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-              >
-                <CheckCircle2 className="size-3.5 text-primary" /> {t("markDone")}
-              </button>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={busyId === task.id}
+                  onClick={() => resolve(task.id, "done")}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 text-xs font-medium outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <CheckCircle2 className="size-3.5 text-primary" /> {t("markDone")}
+                </button>
+                <button
+                  type="button"
+                  disabled={busyId === task.id}
+                  onClick={() => resolve(task.id, "cancelled")}
+                  aria-label={t("cancel")}
+                  title={t("cancel")}
+                  className="inline-flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <X className="size-3.5" />
+                </button>
+              </div>
             </li>
           );
         })}

@@ -187,6 +187,7 @@ export type AuditAction =
   | "alert_reassigned"
   | "task_created"
   | "task_completed"
+  | "task_cancelled"
   | "handover_generated"
   | "rule_config_updated";
 
@@ -227,7 +228,7 @@ export interface FollowUpTask {
   description: string;
   due_at: string;
   assigned_to: string;
-  status: "open" | "done";
+  status: "open" | "done" | "cancelled";
   created_by: string;
   created_at: string;
   done_at: string | null;

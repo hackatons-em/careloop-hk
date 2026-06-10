@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { ArrowLeft, ClipboardList } from "lucide-react";
 import { PrintButton } from "@/components/PrintButton";
 import { AlertStatusBadge, RiskBadge } from "@/components/RiskBadge";
 import { requireAuthOrRedirect } from "@/lib/auth";
 import { todayISO } from "@/lib/dates";
-import { buildHandover } from "@/lib/store";
+import { getHandoverSnapshot, recordHandover } from "@/lib/store";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("handover");
@@ -15,24 +17,43 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
+// Window start: today 08:00 local — the morning round.
+function windowStart(): string {
+  return `${todayISO()}T08:00:00+08:00`;
+}
+
+/**
+ * Server Action: attach the outgoing-shift note. The note posts in the
+ * REQUEST BODY (never the URL), is capped, and lands only in the append-only
+ * audit trail via recordHandover — no PHI in browser history, access logs,
+ * or shareable links.
+ */
+async function attachNote(formData: FormData): Promise<void> {
+  "use server";
+  const ctx = await requireAuthOrRedirect();
+  const note = String(formData.get("note") ?? "").trim().slice(0, 500);
+  if (note) await recordHandover(ctx.orgId, windowStart(), ctx.email, note);
+  revalidatePath("/handover");
+  // PHI-free flag only — the note text never enters the URL.
+  redirect(note ? "/handover?saved=1" : "/handover");
+}
+
 /**
  * Shift handover: a deterministic, print-friendly ward-state snapshot the
- * outgoing nurse hands to the incoming shift. Every generation (and the
- * optional outgoing note) is recorded in the audit trail.
+ * outgoing nurse hands to the incoming shift. Viewing is side-effect free;
+ * attaching a note records an audited handover_generated event.
  */
 export default async function HandoverPage({
   searchParams,
 }: {
-  searchParams: Promise<{ note?: string }>;
+  searchParams: Promise<{ saved?: string }>;
 }) {
   const ctx = await requireAuthOrRedirect();
-  const { note } = await searchParams;
+  const { saved } = await searchParams;
   const t = await getTranslations("handover");
   const format = await getFormatter();
 
-  // Window start: today 08:00 local — the morning round.
-  const since = `${todayISO()}T08:00:00+08:00`;
-  const snapshot = await buildHandover(ctx.orgId, since, ctx.email, note);
+  const snapshot = await getHandoverSnapshot(ctx.orgId, windowStart());
 
   const generated = format.dateTime(new Date(snapshot.generated_at), {
     dateStyle: "medium",
@@ -69,9 +90,9 @@ export default async function HandoverPage({
           <Meta label={t("checkinsToday")} value={String(snapshot.checkins_today)} />
           <Meta label={t("openAlertsCount")} value={String(snapshot.open_alerts.length)} />
         </div>
-        {note && (
-          <p className="mt-4 rounded-lg bg-accent px-3 py-2 text-sm">
-            <span className="font-semibold">{t("noteLabel")}:</span> {note}
+        {saved && (
+          <p className="mt-4 rounded-lg bg-accent px-3 py-2 text-sm print:hidden">
+            {t("noteSaved")}
           </p>
         )}
       </div>
@@ -132,8 +153,9 @@ export default async function HandoverPage({
         ))}
       </Section>
 
-      {/* outgoing-nurse note: lands in the audit trail on regenerate */}
-      <form method="get" className="rounded-2xl border border-border bg-card p-5 print:hidden">
+      {/* outgoing-nurse note: posts in the request body via a Server Action and
+          lands only in the append-only audit trail — never in the URL. */}
+      <form action={attachNote} className="rounded-2xl border border-border bg-card p-5 print:hidden">
         <label htmlFor="handover-note" className="text-sm font-semibold">
           {t("noteTitle")}
         </label>
@@ -142,7 +164,6 @@ export default async function HandoverPage({
           <input
             id="handover-note"
             name="note"
-            defaultValue={note ?? ""}
             maxLength={500}
             className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder={t("notePlaceholder")}

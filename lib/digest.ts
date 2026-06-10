@@ -9,13 +9,14 @@
 import "server-only";
 import { sendWithFallback } from "./channels";
 import { emailFamilyDigest } from "./notify";
-import { getPatients, getTimeline, recordAudit, saveWeeklySummary } from "./store";
+import { digestAlreadySent, getPatients, getTimeline, recordAudit, saveWeeklySummary } from "./store";
 import { generateWeeklySummary } from "./summaryService";
 import type { WeeklySummary } from "./types";
 
 export interface DigestResult {
   eligible: number;
   sent: number;
+  skipped: number;
 }
 
 export async function runWeeklyDigest(orgId: string): Promise<DigestResult> {
@@ -27,6 +28,7 @@ export async function runWeeklyDigest(orgId: string): Promise<DigestResult> {
   );
 
   let sent = 0;
+  let skipped = 0;
   for (const patient of patients) {
     const timeline = await getTimeline(orgId, patient.id);
     if (!timeline) continue;
@@ -37,6 +39,14 @@ export async function runWeeklyDigest(orgId: string): Promise<DigestResult> {
       created_at: new Date().toISOString(),
       ...partial,
     };
+    // Idempotency: cron delivery is at-least-once and the manual admin endpoint
+    // can fire on a Monday the cron already ran. Skip if the family digest was
+    // already SENT this week (audit-keyed, so a nurse's manual summary doesn't
+    // block the send) — never double-send or double-charge SMS.
+    if (await digestAlreadySent(orgId, patient.id, summary.week_start)) {
+      skipped += 1;
+      continue;
+    }
     await saveWeeklySummary(orgId, summary, "system");
 
     const text = { en: summary.caregiver_text_en, zh: summary.caregiver_text_zh };
@@ -63,5 +73,5 @@ export async function runWeeklyDigest(orgId: string): Promise<DigestResult> {
       });
     }
   }
-  return { eligible: patients.length, sent };
+  return { eligible: patients.length, sent, skipped };
 }

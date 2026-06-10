@@ -104,7 +104,7 @@ export const taskCreateSchema = z
 
 export const taskPatchSchema = z
   .object({
-    status: z.literal("done"),
+    status: z.enum(["done", "cancelled"]),
   })
   .strict();
 
@@ -149,7 +149,16 @@ const patientFieldsSchema = z
     living_status: z.string().trim().min(1, "Living status is required").max(80),
     conditions: z.array(z.string().trim().min(1).max(80)).min(1, "Add at least one condition").max(20),
     caregiver_name: z.string().trim().max(120),
-    caregiver_phone: z.string().trim().max(40),
+    // Empty (caregiver unknown) or international format — family clinical
+    // updates are sent here, so an empty-or-valid guard prevents delivery to a
+    // malformed destination.
+    caregiver_phone: z
+      .string()
+      .trim()
+      .max(40)
+      .refine((v) => v === "" || /^\+[1-9]\d{6,14}$/.test(v.replace(/\s+/g, "")), {
+        message: "Caregiver phone must be empty or international format, e.g. +85291234567",
+      }),
     caregiver_email: z
       .string()
       .trim()
@@ -176,7 +185,14 @@ const patientFieldsSchema = z
 
 export const patientCreateSchema = patientFieldsSchema.extend({
   caregiver_name: z.string().trim().max(120).default(""),
-  caregiver_phone: z.string().trim().max(40).default(""),
+  caregiver_phone: z
+    .string()
+    .trim()
+    .max(40)
+    .refine((v) => v === "" || /^\+[1-9]\d{6,14}$/.test(v.replace(/\s+/g, "")), {
+      message: "Caregiver phone must be empty or international format, e.g. +85291234567",
+    })
+    .default(""),
   caregiver_email: z
     .string()
     .trim()

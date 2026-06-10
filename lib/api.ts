@@ -139,11 +139,11 @@ export const api = {
       body: JSON.stringify(payload),
     }).then(json<FollowUpTask>),
 
-  completeTask: (id: string) =>
+  resolveTask: (id: string, status: "done" | "cancelled") =>
     fetch(`/api/tasks/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "done" }),
+      body: JSON.stringify({ status }),
     }).then(json<FollowUpTask>),
 
   reset: () =>

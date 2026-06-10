@@ -29,3 +29,34 @@ export function diffDays(aIso: string, bIso: string): number {
 export function addDays(iso: string, delta: number): string {
   return new Date(parse(iso) + delta * 86_400_000).toISOString().slice(0, 10);
 }
+
+/**
+ * The exact UTC instant of local midnight for a calendar date in a timezone,
+ * as an ISO string. Used to query timestamptz columns by a local-day window:
+ * a naive `${date}T00:00:00` literal is interpreted in the DB session zone
+ * (UTC on Supabase), which is 8h off for Hong Kong. Derives the zone offset
+ * from the date itself (via Intl.formatToParts, so the host machine's own
+ * timezone never leaks in), so it stays correct across DST for any tz.
+ */
+export function localMidnightUtcISO(isoDate: string, timeZone: string): string {
+  const [y, m, d] = isoDate.slice(0, 10).split("-").map(Number);
+  // T0 = midnight-UTC of the target date. We want M, the instant whose
+  // wall-clock in `timeZone` is midnight of that date; with zone offset O
+  // (ms east of UTC), M = T0 - O.
+  const t0 = Date.UTC(y, (m || 1) - 1, d || 1);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(t0));
+  const part = (type: string) => Number(parts.find((p) => p.type === type)!.value);
+  // The zone's wall-clock at instant t0, reinterpreted as if it were UTC.
+  const asUtc = Date.UTC(part("year"), part("month") - 1, part("day"), part("hour"), part("minute"), part("second"));
+  const offset = asUtc - t0; // O
+  return new Date(t0 - offset).toISOString();
+}

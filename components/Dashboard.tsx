@@ -120,21 +120,35 @@ export function Dashboard() {
     return { monitored: rows.length, escalate, watchReview, checkinsToday };
   }, [rows]);
 
+  const q = query.trim().toLowerCase();
+  const matchesQuery = (r: PatientRow): boolean =>
+    !q ||
+    r.patient.name.toLowerCase().includes(q) ||
+    (r.patient.phone ?? "").includes(q) ||
+    r.patient.conditions.some((c) => c.toLowerCase().includes(q)) ||
+    r.patient.assigned_nurse.toLowerCase().includes(q);
+
+  // Chip counts are computed over the SEARCH-matched set (filter-independent),
+  // so they always agree with the visible worklist while a search is active.
   const counts = useMemo(() => {
     const c: Record<string, number> = {
-      all: rows.length,
+      all: 0,
       stable: 0,
       watch: 0,
       review_today: 0,
       escalate: 0,
       needs_review: 0,
     };
-    for (const r of rows) {
+    for (const r of sortedAll) {
+      if (!matchesQuery(r)) continue;
+      c.all++;
       c[r.risk.severity]++;
       if (r.patient.status === "pending_review") c.needs_review++;
     }
     return c;
-  }, [rows]);
+    // matchesQuery is derived from q; recompute when rows or the query change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sortedAll, q]);
 
   const focus = sortedAll.find((r) => r.risk.severity !== "stable") ?? null;
   const filtered =
@@ -143,16 +157,7 @@ export function Dashboard() {
       : filter === "needs_review"
         ? sortedAll.filter((r) => r.patient.status === "pending_review")
         : sortedAll.filter((r) => r.risk.severity === filter);
-  const q = query.trim().toLowerCase();
-  const searched = q
-    ? filtered.filter(
-        (r) =>
-          r.patient.name.toLowerCase().includes(q) ||
-          (r.patient.phone ?? "").includes(q) ||
-          r.patient.conditions.some((c) => c.toLowerCase().includes(q)) ||
-          r.patient.assigned_nurse.toLowerCase().includes(q),
-      )
-    : filtered;
+  const searched = q ? filtered.filter(matchesQuery) : filtered;
   const pageCount = Math.max(1, Math.ceil(searched.length / PAGE_SIZE));
   const safePage = Math.min(page, pageCount - 1);
   const visible = searched.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);

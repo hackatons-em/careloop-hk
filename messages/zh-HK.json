@@ -417,8 +417,10 @@
     "due": "到期",
     "overdue": "已逾期——",
     "markDone": "完成",
+    "cancel": "取消事項",
     "completed": "跟進已完成",
-    "completeFailed": "未能完成此跟進",
+    "cancelled": "跟進已取消",
+    "resolveFailed": "未能更新此跟進",
     "more": "還有 {count} 項——完整清單見交更表"
   },
   "handover": {
@@ -445,7 +447,8 @@
     "noteTitle": "交更備註",
     "noteHint": "會連同本次交更記錄在審計紀錄中。",
     "notePlaceholder": "例如：已致電陳太女兒，下午三時後回電",
-    "noteSave": "附加備註"
+    "noteSave": "附加備註",
+    "noteSaved": "備註已附加到交更審計紀錄。"
   },
   "alerts": {
     "metaTitle": "護士覆查隊列",
@@ -937,6 +940,7 @@
       "alert_reassigned": "警示已重新指派",
       "task_created": "已建立跟進事項",
       "task_completed": "跟進事項已完成",
+      "task_cancelled": "跟進事項已取消",
       "handover_generated": "已產生交更表",
       "rule_config_updated": "規則門檻已更新"
     },
