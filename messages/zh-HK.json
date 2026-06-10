@@ -214,7 +214,7 @@
       "enterpriseTag": "完全隔離",
       "enterprise1": "專屬系統：獨立資料庫、應用程式及 WhatsApp 號碼",
       "enterprise2": "數據存放於您指定的地區——絕不與其他醫院共享",
-      "enterprise3": "自訂升級規則、SSO/SMTP 整合、服務水平協議",
+      "enterprise3": "自訂升級門檻及服務水平協議；SSO 可按需提供",
       "enterprise4": "可選擇於您的網絡內自行託管",
       "enterpriseCta": "與我們聯絡",
       "whyTitle": "為何沒有公開價目表？",
@@ -508,6 +508,13 @@
       "caregiverName": "照顧者姓名",
       "caregiverNamePlaceholder": "女兒——陳小姐",
       "caregiverPhone": "照顧者電話",
+      "caregiverEmail": "照顧者電郵",
+      "consentTitle": "家人通知同意",
+      "consentAlerts": "向照顧者發送升級警示",
+      "consentAlertsHint": "出現升級警示時，雙語家人通知會自動發送給照顧者（WhatsApp／電郵）。",
+      "consentDigest": "發送每週家人摘要",
+      "consentDigestHint": "以淺白語言向照顧者發送每週狀況（包括好消息）。",
+      "consentOptOutNote": "病人可隨時在 WhatsApp 回覆「取消」或 STOP 停止家人通知。每次變更都會記錄在審計紀錄中。",
       "assignedNurse": "負責護士",
       "assignedNursePlaceholder": "黃護士",
       "baselineWeight": "基線體重（公斤）",
@@ -568,9 +575,39 @@
     "sub": "管理您機構的團隊及配置。",
     "tabs": {
       "team": "團隊",
+      "notifications": "通知",
+      "rules": "規則",
       "organization": "機構",
       "demo": "示範",
       "leads": "客戶查詢"
+    },
+    "notifications": {
+      "title": "警示通知及跟進時限",
+      "sub": "設定確定性引擎發出警示時通知對象，以及無人確認時的跟進安排。",
+      "loading": "載入設定中…",
+      "loadFailed": "未能載入設定",
+      "alertsEmail": "警示收件箱",
+      "alertsEmailHint": "出現新警示或惡化時通知的當值收件箱",
+      "adminEmail": "升級聯絡人",
+      "adminEmailHint": "警示連續兩個時限仍未確認時通知",
+      "minSeverity": "通知起始等級",
+      "minSeverityHint": "觸發通知的最低嚴重程度",
+      "severityEscalateOnly": "只限「需立即跟進」",
+      "severityReviewToday": "「今日覆查」或以上",
+      "slaEscalate": "「需立即跟進」確認時限",
+      "slaReview": "「今日覆查」確認時限",
+      "slaMinutes": "分鐘",
+      "chainNote": "流程：警示發出即通知 → 超過時限未確認即再次通知 → 兩個時限後通知升級聯絡人。每一步都記錄在審計紀錄中。",
+      "save": "儲存設定",
+      "saving": "儲存中…",
+      "saved": "已儲存通知設定",
+      "saveFailed": "未能儲存設定"
+    },
+    "rules": {
+      "title": "監測規則",
+      "sub": "決定嚴重程度的確定性規則一覽。此決定不經 AI——相同數據，相同結果。",
+      "version": "引擎 {version}",
+      "note": "每個警示都記錄產生它的引擎版本，每條規則命中都附有數據證據。規則變更以新版本發佈——歷史警示可永久追溯。"
     },
     "org": {
       "title": "機構",
@@ -719,6 +756,8 @@
     "restored": "連線已恢復",
     "refreshFailed": "未能更新數據",
     "refreshFailedDesc": "即時更新已暫停，待連線恢復後繼續。",
+    "escalationLive": "新的升級警示",
+    "escalationLiveDesc": "有病人剛被升級——請開啟覆查隊列。",
     "resetSuccess": "示範數據已重設至初始狀態",
     "resetFailed": "重設失敗",
     "riskyTitle": "已為陳太執行高風險報到",
@@ -744,7 +783,8 @@
       "symptoms reported": "報告症狀",
       "missed meds": "漏服藥",
       "high BP": "血壓偏高",
-      "low activity": "活動量偏低"
+      "low activity": "活動量偏低",
+      "no response": "未有回覆"
     },
     "noFlags": "沒有標示",
     "rules": {
@@ -753,7 +793,9 @@
       "MED-001": "持續漏服藥物會增加慢性病風險。",
       "BP-001": "血壓非常高，應盡快覆查。",
       "ACT-001": "活動量下降可能是惡化或體弱風險的信號。",
-      "SYM-001": "病人報告的症狀需要護士覆查，與基礎病況無關。"
+      "SYM-001": "病人報告的症狀需要護士覆查，與基礎病況無關。",
+      "NR-001": "錯過每日報到可能掩蓋病情惡化——沒有回覆本身就是信號。",
+      "NR-002": "連續多日沒有完成報到需要跟進，獨居病人尤甚。"
     },
     "recommendedAction": {
       "escalate": "建議今日安排護士覆查並通知家人。如症狀嚴重，請聯絡緊急服務。",
@@ -778,7 +820,13 @@
       "patient_created": "已建立病人",
       "patient_updated": "已更新病人",
       "patient_archived": "已封存病人",
-      "user_invited": "已邀請使用者"
+      "user_invited": "已邀請使用者",
+      "nurse_notified": "已通知護士",
+      "alert_sla_breached": "警示超過確認時限",
+      "caregiver_notified": "已通知照顧者",
+      "consent_changed": "同意設定已變更",
+      "weekly_digest_sent": "已發送每週摘要",
+      "org_settings_updated": "機構設定已更新"
     },
     "safety": {
       "label1": "並非診斷",

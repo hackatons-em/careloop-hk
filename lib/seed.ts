@@ -56,9 +56,18 @@ interface DayRow {
 }
 
 interface PatientDef {
-  // Seed literals omit the production-only columns (phone, status); buildSeed
-  // fills the defaults so the dataset always matches the Patient type.
-  patient: Omit<Patient, "phone" | "status">;
+  // Seed literals omit the production-only columns (phone, status, caregiver
+  // email, consent); buildSeed fills the defaults so the dataset always
+  // matches the Patient type.
+  patient: Omit<
+    Patient,
+    | "phone"
+    | "status"
+    | "caregiver_email"
+    | "consent_caregiver_alerts"
+    | "consent_family_digest"
+    | "consent_updated_at"
+  >;
   rows: DayRow[]; // exactly 7, aligned with DEMO_DATES
 }
 
@@ -440,6 +449,12 @@ export function buildSeed(): SeedDataset {
       conditions: [...def.patient.conditions],
       phone: null,
       status: "active",
+      caregiver_email: "",
+      // Demo patients consent to family messaging so caregiver auto-delivery
+      // is demonstrable out of the box (synthetic contacts, no real sends).
+      consent_caregiver_alerts: true,
+      consent_family_digest: true,
+      consent_updated_at: `${WEEK_START}T08:00:00Z`,
     });
     def.rows.forEach((row, i) => {
       const date = DEMO_DATES[i];

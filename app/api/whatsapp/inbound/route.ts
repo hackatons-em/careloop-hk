@@ -2,8 +2,13 @@ import { getPatientForPhone, setPatientPhone } from "@/lib/conversation";
 import { ingestCheckInMessage } from "@/lib/ingest";
 import { getDefaultOrgId } from "@/lib/org";
 import { enforceRateLimit } from "@/lib/rateLimit";
-import { createPatientFromWhatsApp, getPatient } from "@/lib/store";
+import { createPatientFromWhatsApp, getPatient, optOutFamilyMessaging } from "@/lib/store";
 import { requireTwilioSignature } from "@/lib/twilioSig";
+
+// Keyword opt-out for family-bound auto-sends (PDPO). Check-ins themselves
+// continue — enrollment is managed by the ward; family-messaging consent
+// belongs to the patient.
+const OPT_OUT_KEYWORDS = new Set(["stop", "unsubscribe", "取消", "停止", "取消通知"]);
 
 export const dynamic = "force-dynamic";
 
@@ -61,6 +66,14 @@ export async function POST(req: Request) {
   // patients makes the loser of two concurrent first messages re-read the winner.
   const patientId = fixed ?? linked ?? (await createPatientFromWhatsApp(orgId, from));
   if (from) await setPatientPhone(orgId, patientId, from);
+
+  if (OPT_OUT_KEYWORDS.has(body.toLowerCase())) {
+    await optOutFamilyMessaging(orgId, patientId);
+    return twiml(
+      "已為你取消家人通知，日常報到會照常繼續。\n" +
+        "Family notifications are switched off. Your daily check-ins continue as usual.",
+    );
+  }
 
   let audioUrl: string | null = null;
   let audioContentType: string | null = null;

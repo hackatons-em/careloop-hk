@@ -1,5 +1,7 @@
 {
   "crons": [
-    { "path": "/api/agent/send-round", "schedule": "0 0 * * *" }
+    { "path": "/api/agent/send-round", "schedule": "0 0 * * *" },
+    { "path": "/api/agent/sweep", "schedule": "0 6 * * *" },
+    { "path": "/api/agent/weekly-digest", "schedule": "0 1 * * 1" }
   ]
 }

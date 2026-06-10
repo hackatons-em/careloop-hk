@@ -16,11 +16,15 @@ function patient(overrides: Partial<Patient> = {}): Patient {
     conditions: ["heart failure"],
     caregiver_name: "Caregiver",
     caregiver_phone: "+852 0000 0000",
+    caregiver_email: "",
     assigned_nurse: "Nurse Test",
     baseline_weight: 60,
     baseline_steps: 3000,
     phone: null,
     status: "active",
+    consent_caregiver_alerts: false,
+    consent_family_digest: false,
+    consent_updated_at: null,
     ...overrides,
   };
 }
@@ -306,5 +310,61 @@ describe("risk engine — date-aware windows & raw thresholds", () => {
     ]);
     const c = ["2026-06-01", "2026-06-02", "2026-06-04"].map((d) => checkin(p.id, d));
     expect(codes(evaluateRisk(p, v, c))).not.toContain("ACT-001");
+  });
+});
+
+// --- NR (no-response / silence) rules --------------------------------------
+
+describe("risk engine — silence rules (NR-001 / NR-002)", () => {
+  const lastCheckin = "2026-06-02";
+
+  it("NR-002 fires at a 2-day gap → review_today, with the gap in the evidence", () => {
+    const p = patient();
+    const c = [checkin(p.id, lastCheckin)];
+    const r = evaluateRisk(p, [], c, { today: "2026-06-04" });
+    expect(codes(r)).toEqual(["NR-002"]);
+    expect(r.severity).toBe("review_today");
+    const nr = r.matched_rules.find((m) => m.code === "NR-002");
+    expect(nr?.evidence).toContain(lastCheckin);
+    expect(nr?.evidence).toContain("2 days");
+  });
+
+  it("NR-002 does NOT fire at a 1-day gap", () => {
+    const p = patient();
+    const c = [checkin(p.id, lastCheckin)];
+    expect(codes(evaluateRisk(p, [], c, { today: "2026-06-03" }))).not.toContain("NR-002");
+  });
+
+  it("NR-002 does NOT fire for a patient with no check-ins at all (onboarding, not silence)", () => {
+    const p = patient();
+    expect(codes(evaluateRisk(p, [], [], { today: "2026-06-10" }))).toHaveLength(0);
+  });
+
+  it("NR-002 does NOT fire without an evaluation context (historical callers)", () => {
+    const p = patient();
+    const c = [checkin(p.id, lastCheckin)];
+    expect(codes(evaluateRisk(p, [], c))).not.toContain("NR-002");
+  });
+
+  it("NR-001 fires when today's prompt is unanswered → watch", () => {
+    const p = patient();
+    const c = [checkin(p.id, "2026-06-03")];
+    const r = evaluateRisk(p, [], c, {
+      today: "2026-06-04",
+      promptUnansweredToday: { sentAt: "08:00" },
+    });
+    expect(codes(r)).toEqual(["NR-001"]);
+    expect(r.severity).toBe("watch");
+    expect(r.matched_rules[0].evidence).toContain("08:00");
+  });
+
+  it("NR rules combine with clinical rules — highest severity wins", () => {
+    const p = patient({ baseline_steps: 3000 });
+    // 3-day-old check-in reporting symptoms + a silence gap: SYM-001 + NR-002.
+    const c = [checkin(p.id, lastCheckin, { shortness_of_breath: true })];
+    const r = evaluateRisk(p, [], c, { today: "2026-06-05" });
+    expect(codes(r)).toEqual(["NR-002", "SYM-001"]);
+    expect(r.severity).toBe("review_today");
+    expect(r.reason_tags).toContain("no response");
   });
 });

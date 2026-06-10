@@ -55,12 +55,26 @@ Rules: 1-2 short sentences total. NO emojis. No effusive or over-cheerful langua
   }
 }
 
-/** Closing confirmation, in the patient's language. */
-export function confirmationReply(status: "escalated" | "complete", lang: Lang): string {
+/**
+ * Closing confirmation, in the patient's language. The family line is only
+ * promised when caregiver delivery will actually happen (recorded consent +
+ * a caregiver contact on file) — the product must never promise a message
+ * nobody sends.
+ */
+export function confirmationReply(
+  status: "escalated" | "complete",
+  lang: Lang,
+  familyNotified = false,
+): string {
   if (status === "escalated") {
+    if (familyNotified) {
+      return lang === "zh"
+        ? "多謝你嘅報到。我哋會安排護士今日跟進，亦會通知你嘅家人。"
+        : "Thank you for checking in. We will have a nurse follow up with you today and inform your family.";
+    }
     return lang === "zh"
-      ? "多謝你嘅報到。我哋會安排護士今日跟進，亦會通知你嘅家人。"
-      : "Thank you for checking in. We will have a nurse follow up with you today and inform your family.";
+      ? "多謝你嘅報到。我哋會安排護士今日跟進。不妨同屋企人講聲你今日嘅情況。"
+      : "Thank you for checking in. We will have a nurse follow up with you today. Please do let your family know how you are feeling.";
   }
   return lang === "zh"
     ? "多謝你嘅報到。今日嘅報到已完成，各項指標都在正常範圍。"
@@ -75,8 +89,9 @@ export async function generateConfirmation(
   lang: Lang,
   patientName: string,
   concerns: string[],
+  familyNotified = false,
 ): Promise<string> {
-  const fallback = confirmationReply(status, lang);
+  const fallback = confirmationReply(status, lang, familyNotified);
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return fallback;
 
@@ -87,9 +102,12 @@ export async function generateConfirmation(
       lang === "zh"
         ? "natural spoken Hong Kong Cantonese (Traditional Chinese characters)"
         : "plain English";
+    const familyLine = familyNotified
+      ? "their family will be told"
+      : "gently suggest they let their family know how they are feeling (do NOT promise that we will contact the family)";
     const situation =
       status === "escalated"
-        ? `Their check-in is done and has been flagged for nurse review${concerns.length ? ` (noted: ${concerns.join(", ")})` : ""}. Reassure them warmly that a nurse will follow up today and their family will be told.`
+        ? `Their check-in is done and has been flagged for nurse review${concerns.length ? ` (noted: ${concerns.join(", ")})` : ""}. Reassure them warmly that a nurse will follow up today and ${familyLine}.`
         : `Their check-in is complete and nothing concerning came up. Thank them warmly and encourage them to keep checking in daily.`;
     const msg = await client.messages.create({
       model,

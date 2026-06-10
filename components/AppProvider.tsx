@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import type { AuditEvent, PatientRow, RiskAlert } from "@/lib/types";
 
 interface AppState {
@@ -28,11 +29,13 @@ export function useApp(): AppState {
 
 export function AppProvider({
   children,
+  orgId,
   initialRows,
   initialAlerts,
   initialAudit,
 }: {
   children: React.ReactNode;
+  orgId: string;
   initialRows: PatientRow[];
   initialAlerts: RiskAlert[];
   initialAudit: AuditEvent[];
@@ -101,11 +104,36 @@ export function AppProvider({
     }
   }, [refresh, t]);
 
-  // Live updates: poll so the dashboard/alerts update when WhatsApp messages arrive.
+  // Live updates, fast path: server-relayed realtime ping. The server
+  // broadcasts a content-free "changed" event on the org topic after every
+  // alert/data mutation (payload carries at most a severity word — RLS is
+  // deny-all, so no table data can reach the browser); we refetch through the
+  // authenticated API and surface an in-app toast for new escalations.
+  useEffect(() => {
+    const supabase = createSupabaseBrowserClient();
+    const channel = supabase
+      .channel(`org-${orgId}`)
+      .on("broadcast", { event: "alerts_changed" }, (msg) => {
+        const severity = (msg.payload as { severity?: string } | undefined)?.severity;
+        if (severity === "escalate") {
+          toast.warning(t("escalationLive"), { description: t("escalationLiveDesc") });
+        }
+        void refresh();
+      })
+      .on("broadcast", { event: "data_changed" }, () => {
+        void refresh();
+      })
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [orgId, refresh, t]);
+
+  // Slow-path backstop: polling, in case the realtime socket drops.
   useEffect(() => {
     const timer = setInterval(() => {
       void refresh();
-    }, 5000);
+    }, 30_000);
     return () => clearInterval(timer);
   }, [refresh]);
 

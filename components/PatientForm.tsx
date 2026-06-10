@@ -23,10 +23,13 @@ interface FormState {
   conditions: string[];
   caregiver_name: string;
   caregiver_phone: string;
+  caregiver_email: string;
   assigned_nurse: string;
   baseline_weight: string;
   baseline_steps: string;
   phone: string;
+  consent_caregiver_alerts: boolean;
+  consent_family_digest: boolean;
 }
 
 function fromPatient(p?: Patient): FormState {
@@ -39,10 +42,13 @@ function fromPatient(p?: Patient): FormState {
     conditions: p?.conditions ?? [],
     caregiver_name: p?.caregiver_name ?? "",
     caregiver_phone: p?.caregiver_phone ?? "",
+    caregiver_email: p?.caregiver_email ?? "",
     assigned_nurse: p?.assigned_nurse === "Unassigned" ? "" : (p?.assigned_nurse ?? ""),
     baseline_weight: p && p.baseline_weight > 0 ? String(p.baseline_weight) : "",
     baseline_steps: p && p.baseline_steps > 0 ? String(p.baseline_steps) : "",
     phone: p?.phone ?? "",
+    consent_caregiver_alerts: p?.consent_caregiver_alerts ?? false,
+    consent_family_digest: p?.consent_family_digest ?? false,
   };
 }
 
@@ -56,10 +62,13 @@ function toPayload(f: FormState): PatientCreateInput {
     conditions: f.conditions,
     caregiver_name: f.caregiver_name.trim(),
     caregiver_phone: f.caregiver_phone.trim(),
+    caregiver_email: f.caregiver_email.trim(),
     assigned_nurse: f.assigned_nurse.trim(),
     baseline_weight: Number(f.baseline_weight),
     baseline_steps: Number(f.baseline_steps),
     phone: f.phone.trim() ? f.phone.trim() : null,
+    consent_caregiver_alerts: f.consent_caregiver_alerts,
+    consent_family_digest: f.consent_family_digest,
   };
 }
 
@@ -336,6 +345,54 @@ export function PatientForm({
               />
             )}
           </Field>
+          <Field
+            label={t("caregiverEmail")}
+            error={errors.caregiver_email}
+            className="sm:col-span-2"
+          >
+            {(props) => (
+              <Input
+                {...props}
+                type="email"
+                value={form.caregiver_email}
+                onChange={(e) => set("caregiver_email", e.target.value)}
+                placeholder="family@example.com"
+              />
+            )}
+          </Field>
+        </div>
+
+        {/* Family-messaging consent: auto-sends stay OFF until recorded here.
+            A WhatsApp STOP/取消 from the patient switches them back off. */}
+        <div className="mt-4 space-y-2 rounded-xl border border-border bg-background/60 p-3.5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("consentTitle")}
+          </p>
+          <label className="flex items-start gap-2.5 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-[var(--primary)]"
+              checked={form.consent_caregiver_alerts}
+              onChange={(e) => set("consent_caregiver_alerts", e.target.checked)}
+            />
+            <span>
+              {t("consentAlerts")}
+              <span className="block text-xs text-muted-foreground">{t("consentAlertsHint")}</span>
+            </span>
+          </label>
+          <label className="flex items-start gap-2.5 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-[var(--primary)]"
+              checked={form.consent_family_digest}
+              onChange={(e) => set("consent_family_digest", e.target.checked)}
+            />
+            <span>
+              {t("consentDigest")}
+              <span className="block text-xs text-muted-foreground">{t("consentDigestHint")}</span>
+            </span>
+          </label>
+          <p className="text-xs text-muted-foreground">{t("consentOptOutNote")}</p>
         </div>
       </section>
 

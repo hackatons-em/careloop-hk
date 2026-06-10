@@ -214,7 +214,7 @@
       "enterpriseTag": "Full isolation",
       "enterprise1": "Dedicated instance: your own database, application, and WhatsApp number",
       "enterprise2": "Data residency in your preferred region — nothing shared with other hospitals",
-      "enterprise3": "Custom escalation rules, SSO/SMTP integration, SLA",
+      "enterprise3": "Custom escalation thresholds and SLAs; SSO available on request",
       "enterprise4": "Optional self-hosted deployment inside your network",
       "enterpriseCta": "Talk to us",
       "whyTitle": "Why no price list?",
@@ -508,6 +508,13 @@
       "caregiverName": "Caregiver name",
       "caregiverNamePlaceholder": "Daughter — Ms. Chan",
       "caregiverPhone": "Caregiver phone",
+      "caregiverEmail": "Caregiver email",
+      "consentTitle": "Family messaging consent",
+      "consentAlerts": "Send escalation alerts to the caregiver",
+      "consentAlertsHint": "On escalation, the bilingual family alert goes to the caregiver automatically (WhatsApp / email).",
+      "consentDigest": "Send the weekly family digest",
+      "consentDigestHint": "A plain-language weekly update — including good news — to the caregiver.",
+      "consentOptOutNote": "The patient can switch family messaging off any time by replying STOP or 取消 on WhatsApp. Every change is recorded in the audit trail.",
       "assignedNurse": "Assigned nurse",
       "assignedNursePlaceholder": "Nurse Wong",
       "baselineWeight": "Baseline weight (kg)",
@@ -568,9 +575,39 @@
     "sub": "Manage your organization's team and configuration.",
     "tabs": {
       "team": "Team",
+      "notifications": "Notifications",
+      "rules": "Rules",
       "organization": "Organization",
       "demo": "Demo",
       "leads": "Leads"
+    },
+    "notifications": {
+      "title": "Alert notifications & SLA chain",
+      "sub": "Who gets paged when the deterministic engine raises an alert, and what happens if nobody acknowledges it.",
+      "loading": "Loading settings…",
+      "loadFailed": "Could not load settings",
+      "alertsEmail": "Alerts inbox",
+      "alertsEmailHint": "Ward duty inbox paged on new or worsening alerts",
+      "adminEmail": "Escalation contact",
+      "adminEmailHint": "Notified when an alert stays unacknowledged for two full windows",
+      "minSeverity": "Page from severity",
+      "minSeverityHint": "Minimum severity that triggers a page",
+      "severityEscalateOnly": "Escalate only",
+      "severityReviewToday": "Review today and above",
+      "slaEscalate": "Escalate ack window",
+      "slaReview": "Review ack window",
+      "slaMinutes": "Minutes",
+      "chainNote": "The chain: page on alert → re-page if unacknowledged past the window → notify the escalation contact after two windows. Every step is recorded in the audit trail.",
+      "save": "Save settings",
+      "saving": "Saving…",
+      "saved": "Notification settings saved",
+      "saveFailed": "Could not save settings"
+    },
+    "rules": {
+      "title": "Monitoring rules",
+      "sub": "The exact deterministic rules that decide severity. No AI in this decision — same data in, same severity out.",
+      "version": "Engine {version}",
+      "note": "Every alert stores the engine version that produced it, and every rule match carries its data evidence. Rule changes ship as a new version — historical alerts stay traceable."
     },
     "org": {
       "title": "Organization",
@@ -719,6 +756,8 @@
     "restored": "Connection restored",
     "refreshFailed": "Failed to refresh data",
     "refreshFailedDesc": "Live updates are paused until the connection recovers.",
+    "escalationLive": "New escalation",
+    "escalationLiveDesc": "A patient was just escalated — open the review queue.",
     "resetSuccess": "Demo data reset to a clean state",
     "resetFailed": "Reset failed",
     "riskyTitle": "Risky check-in recorded for Mrs. Chan",
@@ -744,7 +783,8 @@
       "symptoms reported": "symptoms reported",
       "missed meds": "missed meds",
       "high BP": "high BP",
-      "low activity": "low activity"
+      "low activity": "low activity",
+      "no response": "no response"
     },
     "noFlags": "No flags",
     "rules": {
@@ -753,7 +793,9 @@
       "MED-001": "Repeated missed medication increases chronic-care risk.",
       "BP-001": "Very high blood pressure should be reviewed urgently.",
       "ACT-001": "Reduced activity may signal deterioration or frailty risk.",
-      "SYM-001": "Patient reported symptoms that warrant nurse review, regardless of condition."
+      "SYM-001": "Patient reported symptoms that warrant nurse review, regardless of condition.",
+      "NR-001": "A missed daily check-in can hide deterioration — silence is a signal.",
+      "NR-002": "Multiple days without a completed check-in require follow-up, especially for patients living alone."
     },
     "recommendedAction": {
       "escalate": "Nurse review recommended today and notify family. If symptoms are severe, contact emergency services.",
@@ -778,7 +820,13 @@
       "patient_created": "Patient created",
       "patient_updated": "Patient updated",
       "patient_archived": "Patient archived",
-      "user_invited": "User invited"
+      "user_invited": "User invited",
+      "nurse_notified": "Nurse notified",
+      "alert_sla_breached": "Alert SLA breached",
+      "caregiver_notified": "Caregiver notified",
+      "consent_changed": "Consent changed",
+      "weekly_digest_sent": "Weekly digest sent",
+      "org_settings_updated": "Organization settings updated"
     },
     "safety": {
       "label1": "Not diagnosis",

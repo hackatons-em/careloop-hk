@@ -3,6 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Building2 } from "lucide-react";
 import { DemoSettingsPanel } from "@/components/settings/DemoSettingsPanel";
 import { LeadsPanel } from "@/components/settings/LeadsPanel";
+import { NotificationSettingsPanel } from "@/components/settings/NotificationSettingsPanel";
+import { RulesPanel } from "@/components/settings/RulesPanel";
 import { UsersPanel } from "@/components/settings/UsersPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { requireAuthOrRedirect } from "@/lib/auth";
@@ -32,6 +34,8 @@ export default async function SettingsPage() {
       <Tabs defaultValue="team" className="w-full">
         <TabsList>
           <TabsTrigger value="team">{t("tabs.team")}</TabsTrigger>
+          <TabsTrigger value="notifications">{t("tabs.notifications")}</TabsTrigger>
+          <TabsTrigger value="rules">{t("tabs.rules")}</TabsTrigger>
           <TabsTrigger value="leads">{t("tabs.leads")}</TabsTrigger>
           <TabsTrigger value="organization">{t("tabs.organization")}</TabsTrigger>
           {demo && <TabsTrigger value="demo">{t("tabs.demo")}</TabsTrigger>}
@@ -39,6 +43,14 @@ export default async function SettingsPage() {
 
         <TabsContent value="team" className="cl-fade pt-4">
           <UsersPanel currentUserId={ctx.userId} />
+        </TabsContent>
+
+        <TabsContent value="notifications" className="cl-fade pt-4">
+          <NotificationSettingsPanel />
+        </TabsContent>
+
+        <TabsContent value="rules" className="cl-fade pt-4">
+          <RulesPanel />
         </TabsContent>
 
         <TabsContent value="leads" className="cl-fade pt-4">

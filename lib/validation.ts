@@ -131,6 +131,13 @@ const patientFieldsSchema = z
     conditions: z.array(z.string().trim().min(1).max(80)).min(1, "Add at least one condition").max(20),
     caregiver_name: z.string().trim().max(120),
     caregiver_phone: z.string().trim().max(40),
+    caregiver_email: z
+      .string()
+      .trim()
+      .max(200)
+      .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+        message: "Enter a valid email (or leave empty)",
+      }),
     assigned_nurse: z.string().trim().min(1, "Assigned nurse is required").max(120),
     baseline_weight: z
       .number()
@@ -142,12 +149,25 @@ const patientFieldsSchema = z
       .min(0, "Enter baseline steps between 0 and 100,000")
       .max(100_000, "Enter baseline steps between 0 and 100,000"),
     phone: e164.nullable().optional(),
+    /** Family-bound auto-sends (escalation alerts / weekly digest) — consent. */
+    consent_caregiver_alerts: z.boolean(),
+    consent_family_digest: z.boolean(),
   })
   .strict();
 
 export const patientCreateSchema = patientFieldsSchema.extend({
   caregiver_name: z.string().trim().max(120).default(""),
   caregiver_phone: z.string().trim().max(40).default(""),
+  caregiver_email: z
+    .string()
+    .trim()
+    .max(200)
+    .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+      message: "Enter a valid email (or leave empty)",
+    })
+    .default(""),
+  consent_caregiver_alerts: z.boolean().default(false),
+  consent_family_digest: z.boolean().default(false),
 });
 
 export const patientUpdateSchema = patientFieldsSchema
@@ -206,6 +226,35 @@ export const inviteUserSchema = z
   .strict();
 
 export const auditQuerySchema = z.coerce.number().int().min(1).max(500);
+
+// --- org settings (admin) -----------------------------------------------------
+
+export const orgSettingsSchema = z
+  .object({
+    alerts_email: z
+      .string()
+      .trim()
+      .max(200)
+      .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+        message: "Enter a valid email (or leave empty)",
+      })
+      .optional(),
+    admin_email: z
+      .string()
+      .trim()
+      .max(200)
+      .refine((v) => v === "" || z.string().email().safeParse(v).success, {
+        message: "Enter a valid email (or leave empty)",
+      })
+      .optional(),
+    notify_min_severity: z.enum(["escalate", "review_today"]).optional(),
+    sla_ack_minutes_escalate: z.number().int().min(15).max(1440).optional(),
+    sla_ack_minutes_review: z.number().int().min(30).max(2880).optional(),
+  })
+  .strict()
+  .refine((p) => Object.keys(p).length > 0, { message: "Nothing to update" });
+
+export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
 
 // --- helper -----------------------------------------------------------------------
 

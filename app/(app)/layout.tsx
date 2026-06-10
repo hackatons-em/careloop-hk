@@ -38,7 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const ctx = await requireAuthOrRedirect();
   const { rows, alerts, audit } = await loadInitial(ctx.orgId);
   return (
-    <AppProvider initialRows={rows} initialAlerts={alerts} initialAudit={audit}>
+    <AppProvider orgId={ctx.orgId} initialRows={rows} initialAlerts={alerts} initialAudit={audit}>
       <Header user={{ name: ctx.name, email: ctx.email, role: ctx.role }} />
       <main id="main" className="mx-auto w-full max-w-[1180px] flex-1 px-6 py-8">
         {children}

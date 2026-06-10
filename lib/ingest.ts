@@ -131,11 +131,18 @@ export async function ingestCheckInMessage(input: IngestInput): Promise<IngestRe
     const redFlag = SEVERITY_ORDER[result.risk.severity] >= SEVERITY_ORDER.review_today;
     session.status = redFlag ? "escalated" : "complete";
     session.pending_field = null;
+    // Only promise a family message when caregiver delivery will really fire:
+    // recorded consent + a caregiver contact + an actual escalation.
+    const familyNotified =
+      result.risk.severity === "escalate" &&
+      patient.consent_caregiver_alerts &&
+      Boolean(patient.caregiver_phone || patient.caregiver_email);
     reply = await generateConfirmation(
       redFlag ? "escalated" : "complete",
       language,
       patient.name,
       result.risk.reason_tags,
+      familyNotified,
     );
   }
 

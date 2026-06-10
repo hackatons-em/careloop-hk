@@ -59,6 +59,15 @@ export interface Lead {
   created_at: string;
 }
 
+/** Mirror of lib/orgSettings.ts OrgSettings (that module is server-only). */
+export interface OrgSettingsDto {
+  alerts_email: string;
+  admin_email: string;
+  notify_min_severity: "escalate" | "review_today";
+  sla_ack_minutes_escalate: number;
+  sla_ack_minutes_review: number;
+}
+
 export interface LeadPayload {
   name: string;
   organization: string;
@@ -156,6 +165,15 @@ export const api = {
     }).then(json<Lead>),
 
   listUsers: () => fetch("/api/admin/users").then(json<UserProfile[]>),
+
+  orgSettings: () => fetch("/api/admin/org-settings").then(json<OrgSettingsDto>),
+
+  patchOrgSettings: (patch: Partial<OrgSettingsDto>) =>
+    fetch("/api/admin/org-settings", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }).then(json<OrgSettingsDto>),
 
   inviteUser: (payload: { email: string; name: string; role: "admin" | "nurse" }) =>
     fetch("/api/admin/users", {

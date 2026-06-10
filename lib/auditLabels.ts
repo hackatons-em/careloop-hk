@@ -18,4 +18,10 @@ export const AUDIT_LABEL: Record<AuditAction, string> = {
   patient_updated: "Patient updated",
   patient_archived: "Patient archived",
   user_invited: "User invited",
+  nurse_notified: "Nurse notified",
+  alert_sla_breached: "Alert SLA breached",
+  caregiver_notified: "Caregiver notified",
+  consent_changed: "Consent changed",
+  weekly_digest_sent: "Weekly digest sent",
+  org_settings_updated: "Organization settings updated",
 };

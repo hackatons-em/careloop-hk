@@ -59,12 +59,17 @@ export interface Patient {
   conditions: string[];
   caregiver_name: string;
   caregiver_phone: string;
+  caregiver_email: string;
   assigned_nurse: string;
   baseline_weight: number;
   baseline_steps: number;
   /** Patient's own WhatsApp number (E.164), if known. */
   phone: string | null;
   status: PatientStatus;
+  /** Family-bound auto-sends are OFF until explicitly consented. */
+  consent_caregiver_alerts: boolean;
+  consent_family_digest: boolean;
+  consent_updated_at: string | null;
 }
 
 export interface DailyCheckIn {
@@ -120,6 +125,13 @@ export interface RiskAlert {
   status: AlertStatus;
   assigned_to: string;
   nurse_note: string | null;
+  /** First transition out of "new" — basis for time-to-acknowledge metrics. */
+  acknowledged_at: string | null;
+  resolved_at: string | null;
+  /** Last outbound notification for this alert — SLA-sweep dedupe stamp. */
+  last_notified_at: string | null;
+  /** Rule-catalog version that produced this alert (ENGINE_VERSION). */
+  engine_version: string | null;
 }
 
 export interface WeeklySummary {
@@ -162,7 +174,13 @@ export type AuditAction =
   | "patient_created"
   | "patient_updated"
   | "patient_archived"
-  | "user_invited";
+  | "user_invited"
+  | "nurse_notified"
+  | "alert_sla_breached"
+  | "caregiver_notified"
+  | "consent_changed"
+  | "weekly_digest_sent"
+  | "org_settings_updated";
 
 /** Pivoted per-day view used by charts and the risk engine. */
 export interface DailyVitals {

@@ -12,10 +12,17 @@
 //   BP-001  systolic > 180 OR diastolic > 110                 → escalate
 //   ACT-001 steps > 40% below baseline for 3 days             → watch
 //   SYM-001 patient reports breathlessness / swelling / chest → review_today
+//   NR-001  today's check-in prompt unanswered by the sweep   → watch
+//   NR-002  no completed check-in for ≥ 2 days                → review_today
 //
 // Windows are CALENDAR-DATE aware (not array-index based) and thresholds compare
 // the true value (rounding is only for the human-readable evidence string), so
 // the rules behave correctly on sparse, gapped, or imported data.
+//
+// The NR (no-response) rules need to know "today" and whether today's prompt
+// went unanswered — both are passed in via EvaluationContext so the function
+// stays pure. Callers without that context (historical trend computation)
+// simply don't get NR rules.
 
 import { addDays, diffDays } from "./dates";
 import type {
@@ -30,6 +37,13 @@ import type {
 import { SEVERITY_ORDER } from "./types";
 import { series, toDailyVitals } from "./vitals";
 
+/**
+ * Version of the deterministic rule catalog. Stamped onto every alert so a
+ * historical alert can always be traced to the exact rules that produced it.
+ * Bump whenever a rule's condition, threshold, or severity changes.
+ */
+export const ENGINE_VERSION = "1.1.0";
+
 const HF001_WEIGHT_GAIN_KG = 2.0;
 const HF002_WEIGHT_GAIN_KG = 1.5;
 const BP_SYSTOLIC_MAX = 180;
@@ -38,6 +52,7 @@ const ACT_DROP_FRACTION = 0.4; // >40% below baseline
 const ACT_DAYS = 3;
 const WEIGHT_WINDOW_DAYS = 3;
 const WINDOW_GAP_TOLERANCE = 1; // allow one missing day inside a window
+const NR002_SILENT_DAYS = 2; // days without a completed check-in
 
 const REASON_TAG: Record<string, string> = {
   "HF-001": "weight gain",
@@ -46,7 +61,20 @@ const REASON_TAG: Record<string, string> = {
   "BP-001": "high BP",
   "ACT-001": "low activity",
   "SYM-001": "symptoms reported",
+  "NR-001": "no response",
+  "NR-002": "no response",
 };
+
+/**
+ * Caller-supplied facts the engine cannot derive from vitals/check-ins alone.
+ * Passing them keeps evaluateRisk pure: same inputs, same output.
+ */
+export interface EvaluationContext {
+  /** Today's clinical date (YYYY-MM-DD) — enables NR-002. */
+  today?: string;
+  /** Set by the silence sweep when today's prompt got no reply — fires NR-001. */
+  promptUnansweredToday?: { sentAt: string };
+}
 
 const RECOMMENDED_ACTION: Record<Severity, string> = {
   escalate:
@@ -84,6 +112,15 @@ const RULE_META: Record<string, { severity: Severity; description: string }> = {
   "SYM-001": {
     severity: "review_today",
     description: "Patient reported symptoms that warrant nurse review, regardless of condition.",
+  },
+  "NR-001": {
+    severity: "watch",
+    description: "A missed daily check-in can hide deterioration — silence is a signal.",
+  },
+  "NR-002": {
+    severity: "review_today",
+    description:
+      "Multiple days without a completed check-in require follow-up, especially for patients living alone.",
   },
 };
 
@@ -147,6 +184,7 @@ export function evaluateRisk(
   patient: Patient,
   vitals: VitalReading[],
   checkins: DailyCheckIn[],
+  ctx?: EvaluationContext,
 ): RiskResult {
   const daily = toDailyVitals(vitals);
   const sortedCheckins = [...checkins].sort((a, b) => a.date.localeCompare(b.date));
@@ -241,6 +279,29 @@ export function evaluateRisk(
     }
   }
 
+  // --- NR-001: today's prompt unanswered (fact supplied by the silence sweep) ---
+  if (ctx?.promptUnansweredToday) {
+    matched.push({
+      code: "NR-001",
+      ...RULE_META["NR-001"],
+      evidence: `Today's check-in prompt (sent ${ctx.promptUnansweredToday.sentAt}) has had no reply.`,
+    });
+  }
+
+  // --- NR-002: silent for ≥ 2 days ---
+  // Only when at least one check-in exists: a freshly enrolled patient with no
+  // history is an onboarding state, not a silence signal.
+  if (ctx?.today && latestCheckin) {
+    const gap = diffDays(latestCheckin.date, ctx.today);
+    if (gap >= NR002_SILENT_DAYS) {
+      matched.push({
+        code: "NR-002",
+        ...RULE_META["NR-002"],
+        evidence: `No completed check-in since ${latestCheckin.date} (${gap} days).`,
+      });
+    }
+  }
+
   // --- combine ---
   const severity = highestSeverity(matched);
   const reason = buildReason(matched, severity);
@@ -279,6 +340,59 @@ function buildReason(matched: MatchedRule[], severity: Severity): string {
   const rest = matched.filter((m) => m.severity !== severity);
   return [...lead, ...rest].map((m) => m.evidence).join(" ");
 }
+
+/**
+ * Human-readable catalog of every deterministic rule — the single source for
+ * the in-app "Monitoring rules" transparency page. Derived from the same
+ * constants the evaluator uses, so the page can never drift from the code.
+ */
+export const RULE_CATALOG: {
+  code: string;
+  condition: string;
+  severity: Severity;
+  description: string;
+}[] = [
+  {
+    code: "HF-001",
+    condition: `Weight up ≥ ${HF001_WEIGHT_GAIN_KG} kg over ${WEIGHT_WINDOW_DAYS} days`,
+    ...RULE_META["HF-001"],
+  },
+  {
+    code: "HF-002",
+    condition: `Weight up ≥ ${HF002_WEIGHT_GAIN_KG} kg over ${WEIGHT_WINDOW_DAYS} days + shortness of breath + swelling`,
+    ...RULE_META["HF-002"],
+  },
+  {
+    code: "MED-001",
+    condition: "Medication reported missed 2 consecutive days",
+    ...RULE_META["MED-001"],
+  },
+  {
+    code: "BP-001",
+    condition: `Systolic > ${BP_SYSTOLIC_MAX} or diastolic > ${BP_DIASTOLIC_MAX} mmHg`,
+    ...RULE_META["BP-001"],
+  },
+  {
+    code: "ACT-001",
+    condition: `Steps > ${Math.round(ACT_DROP_FRACTION * 100)}% below baseline for ${ACT_DAYS} consecutive days`,
+    ...RULE_META["ACT-001"],
+  },
+  {
+    code: "SYM-001",
+    condition: "Patient reports breathlessness, swelling, or chest discomfort",
+    ...RULE_META["SYM-001"],
+  },
+  {
+    code: "NR-001",
+    condition: "Today's check-in prompt unanswered by the afternoon sweep",
+    ...RULE_META["NR-001"],
+  },
+  {
+    code: "NR-002",
+    condition: `No completed check-in for ≥ ${NR002_SILENT_DAYS} days`,
+    ...RULE_META["NR-002"],
+  },
+];
 
 /** Per-day risk severity, recomputed cumulatively for the timeline chart. */
 export function riskTrend(

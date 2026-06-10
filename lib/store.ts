@@ -15,9 +15,25 @@
 // NOTE: import this only from server code (route handlers, server components).
 // Never from a Client Component — it uses the service-role key.
 
+import { buildCaregiverAlert } from "./caregiver";
 import { todayISO } from "./dates";
 import { isDemoMode } from "./flags";
-import { evaluateRisk, riskTrend } from "./riskEngine";
+import { logger } from "./logger";
+import {
+  alertsInbox,
+  emailCaregiverAlert,
+  meetsNotifyThreshold,
+  notifyNurseOfAlert,
+} from "./notify";
+import { getOrgSettings } from "./orgSettings";
+import { broadcastOrgEvent } from "./realtime";
+import {
+  ENGINE_VERSION,
+  evaluateRisk,
+  riskTrend,
+  type EvaluationContext,
+} from "./riskEngine";
+import { sendWhatsApp } from "./whatsapp";
 import {
   buildSeed,
   DEMO_DATES,
@@ -112,11 +128,15 @@ function rowToPatient(r: Record<string, unknown>): Patient {
     conditions: (r.conditions as string[]) ?? [],
     caregiver_name: r.caregiver_name as string,
     caregiver_phone: r.caregiver_phone as string,
+    caregiver_email: (r.caregiver_email as string) ?? "",
     assigned_nurse: r.assigned_nurse as string,
     baseline_weight: Number(r.baseline_weight),
     baseline_steps: Number(r.baseline_steps),
     phone: (r.phone as string | null) ?? null,
     status: ((r.status as PatientStatus) || "active") as PatientStatus,
+    consent_caregiver_alerts: Boolean(r.consent_caregiver_alerts),
+    consent_family_digest: Boolean(r.consent_family_digest),
+    consent_updated_at: (r.consent_updated_at as string | null) ?? null,
   };
 }
 
@@ -148,6 +168,10 @@ function rowToAlert(r: Record<string, unknown>): RiskAlert {
     status: r.status as AlertStatus,
     assigned_to: r.assigned_to as string,
     nurse_note: (r.nurse_note as string | null) ?? null,
+    acknowledged_at: (r.acknowledged_at as string | null) ?? null,
+    resolved_at: (r.resolved_at as string | null) ?? null,
+    last_notified_at: (r.last_notified_at as string | null) ?? null,
+    engine_version: (r.engine_version as string | null) ?? null,
   };
 }
 
@@ -266,6 +290,7 @@ async function upsertAlertFor(
   orgId: string,
   patientId: string,
   actor: string,
+  ctx?: EvaluationContext,
 ): Promise<{ risk: RiskResult; alert: RiskAlert | null }> {
   const patient = await fetchPatient(orgId, patientId);
   if (!patient) return { risk: emptyRisk(), alert: null };
@@ -274,7 +299,7 @@ async function upsertAlertFor(
     fetchVitals(orgId, patientId),
     fetchCheckins(orgId, patientId),
   ]);
-  const risk = evaluateRisk(patient, vitals, checkins);
+  const risk = evaluateRisk(patient, vitals, checkins, ctx);
   await pushAudit(orgId, "risk_evaluated", actor, "patient", patientId, {
     severity: risk.severity,
     matched_rules: risk.matched_rules.map((m) => m.code),
@@ -303,6 +328,8 @@ async function upsertAlertFor(
       matched_rules: risk.matched_rules.map((m) => m.code),
       reason: risk.reason,
       recommended_action: risk.recommended_action,
+      // The refresh re-ran the engine, so the alert now reflects this version.
+      engine_version: ENGINE_VERSION,
     };
     const { error } = await supa()
       .from("careloop_alerts")
@@ -314,7 +341,9 @@ async function upsertAlertFor(
       severity: risk.severity,
       patient_id: patientId,
     });
-    return { risk, alert: { ...openAlert, ...patch } };
+    const refreshed = { ...openAlert, ...patch };
+    await afterAlertWrite(orgId, patient, refreshed, openAlert.severity, vitals, checkins);
+    return { risk, alert: refreshed };
   }
 
   // A resolved alert already covers this severity (or worse) — don't recreate.
@@ -337,6 +366,10 @@ async function upsertAlertFor(
     status: "new",
     assigned_to: patient.assigned_nurse,
     nurse_note: null,
+    acknowledged_at: null,
+    resolved_at: null,
+    last_notified_at: null,
+    engine_version: ENGINE_VERSION,
   };
   const { error } = await supa()
     .from("careloop_alerts")
@@ -364,6 +397,7 @@ async function upsertAlertFor(
           matched_rules: risk.matched_rules.map((m) => m.code),
           reason: risk.reason,
           recommended_action: risk.recommended_action,
+          engine_version: ENGINE_VERSION,
         };
         const { error: updErr } = await supa()
           .from("careloop_alerts")
@@ -371,7 +405,9 @@ async function upsertAlertFor(
           .eq("org_id", orgId)
           .eq("id", open.id);
         if (updErr) throw new Error(`Supabase: ${updErr.message}`);
-        return { risk, alert: { ...open, ...patch } };
+        const recovered = { ...open, ...patch };
+        await afterAlertWrite(orgId, patient, recovered, open.severity, vitals, checkins);
+        return { risk, alert: recovered };
       }
     }
     throw new Error(`Supabase: ${error.message}`);
@@ -381,7 +417,89 @@ async function upsertAlertFor(
     matched_rules: alert.matched_rules,
     patient_id: patientId,
   });
+  await afterAlertWrite(orgId, patient, alert, null, vitals, checkins);
   return { risk, alert };
+}
+
+/**
+ * Side effects after an alert row is created or refreshed: nurse paging,
+ * consent-gated caregiver delivery, and the realtime ping. All best-effort —
+ * the alert row is already the source of truth, so a failed send never
+ * unwinds the write. Paging fires only when the alert is NEW or its severity
+ * ROSE (a refresh at the same severity must not re-page on every message of
+ * an ongoing conversation).
+ */
+async function afterAlertWrite(
+  orgId: string,
+  patient: Patient,
+  alert: RiskAlert,
+  prevSeverity: RiskAlert["severity"] | null,
+  vitals: VitalReading[],
+  checkins: DailyCheckIn[],
+): Promise<void> {
+  const created = prevSeverity === null;
+  const raised = prevSeverity !== null && SEVERITY_ORDER[alert.severity] > SEVERITY_ORDER[prevSeverity];
+
+  try {
+    if (created || raised) {
+      const settings = await getOrgSettings(orgId);
+      if (meetsNotifyThreshold(settings, alert.severity)) {
+        const inbox = alertsInbox(settings);
+        const sent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
+        if (sent) {
+          await stampAlertNotified(orgId, alert.id);
+          await pushAudit(orgId, "nurse_notified", "system", "alert", alert.id, {
+            channel: "email",
+            kind: created ? "created" : "raised",
+            severity: alert.severity,
+            patient_id: patient.id,
+          });
+        }
+      }
+
+      // Caregiver auto-delivery: escalation only, and ONLY with recorded consent.
+      if (
+        alert.severity === "escalate" &&
+        patient.consent_caregiver_alerts &&
+        (patient.caregiver_phone || patient.caregiver_email)
+      ) {
+        const text = buildCaregiverAlert(patient, toDailyVitals(vitals), checkins, alert.severity);
+        const channels: string[] = [];
+        if (patient.caregiver_phone) {
+          const r = await sendWhatsApp(
+            patient.caregiver_phone.replace(/\s+/g, ""),
+            `${text.zh}\n\n${text.en}`,
+          );
+          if (r.ok) channels.push("whatsapp");
+        }
+        if (patient.caregiver_email) {
+          if (await emailCaregiverAlert(patient.caregiver_email, patient.name, text)) {
+            channels.push("email");
+          }
+        }
+        if (channels.length > 0) {
+          await pushAudit(orgId, "caregiver_notified", "system", "patient", patient.id, {
+            channels,
+            severity: alert.severity,
+            alert_id: alert.id,
+          });
+        }
+      }
+    }
+  } catch (err) {
+    logger.error("Alert side effects failed.", { err, alert_id: alert.id });
+  }
+
+  await broadcastOrgEvent(orgId, "alerts_changed", { severity: alert.severity });
+}
+
+async function stampAlertNotified(orgId: string, alertId: string): Promise<void> {
+  const { error } = await supa()
+    .from("careloop_alerts")
+    .update({ last_notified_at: now() })
+    .eq("org_id", orgId)
+    .eq("id", alertId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
 function emptyRisk(): RiskResult {
@@ -430,7 +548,8 @@ export async function getPatientRows(orgId: string): Promise<PatientRow[]> {
   return patients.map((patient) => {
     const vitals = vitalsBy.get(patient.id) ?? [];
     const checkins = checkinsBy.get(patient.id) ?? [];
-    const risk = evaluateRisk(patient, vitals, checkins);
+    // today enables the NR-002 silence rule on the live dashboard view.
+    const risk = evaluateRisk(patient, vitals, checkins, { today: todayISO() });
     const lastCheckin = checkins.map((c) => c.date).sort().pop() ?? null;
     const daily = toDailyVitals(vitals);
     let latestWeight: number | null = null;
@@ -477,7 +596,7 @@ export async function getTimeline(
     patient,
     daily: toDailyVitals(vitals),
     checkins: sortedCheckins,
-    risk: evaluateRisk(patient, vitals, checkins),
+    risk: evaluateRisk(patient, vitals, checkins, { today: todayISO() }),
     risk_trend: riskTrend(patient, vitals, checkins),
   };
 }
@@ -573,11 +692,15 @@ export async function createPatient(
     conditions: input.conditions,
     caregiver_name: input.caregiver_name ?? "",
     caregiver_phone: input.caregiver_phone ?? "",
+    caregiver_email: input.caregiver_email ?? "",
     assigned_nurse: input.assigned_nurse,
     baseline_weight: input.baseline_weight,
     baseline_steps: input.baseline_steps,
     phone: input.phone ?? null,
     status: "active",
+    consent_caregiver_alerts: input.consent_caregiver_alerts ?? false,
+    consent_family_digest: input.consent_family_digest ?? false,
+    consent_updated_at: input.consent_caregiver_alerts || input.consent_family_digest ? now() : null,
   };
   const { error } = await supa()
     .from("careloop_patients")
@@ -610,15 +733,25 @@ export async function updatePatient(
     "conditions",
     "caregiver_name",
     "caregiver_phone",
+    "caregiver_email",
     "assigned_nurse",
     "baseline_weight",
     "baseline_steps",
     "phone",
     "status",
+    "consent_caregiver_alerts",
+    "consent_family_digest",
   ] as const) {
     if (input[key] !== undefined) patch[key] = input[key];
   }
   if (Object.keys(patch).length === 0) return existing;
+
+  const consentChanged =
+    (input.consent_caregiver_alerts !== undefined &&
+      input.consent_caregiver_alerts !== existing.consent_caregiver_alerts) ||
+    (input.consent_family_digest !== undefined &&
+      input.consent_family_digest !== existing.consent_family_digest);
+  if (consentChanged) patch.consent_updated_at = now();
 
   const { error } = await supa()
     .from("careloop_patients")
@@ -644,7 +777,37 @@ export async function updatePatient(
 
   const action: AuditAction = input.status === "archived" ? "patient_archived" : "patient_updated";
   await pushAudit(orgId, action, actor, "patient", id, { fields: Object.keys(patch) });
+  if (consentChanged) {
+    await pushAudit(orgId, "consent_changed", actor, "patient", id, {
+      consent_caregiver_alerts: updated.consent_caregiver_alerts,
+      consent_family_digest: updated.consent_family_digest,
+      via: "form",
+    });
+  }
   return updated;
+}
+
+/**
+ * WhatsApp keyword opt-out: switch off all family-bound auto-sends for the
+ * patient linked to this number. Check-ins themselves continue — enrollment
+ * is managed by the ward, but family messaging consent belongs to the patient.
+ */
+export async function optOutFamilyMessaging(orgId: string, patientId: string): Promise<void> {
+  const { error } = await supa()
+    .from("careloop_patients")
+    .update({
+      consent_caregiver_alerts: false,
+      consent_family_digest: false,
+      consent_updated_at: now(),
+    })
+    .eq("org_id", orgId)
+    .eq("id", patientId);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  await pushAudit(orgId, "consent_changed", "patient", "patient", patientId, {
+    consent_caregiver_alerts: false,
+    consent_family_digest: false,
+    via: "whatsapp_keyword",
+  });
 }
 
 // --- public write API -----------------------------------------------------
@@ -763,9 +926,10 @@ export async function evaluatePatient(
   orgId: string,
   patientId: string,
   actor = "nurse",
+  ctx?: EvaluationContext,
 ): Promise<RiskResult | null> {
   if (!(await fetchPatient(orgId, patientId))) return null;
-  return (await upsertAlertFor(orgId, patientId, actor)).risk;
+  return (await upsertAlertFor(orgId, patientId, actor, ctx)).risk;
 }
 
 export interface AlertPatch {
@@ -784,6 +948,14 @@ export async function updateAlert(
   const next: Partial<RiskAlert> = {};
   if (patch.status) next.status = patch.status;
   if (patch.nurse_note !== undefined) next.nurse_note = patch.nurse_note;
+  // Any first transition out of "new" counts as acknowledgement (a nurse
+  // jumping straight to family_contacted has still seen the alert).
+  if (patch.status && patch.status !== "new" && current.status === "new" && !current.acknowledged_at) {
+    next.acknowledged_at = now();
+  }
+  if (patch.status === "resolved" && !current.resolved_at) {
+    next.resolved_at = now();
+  }
   if (Object.keys(next).length > 0) {
     const { error } = await supa()
       .from("careloop_alerts")
@@ -798,7 +970,67 @@ export async function updateAlert(
     status: updated.status,
     patient_id: updated.patient_id,
   });
+  await broadcastOrgEvent(orgId, "alerts_changed");
   return updated;
+}
+
+/**
+ * SLA sweep: re-page the ward about open, still-unacknowledged alerts whose
+ * acknowledgement window has elapsed, escalating to the org admin contact
+ * once the alert has sat for two full windows. Stateless and idempotent —
+ * last_notified_at anchors the next re-page, so running the sweep more often
+ * never spams. Returns counts for the cron response/log line.
+ */
+export async function sweepAlertSlas(
+  orgId: string,
+): Promise<{ checked: number; repaged: number; adminNotified: number }> {
+  const settings = await getOrgSettings(orgId);
+  const inbox = alertsInbox(settings);
+  const open = rows(
+    await supa()
+      .from("careloop_alerts")
+      .select("*")
+      .eq("org_id", orgId)
+      .eq("status", "new")
+      .in("severity", ["escalate", "review_today"]),
+  ).map((r) => rowToAlert(r as Record<string, unknown>));
+
+  let repaged = 0;
+  let adminNotified = 0;
+  const nowMs = Date.now();
+
+  for (const alert of open) {
+    const windowMin =
+      alert.severity === "escalate"
+        ? settings.sla_ack_minutes_escalate
+        : settings.sla_ack_minutes_review;
+    const windowMs = windowMin * 60_000;
+    const sinceNotified = nowMs - Date.parse(alert.last_notified_at ?? alert.created_at);
+    const sinceCreated = nowMs - Date.parse(alert.created_at);
+    if (sinceNotified <= windowMs) continue;
+
+    const patient = await fetchPatient(orgId, alert.patient_id);
+    if (!patient || patient.status === "archived") continue;
+
+    const escalateToAdmin = sinceCreated > 2 * windowMs && Boolean(settings.admin_email);
+    const sent = await notifyNurseOfAlert(inbox, patient, alert, "sla_breach");
+    if (sent) repaged += 1;
+    if (escalateToAdmin) {
+      const adminSent = await notifyNurseOfAlert(settings.admin_email, patient, alert, "sla_admin");
+      if (adminSent) adminNotified += 1;
+    }
+    if (sent || escalateToAdmin) {
+      await stampAlertNotified(orgId, alert.id);
+      await pushAudit(orgId, "alert_sla_breached", "system", "alert", alert.id, {
+        severity: alert.severity,
+        minutes_unacknowledged: Math.round(sinceCreated / 60_000),
+        admin_notified: escalateToAdmin,
+        patient_id: alert.patient_id,
+      });
+    }
+  }
+  if (repaged > 0) await broadcastOrgEvent(orgId, "alerts_changed");
+  return { checked: open.length, repaged, adminNotified };
 }
 
 /** Canonical risky check-in for the demo replay button (Mrs. Chan). */
@@ -1051,11 +1283,15 @@ export async function createPatientFromWhatsApp(orgId: string, phone: string): P
     conditions: [],
     caregiver_name: "",
     caregiver_phone: "",
+    caregiver_email: "",
     assigned_nurse: "Unassigned",
     baseline_weight: 0,
     baseline_steps: 0,
     phone: e164,
     status: "pending_review",
+    consent_caregiver_alerts: false,
+    consent_family_digest: false,
+    consent_updated_at: null,
   };
   const { error } = await supa()
     .from("careloop_patients")
