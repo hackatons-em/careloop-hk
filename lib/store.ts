@@ -17,7 +17,7 @@
 
 import { buildCaregiverAlert } from "./caregiver";
 import { sendWithFallback } from "./channels";
-import { addDays, todayISO } from "./dates";
+import { addDays, localMidnightUtcISO, todayISO } from "./dates";
 import { isDemoMode } from "./flags";
 import { logger } from "./logger";
 import {
@@ -303,17 +303,15 @@ async function upsertAlertFor(
     fetchCheckins(orgId, patientId),
     getActiveRuleConfig(orgId),
   ]);
-  // Default `today` so the silence rule NR-002 persists on EVERY write path
-  // (check-in, vital, import, manual re-eval), matching what the read views
-  // already display — not only when the daily silence sweep supplies it. An
-  // explicit ctx.today (e.g. from the sweep, which also carries
-  // promptUnansweredToday for NR-001) still wins. config is always the org's
-  // active config, never a caller override.
-  const risk = evaluateRisk(patient, vitals, checkins, {
-    today: todayISO(),
-    ...ctx,
-    config: ruleConfig.config,
-  });
+  // Silence detection (NR-001/NR-002) is the daily sweep's job — it passes
+  // `today` (and, for NR-001, promptUnansweredToday) explicitly. Interactive
+  // and historical write paths (check-in, vital, CSV import, manual re-eval)
+  // intentionally DON'T default today: a backfilled CSV whose newest row is
+  // days old must not mint a real-time silence alert, and a live check-in
+  // resets the gap to 0 so NR-002 wouldn't fire anyway. The dashboard/timeline
+  // read views still pass today for DISPLAY (read-only, no paging). config is
+  // always the org's active config, never a caller override.
+  const risk = evaluateRisk(patient, vitals, checkins, { ...ctx, config: ruleConfig.config });
   await pushAudit(orgId, "risk_evaluated", actor, "patient", patientId, {
     severity: risk.severity,
     matched_rules: risk.matched_rules.map((m) => m.code),
@@ -361,13 +359,28 @@ async function upsertAlertFor(
     return { risk, alert: refreshed };
   }
 
-  // A resolved alert already covers this severity (or worse) — don't recreate.
-  if (
-    recent &&
-    recent.status === "resolved" &&
-    SEVERITY_ORDER[risk.severity] <= SEVERITY_ORDER[recent.severity]
-  ) {
-    return { risk, alert: recent };
+  // A resolved alert already covers this severity (or worse) — don't recreate…
+  // UNLESS new patient data has arrived since it was resolved, which marks a
+  // genuinely new episode (e.g. a patient who went silent, was followed up and
+  // resolved, checked in again, then went silent a second time — the second
+  // NR-002 episode must re-page, not be suppressed forever). "New data" =
+  // a check-in / vital dated strictly after the resolution date; same-day
+  // re-evaluation stays suppressed to avoid thrash, and a legacy null
+  // resolved_at stays conservative (suppress).
+  if (recent && recent.status === "resolved" && SEVERITY_ORDER[risk.severity] <= SEVERITY_ORDER[recent.severity]) {
+    const resolvedDate = recent.resolved_at ? recent.resolved_at.slice(0, 10) : null;
+    const latestDataDate =
+      [
+        checkins.map((c) => c.date).sort().pop() ?? null,
+        vitals.map((v) => v.timestamp.slice(0, 10)).sort().pop() ?? null,
+      ]
+        .filter((d): d is string => d !== null)
+        .sort()
+        .pop() ?? null;
+    const newEpisode = resolvedDate !== null && latestDataDate !== null && latestDataDate > resolvedDate;
+    if (!newEpisode) {
+      return { risk, alert: recent };
+    }
   }
 
   const alert: RiskAlert = {
@@ -481,11 +494,18 @@ async function afterAlertWrite(
       Date.now() - Date.parse(alert.last_notified_at) < debounceMs;
     const shouldNotify = created || (raised && !recentlyPaged);
     if (settings && shouldNotify) {
+      // Stamp last_notified_at if EITHER channel actually delivers, so the
+      // debounce protects BOTH nurse and family on the next re-rise — even when
+      // nurse paging doesn't send (empty inbox / Resend failure) but caregiver
+      // delivery does. Otherwise last_notified_at would stay null and a
+      // flapping alert would re-spam the family on every up-tick.
+      let delivered = false;
+
       if (meetsNotifyThreshold(settings, alert.severity)) {
         const inbox = alertsInbox(settings);
         const sent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
         if (sent) {
-          await stampAlertNotified(orgId, alert.id);
+          delivered = true;
           await pushAudit(orgId, "nurse_notified", "system", "alert", alert.id, {
             channel: "email",
             kind: created ? "created" : "raised",
@@ -518,6 +538,7 @@ async function afterAlertWrite(
           }
         }
         if (channels.length > 0) {
+          delivered = true;
           await pushAudit(orgId, "caregiver_notified", "system", "patient", patient.id, {
             channels,
             severity: alert.severity,
@@ -525,6 +546,8 @@ async function afterAlertWrite(
           });
         }
       }
+
+      if (delivered) await stampAlertNotified(orgId, alert.id);
     }
   } catch (err) {
     logger.error("Alert side effects failed.", { err, alert_id: alert.id });
@@ -1220,21 +1243,27 @@ export async function getHandoverSnapshot(
  * Record an audited shift handover with the outgoing nurse's note. The note
  * lives in the append-only audit metadata (capped), never in a URL — called
  * from the handover page's Server Action so the note posts in the request
- * body. Returns the snapshot for re-render.
+ * body. Records the submit-time open-alert count via a lightweight COUNT
+ * query (not a full ward-state read — the page re-render already rebuilds the
+ * snapshot for display).
  */
 export async function recordHandover(
   orgId: string,
   sinceIso: string,
   actor: string,
   note: string,
-): Promise<HandoverSnapshot> {
-  const snapshot = await getHandoverSnapshot(orgId, sinceIso);
+): Promise<void> {
+  const { count, error } = await supa()
+    .from("careloop_alerts")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .neq("status", "resolved");
+  if (error) throw new Error(`Supabase: ${error.message}`);
   await pushAudit(orgId, "handover_generated", actor, "organization", orgId, {
     since: sinceIso,
-    open_alerts: snapshot.open_alerts.length,
+    open_alerts: count ?? 0,
     note: note.slice(0, 500),
   });
-  return snapshot;
 }
 
 /**
@@ -1506,7 +1535,10 @@ function percentile(sortedAsc: number[], p: number): number | null {
 export async function getProgramMetrics(orgId: string, windowDays = 30): Promise<ProgramMetrics> {
   const today = todayISO();
   const windowStart = addDays(today, -(windowDays - 1));
-  const windowStartTs = `${windowStart}T00:00:00Z`;
+  // True UTC instant of local-midnight on the window's first day — a naive
+  // `${windowStart}T00:00:00Z` would start the timestamptz window 8h late in
+  // HK, misaligned with the date-column check-in window (.gte("date", ...)).
+  const windowStartTs = localMidnightUtcISO(windowStart, process.env.CARELOOP_TZ ?? "Asia/Hong_Kong");
 
   const [patientRows, checkinRows, alertRows, ackAlertRows, auditRows] = await Promise.all([
     getPatientRows(orgId),
