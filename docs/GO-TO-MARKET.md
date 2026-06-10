@@ -3,12 +3,13 @@
 Everything here is OUTSIDE the codebase — accounts, approvals, and contracts
 only you can do. The product is ready; these unlock selling it.
 
-> **Status decisions (2026-06-10, founder-confirmed):** Resend → deferred
-> (DB-only leads accepted for now); Sentry → deferred (JSON logs + GitHub
-> uptime monitor cover ops); domain → `careloop-hk.vercel.app` accepted for
-> pilots; WABA application, legal review, and native zh-HK sign-off → owned
-> by the founder per the sections below. Each item activates in minutes once
-> its credential/approval exists — the wiring is already shipped.
+> **Status decisions (2026-06-10, founder-confirmed):** Resend → **LIVE**
+> (key set on Vercel production, send tested end-to-end, deployed); native
+> zh-HK sign-off → **DONE**; Sentry → deferred (JSON logs + GitHub uptime
+> monitor cover ops); domain → `careloop-hk.vercel.app` accepted for pilots;
+> WABA application and legal review → owned by the founder per the sections
+> below. Each remaining item activates in minutes once its credential/approval
+> exists — the wiring is already shipped.
 
 ## Domain & brand
 - [ ] Buy the production domain (e.g. `careloop.health` / `careloop.hk`)
@@ -23,13 +24,22 @@ only you can do. The product is ready; these unlock selling it.
       demo-only: daily message caps, shared number, join friction
 
 ## Email
-- [ ] Create a Resend account (free tier is fine to start)
-- [ ] Set `RESEND_API_KEY` + `LEADS_NOTIFY_EMAIL=cickusiceman@gmail.com` on the
-      vendor Vercel project (until then, leads are stored in Settings → Leads
-      with no email ping)
-- [ ] Verify a sending domain in Resend; set `RESEND_FROM_EMAIL`
-      (`onboarding@resend.dev` only delivers to the account owner)
-- [ ] Configure Supabase custom SMTP on the demo project (team invites)
+- [x] Resend account created; `RESEND_API_KEY` (send-only restricted key) set
+      on Vercel **production**, `LEADS_NOTIFY_EMAIL=cickusiceman@gmail.com`
+      already set. Verified end-to-end 2026-06-10 (test send id
+      `f00ac2b7-133e-4fef-945c-64d63433bba5` delivered) and prod redeployed —
+      lead submissions now email a notification.
+- [ ] **Testing-mode limit:** with no verified domain, Resend's
+      `onboarding@resend.dev` sender only delivers to the *account owner's*
+      email (cickusiceman@gmail.com — which is the current notify target, so
+      lead pings work today). To notify a different/shared inbox OR send from a
+      branded `@careloop` address, verify a sending domain in Resend and set
+      `RESEND_FROM_EMAIL`. Do this alongside the custom-domain purchase.
+- [ ] Preview-environment key not set (only matters for PR preview deploys;
+      they degrade to DB-only, which is safe). Add later if needed via
+      `vercel env add RESEND_API_KEY preview`.
+- [ ] Configure Supabase custom SMTP on the demo project (team invites) —
+      reuse the same Resend key once a domain is verified.
 
 ## Reliability & monitoring
 - [ ] Create a Sentry project; set `SENTRY_DSN` + `NEXT_PUBLIC_SENTRY_DSN`
@@ -53,16 +63,15 @@ only you can do. The product is ready; these unlock selling it.
 - [x] Data Processing Agreement template — DRAFTED at `docs/legal/DPA-TEMPLATE.md`
       (PDPO-aligned: roles, sub-processor table, security measures, breach
       notice, return/deletion, audit); counsel adapts + approves
-- [ ] Native-speaker sign-off of the zh-HK catalog (`messages/zh-HK.json`).
-      Already done: a 19-agent AI linguistic QA pass (15 corrections applied
-      2026-06-10) AND a step-by-step reviewer package at
-      `docs/ZH-HK-REVIEW-GUIDE.md` (glossary, priority order, sign-off block) —
-      a native reader needs ~30–45 min
+- [x] Native-speaker sign-off of the zh-HK catalog (`messages/zh-HK.json`) —
+      **completed by the founder (2026-06-10).** Backed by a prior 19-agent AI
+      linguistic QA pass (15 corrections applied) and the reviewer package at
+      `docs/ZH-HK-REVIEW-GUIDE.md`.
 - [ ] Position statement: monitoring support, not a medical device (HONESTY.md
       wording is the base)
 
 ## Sales operations
-- [ ] Check **Settings → Leads** daily (email ping once Resend is live)
+- [ ] Check **Settings → Leads** daily (email ping is now live via Resend)
 - [ ] Demo flow: the DEMO_MODE deployment + `/presentation` script; reset via
       Settings → Demo before every call
 - [ ] Keep `docs/Careloop Pitch.pdf` + `/business` + `/security` as the
