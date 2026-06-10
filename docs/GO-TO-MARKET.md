@@ -47,13 +47,17 @@ only you can do. The product is ready; these unlock selling it.
 ## Legal (before the FIRST paying contract)
 - [ ] Counsel review of `/privacy` and `/terms` (both marked "pilot baseline";
       now bilingual — review BOTH languages)
-- [ ] Pilot agreement template (scope, fee, success criteria, duration)
-- [ ] Data Processing Agreement (DPA) template — PDPO-aligned for HK
+- [x] Pilot agreement template — DRAFTED at `docs/legal/PILOT-AGREEMENT-TEMPLATE.md`
+      (scope, fees, not-a-medical-device clause, success criteria, liability,
+      termination); counsel adapts + approves before first signature
+- [x] Data Processing Agreement template — DRAFTED at `docs/legal/DPA-TEMPLATE.md`
+      (PDPO-aligned: roles, sub-processor table, security measures, breach
+      notice, return/deletion, audit); counsel adapts + approves
 - [ ] Native-speaker sign-off of the zh-HK catalog (`messages/zh-HK.json`).
-      Already done: a 19-agent AI linguistic QA pass (HK conventions, clinical
-      terminology, tone — 15 corrections applied 2026-06-10), so this is a
-      sign-off read, not a rewrite. Clinically sensitive strings under
-      `domain.*` first
+      Already done: a 19-agent AI linguistic QA pass (15 corrections applied
+      2026-06-10) AND a step-by-step reviewer package at
+      `docs/ZH-HK-REVIEW-GUIDE.md` (glossary, priority order, sign-off block) —
+      a native reader needs ~30–45 min
 - [ ] Position statement: monitoring support, not a medical device (HONESTY.md
       wording is the base)
 
