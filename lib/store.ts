@@ -16,6 +16,7 @@
 // Never from a Client Component — it uses the service-role key.
 
 import { buildCaregiverAlert } from "./caregiver";
+import { sendWithFallback } from "./channels";
 import { addDays, todayISO } from "./dates";
 import { isDemoMode } from "./flags";
 import { logger } from "./logger";
@@ -34,7 +35,6 @@ import {
   riskTrend,
   type EvaluationContext,
 } from "./riskEngine";
-import { sendWhatsApp } from "./whatsapp";
 import {
   buildSeed,
   DEMO_DATES,
@@ -473,11 +473,13 @@ async function afterAlertWrite(
         const text = buildCaregiverAlert(patient, toDailyVitals(vitals), checkins, alert.severity);
         const channels: string[] = [];
         if (patient.caregiver_phone) {
-          const r = await sendWhatsApp(
+          // WhatsApp first; SMS fallback reaches caregivers without the app.
+          const r = await sendWithFallback(
+            ["whatsapp", "sms"],
             patient.caregiver_phone.replace(/\s+/g, ""),
             `${text.zh}\n\n${text.en}`,
           );
-          if (r.ok) channels.push("whatsapp");
+          if (r.delivered) channels.push(r.delivered);
         }
         if (patient.caregiver_email) {
           if (await emailCaregiverAlert(patient.caregiver_email, patient.name, text)) {

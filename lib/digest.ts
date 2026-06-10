@@ -7,11 +7,11 @@
 // CareLoop when something is wrong.
 
 import "server-only";
+import { sendWithFallback } from "./channels";
 import { emailFamilyDigest } from "./notify";
 import { getPatients, getTimeline, recordAudit, saveWeeklySummary } from "./store";
 import { generateWeeklySummary } from "./summaryService";
 import type { WeeklySummary } from "./types";
-import { sendWhatsApp } from "./whatsapp";
 
 export interface DigestResult {
   eligible: number;
@@ -47,11 +47,12 @@ export async function runWeeklyDigest(orgId: string): Promise<DigestResult> {
       }
     }
     if (patient.caregiver_phone) {
-      const r = await sendWhatsApp(
+      const r = await sendWithFallback(
+        ["whatsapp", "sms"],
         patient.caregiver_phone.replace(/\s+/g, ""),
         `${text.zh}\n\n${text.en}`,
       );
-      if (r.ok) channels.push("whatsapp");
+      if (r.delivered) channels.push(r.delivered);
     }
     if (channels.length > 0) {
       sent += 1;
