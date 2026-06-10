@@ -33,3 +33,20 @@ describe("dates — localMidnightUtcISO (silence-sweep window boundary)", () => 
     expect(localMidnightUtcISO("2026-06-10", "UTC")).toBe("2026-06-10T00:00:00.000Z");
   });
 });
+
+describe("HK-local date of a UTC instant (resolved-alert dedup contract)", () => {
+  // upsertAlertFor compares resolved_at (a real-wall-clock UTC instant) against
+  // HK-local clinical check-in dates. The conversion must land on the HK
+  // calendar day, or a resolve in the HK 00:00–08:00 window (UTC date one day
+  // behind) would spuriously re-mint the same clinical day.
+  const hkDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" });
+
+  it("01:00 HK on 2026-06-10 (== 2026-06-09T17:00Z) is the 10th, not the 9th", () => {
+    expect(hkDate("2026-06-09T17:00:00Z")).toBe("2026-06-10");
+  });
+
+  it("23:00 HK on 2026-06-10 (== 2026-06-10T15:00Z) is still the 10th", () => {
+    expect(hkDate("2026-06-10T15:00:00Z")).toBe("2026-06-10");
+  });
+});

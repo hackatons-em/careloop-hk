@@ -368,7 +368,15 @@ async function upsertAlertFor(
   // re-evaluation stays suppressed to avoid thrash, and a legacy null
   // resolved_at stays conservative (suppress).
   if (recent && recent.status === "resolved" && SEVERITY_ORDER[risk.severity] <= SEVERITY_ORDER[recent.severity]) {
-    const resolvedDate = recent.resolved_at ? recent.resolved_at.slice(0, 10) : null;
+    // resolved_at is a real-wall-clock UTC instant; check-in/vital dates are
+    // HK-local clinical dates. Convert resolved_at to the SAME local calendar
+    // before comparing, or a resolve in the HK 00:00–08:00 window (UTC date one
+    // day behind) would spuriously re-mint the same clinical day.
+    const resolvedDate = recent.resolved_at
+      ? new Date(recent.resolved_at).toLocaleDateString("en-CA", {
+          timeZone: process.env.CARELOOP_TZ ?? "Asia/Hong_Kong",
+        })
+      : null;
     const latestDataDate =
       [
         checkins.map((c) => c.date).sort().pop() ?? null,
