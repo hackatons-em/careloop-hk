@@ -345,12 +345,28 @@ function AlertCard({
           ))}
         </select>
         <div className="flex gap-2">
+          {/* preventDefault on mousedown stops the note input from blurring
+              first (which would fire saveNoteOnly -> busy=true and disable this
+              button before its click fires, silently dropping a staged status).
+              save() then commits status + note atomically. */}
           {alert.status === "new" && (
-            <Button variant="outline" size="sm" disabled={busy} onClick={() => save("acknowledged")}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => save("acknowledged")}
+            >
               {t("card.acknowledge")}
             </Button>
           )}
-          <Button size="sm" disabled={busy} onClick={() => save()} className="gap-1.5">
+          <Button
+            size="sm"
+            disabled={busy}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => save()}
+            className="gap-1.5"
+          >
             {t("card.save")} <ChevronRight className="size-4" />
           </Button>
         </div>

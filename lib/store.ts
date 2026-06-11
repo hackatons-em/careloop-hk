@@ -295,9 +295,12 @@ async function upsertAlertFor(
   patientId: string,
   actor: string,
   ctx?: EvaluationContext,
-): Promise<{ risk: RiskResult; alert: RiskAlert | null }> {
+): Promise<{ risk: RiskResult; alert: RiskAlert | null; broadcasted: boolean }> {
+  // broadcasted = whether afterAlertWrite already emitted an org broadcast, so
+  // callers (submitCheckIn/addVital) only add a data_changed ping when it did
+  // NOT (the stable / resolved-suppressed paths), avoiding a double refetch.
   const patient = await fetchPatient(orgId, patientId);
-  if (!patient) return { risk: emptyRisk(), alert: null };
+  if (!patient) return { risk: emptyRisk(), alert: null, broadcasted: false };
 
   const [vitals, checkins, ruleConfig] = await Promise.all([
     fetchVitals(orgId, patientId),
@@ -332,7 +335,7 @@ async function upsertAlertFor(
   const openAlert = recent && recent.status !== "resolved" ? recent : null;
 
   if (risk.severity === "stable") {
-    return { risk, alert: openAlert };
+    return { risk, alert: openAlert, broadcasted: false };
   }
 
   if (openAlert) {
@@ -357,7 +360,7 @@ async function upsertAlertFor(
     });
     const refreshed = { ...openAlert, ...patch };
     await afterAlertWrite(orgId, patient, refreshed, openAlert.severity, vitals, checkins);
-    return { risk, alert: refreshed };
+    return { risk, alert: refreshed, broadcasted: true };
   }
 
   // A resolved alert already covers this severity (or worse) — don't recreate…
@@ -388,7 +391,7 @@ async function upsertAlertFor(
         .pop() ?? null;
     const newEpisode = resolvedDate !== null && latestDataDate !== null && latestDataDate > resolvedDate;
     if (!newEpisode) {
-      return { risk, alert: recent };
+      return { risk, alert: recent, broadcasted: false };
     }
   }
 
@@ -455,7 +458,7 @@ async function upsertAlertFor(
         });
         const recovered = { ...open, ...patch };
         await afterAlertWrite(orgId, patient, recovered, open.severity, vitals, checkins);
-        return { risk, alert: recovered };
+        return { risk, alert: recovered, broadcasted: true };
       }
     }
     throw new Error(`Supabase: ${error.message}`);
@@ -466,7 +469,7 @@ async function upsertAlertFor(
     patient_id: patientId,
   });
   await afterAlertWrite(orgId, patient, alert, null, vitals, checkins);
-  return { risk, alert };
+  return { risk, alert, broadcasted: true };
 }
 
 /**
@@ -1027,11 +1030,12 @@ export async function submitCheckIn(
   }
 
   await pushAudit(orgId, "checkin_submitted", actor, "patient", patientId, { date });
-  const { risk, alert } = await upsertAlertFor(orgId, patientId, actor);
-  // Nudge open dashboards to refetch now (a stable check-in produces no alert,
-  // so afterAlertWrite — which broadcasts — never runs; without this the row
-  // only updates on the 30s poll). A non-escalating ping carries no toast.
-  await broadcastOrgEvent(orgId, "data_changed");
+  const { risk, alert, broadcasted } = await upsertAlertFor(orgId, patientId, actor);
+  // Nudge open dashboards to refetch now — but only when upsertAlertFor didn't
+  // already broadcast (its alert paths do). A stable/suppressed check-in
+  // changes last_checkin_date with no alert write, so without this the row only
+  // updates on the 30s poll. Avoids a double refetch on the alert path.
+  if (!broadcasted) await broadcastOrgEvent(orgId, "data_changed");
   return { checkin, risk, alert };
 }
 
@@ -1046,8 +1050,8 @@ export async function addVital(
 ): Promise<RiskResult | null> {
   if (!(await fetchPatient(orgId, patientId))) return null;
   await upsertVital(orgId, patientId, date ?? todayISO(), type, value, unit);
-  const { risk } = await upsertAlertFor(orgId, patientId, "nurse");
-  await broadcastOrgEvent(orgId, "data_changed");
+  const { risk, broadcasted } = await upsertAlertFor(orgId, patientId, "nurse");
+  if (!broadcasted) await broadcastOrgEvent(orgId, "data_changed");
   return risk;
 }
 
