@@ -22,7 +22,7 @@ jobs:
         id: probe
         run: |
           set +e
-          STATUS=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 "https://careloop-hk.vercel.app/api/health")
+          STATUS=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 "https://miruwa.com/api/health")
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
           echo "body=$(cat /tmp/body | head -c 200)" >> "$GITHUB_OUTPUT"
           if [ "$STATUS" != "200" ]; then

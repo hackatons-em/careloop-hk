@@ -29,7 +29,7 @@ const KIND_INTRO: Record<AlertNotifyKind, string> = {
 };
 
 function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://careloop-hk.vercel.app";
+  return process.env.NEXT_PUBLIC_SITE_URL ?? "https://miruwa.com";
 }
 
 async function sendEmail(to: string, subject: string, text: string): Promise<boolean> {

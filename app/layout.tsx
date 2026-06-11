@@ -7,7 +7,7 @@ import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://careloop-hk.vercel.app";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://miruwa.com";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
