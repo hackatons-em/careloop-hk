@@ -62,7 +62,7 @@ export function LoginForm({ next }: { next?: string }) {
         <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <HeartPulse className="size-5" />
         </span>
-        <span className="text-lg font-semibold tracking-tight">CareLoop</span>
+        <span className="text-lg font-semibold tracking-tight">Miruwa</span>
       </div>
       <h1 className="mt-5 text-xl font-semibold tracking-tight">{t("title")}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{t("sub")}</p>

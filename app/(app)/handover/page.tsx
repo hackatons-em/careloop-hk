@@ -80,7 +80,7 @@ export default async function HandoverPage({
 
       {/* print header */}
       <div className="hidden print:block">
-        <h1 className="text-xl font-semibold">{t("title")} — CareLoop</h1>
+        <h1 className="text-xl font-semibold">{t("title")} — Miruwa</h1>
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-5 print:border-0 print:p-0">

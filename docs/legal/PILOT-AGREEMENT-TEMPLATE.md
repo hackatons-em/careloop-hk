@@ -1,15 +1,15 @@
-# CareLoop Pilot Program Agreement — TEMPLATE
+# Miruwa Pilot Program Agreement — TEMPLATE
 
 > **DRAFT — NOT LEGAL ADVICE.** This template structures the commercial terms
-> a CareLoop pilot needs. It MUST be reviewed and adapted by licensed Hong
+> a Miruwa pilot needs. It MUST be reviewed and adapted by licensed Hong
 > Kong counsel before signature. Bracketed fields are placeholders.
 
-**Between:** [CareLoop legal entity name] ("Provider")
+**Between:** [Miruwa legal entity name] ("Provider")
 **And:** [Hospital / Institution legal name] ("Customer")
 **Effective date:** [date]
 
 ## 1. Pilot scope
-- Service: the CareLoop remote chronic-care monitoring platform (the
+- Service: the Miruwa remote chronic-care monitoring platform (the
   "Service"), deployed as a dedicated instance for the Customer.
 - Cohort: up to [N] patients in [ward / program name].
 - Term: [3] months from the Go-Live Date, non-renewing unless extended in

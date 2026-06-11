@@ -1,4 +1,4 @@
-// CareLoop — domain types
+// Miruwa — domain types
 // Shared contract for the data layer (teammate-1 zone), risk engine (core),
 // API routes, and UI. Keep this the single source of truth for shapes.
 

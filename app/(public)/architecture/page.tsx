@@ -6,14 +6,14 @@ export const metadata = {
 };
 
 // Hidden technical page (not in the nav) — a coarse, big-bubble system diagram:
-// channel on top, the CareLoop app (with its sub-components) in the middle, the
+// channel on top, the Miruwa app (with its sub-components) in the middle, the
 // external services at the bottom. Easy to read in a recording.
 const CHART = `
 flowchart TB
   Patient(["Patient · WhatsApp"]):::ext
   Twilio(["Twilio · WhatsApp"]):::ext
 
-  subgraph CL["CareLoop · our app"]
+  subgraph CL["Miruwa · our app"]
     direction LR
     Onboard(["Onboard · QR"]):::core
     Engine(["Agent + rule engine"]):::core
@@ -42,14 +42,14 @@ export default function ArchitecturePage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="mb-1 text-center text-xl font-semibold tracking-tight">
-        CareLoop — Architecture
+        Miruwa — Architecture
       </h1>
       <p className="mb-5 text-center text-sm text-muted-foreground">
         Patient on WhatsApp → Twilio → our app → Claude &amp; Whisper, persisted in Postgres.
       </p>
       <Mermaid
         chart={CHART}
-        label="System architecture diagram: a patient on WhatsApp talks to Twilio, which exchanges messages with the CareLoop app (onboarding QR, the agent and rule engine, and the nurse dashboard). The engine calls Anthropic Claude for language and Groq Whisper for voice transcription, and everything persists in Supabase Postgres."
+        label="System architecture diagram: a patient on WhatsApp talks to Twilio, which exchanges messages with the Miruwa app (onboarding QR, the agent and rule engine, and the nurse dashboard). The engine calls Anthropic Claude for language and Groq Whisper for voice transcription, and everything persists in Supabase Postgres."
       />
     </div>
   );

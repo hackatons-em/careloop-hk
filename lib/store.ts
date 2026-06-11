@@ -1,4 +1,4 @@
-// CareLoop — data layer (server-only, Supabase-backed)
+// Miruwa — data layer (server-only, Supabase-backed)
 //
 // Single source of truth for the running app, persisted in Supabase Postgres
 // (tables careloop_*). Every accessor/mutator is ASYNC (talks to the database

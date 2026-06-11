@@ -1,5 +1,5 @@
 # Example wearable/vital export (Apple Health / Fitbit-style daily aggregate).
-# Same columns CareLoop accepts at POST /api/demo/import-csv.
+# Same columns Miruwa accepts at POST /api/demo/import-csv.
 date,weight_kg,systolic_bp,diastolic_bp,heart_rate,steps,sleep_hours,medication_taken,shortness_of_breath,swelling
 2026-05-31,70.1,132,80,74,4100,6.8,true,false,false
 2026-06-01,70.0,130,79,73,4000,6.9,true,false,false

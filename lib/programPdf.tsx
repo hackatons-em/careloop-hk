@@ -113,11 +113,11 @@ export async function renderProgramPdf(args: {
   const completionOnTarget = m.checkin_completion_rate >= 0.7;
 
   const doc = (
-    <Document title="CareLoop program outcomes" author="CareLoop">
+    <Document title="Miruwa program outcomes" author="Miruwa">
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.brand}>CareLoop</Text>
+            <Text style={styles.brand}>Miruwa</Text>
             <Text style={styles.brandSub}>{orgName}</Text>
           </View>
           <View>
@@ -208,7 +208,7 @@ export async function renderProgramPdf(args: {
 
         <Text style={styles.disclaimer}>
           Every figure in this report is computed from recorded monitoring data only — check-ins,
-          vitals, alerts, and the append-only audit trail. CareLoop provides monitoring support, not
+          vitals, alerts, and the append-only audit trail. Miruwa provides monitoring support, not
           diagnosis. Severity is decided by deterministic rules, never by AI.
         </Text>
       </Page>

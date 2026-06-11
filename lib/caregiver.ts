@@ -36,16 +36,16 @@ function pronouns(gender: string) {
 
 const RECO_EN: Record<Severity, string> = {
   escalate:
-    "CareLoop recommends nurse review today. If symptoms are severe or get worse, please seek urgent medical care.",
-  review_today: "CareLoop recommends nurse review today.",
-  watch: "CareLoop suggests keeping a close eye and continuing daily check-ins.",
+    "Miruwa recommends nurse review today. If symptoms are severe or get worse, please seek urgent medical care.",
+  review_today: "Miruwa recommends nurse review today.",
+  watch: "Miruwa suggests keeping a close eye and continuing daily check-ins.",
   stable: "Monitoring looks stable today. Please continue daily check-ins.",
 };
 
 const RECO_ZH: Record<Severity, string> = {
-  escalate: "CareLoop 建議今日由護士跟進。如症狀嚴重或惡化，請盡快尋求緊急醫療協助。",
-  review_today: "CareLoop 建議今日由護士跟進。",
-  watch: "CareLoop 建議繼續密切觀察，並保持每日報到。",
+  escalate: "Miruwa 建議今日由護士跟進。如症狀嚴重或惡化，請盡快尋求緊急醫療協助。",
+  review_today: "Miruwa 建議今日由護士跟進。",
+  watch: "Miruwa 建議繼續密切觀察，並保持每日報到。",
   stable: "今日監測情況穩定，請繼續每日報到。",
 };
 

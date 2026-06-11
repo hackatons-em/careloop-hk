@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CareLoop — Remote chronic-care monitoring",
-    short_name: "CareLoop",
+    name: "Miruwa — Remote chronic-care monitoring",
+    short_name: "Miruwa",
     description:
       "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
     start_url: "/dashboard",

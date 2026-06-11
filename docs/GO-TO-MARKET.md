@@ -1,4 +1,4 @@
-# CareLoop — Go-To-Market Checklist (founder actions)
+# Miruwa — Go-To-Market Checklist (founder actions)
 
 Everything here is OUTSIDE the codebase — accounts, approvals, and contracts
 only you can do. The product is ready; these unlock selling it.

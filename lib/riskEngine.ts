@@ -1,6 +1,6 @@
-// CareLoop — Deterministic Risk Engine (CORE)
+// Miruwa — Deterministic Risk Engine (CORE)
 //
-// This is the heart of CareLoop. Risk severity is decided HERE by explicit,
+// This is the heart of Miruwa. Risk severity is decided HERE by explicit,
 // auditable rules — never by an LLM. AI is used elsewhere only to reword the
 // summary for humans. Every matched rule carries the data evidence that fired
 // it, so a nurse can see exactly why a patient was flagged.

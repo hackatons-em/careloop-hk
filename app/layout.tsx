@@ -32,13 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(SITE_URL),
     title: {
       default: t("rootTitle"),
-      template: "%s · CareLoop",
+      template: "%s · Miruwa",
     },
     description: t("rootDescription"),
-    applicationName: "CareLoop",
+    applicationName: "Miruwa",
     openGraph: {
       type: "website",
-      siteName: "CareLoop",
+      siteName: "Miruwa",
       locale: locale === "zh-HK" ? "zh_HK" : "en_HK",
       title: t("rootTitle"),
       description: t("ogDescription"),

@@ -1,4 +1,4 @@
-// Typed client-side fetch helpers for the CareLoop API.
+// Typed client-side fetch helpers for the Miruwa API.
 // All calls are relative and run in the browser. The audit actor is always the
 // signed-in user (derived server-side from the session) — never sent by the client.
 

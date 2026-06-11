@@ -27,7 +27,7 @@ export async function sendLeadNotification(lead: LeadEmailInput): Promise<void> 
     return;
   }
 
-  const from = process.env.RESEND_FROM_EMAIL ?? "CareLoop <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL ?? "Miruwa <onboarding@resend.dev>";
   const text = [
     `Name:         ${lead.name}`,
     `Organization: ${lead.organization}`,
@@ -57,7 +57,7 @@ export async function sendLeadNotification(lead: LeadEmailInput): Promise<void> 
       body: JSON.stringify({
         from,
         to: [to],
-        subject: `New CareLoop lead — ${lead.organization} (${lead.interest})`,
+        subject: `New Miruwa lead — ${lead.organization} (${lead.interest})`,
         text,
       }),
       signal: AbortSignal.timeout(10_000),

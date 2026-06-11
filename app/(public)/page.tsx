@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "CareLoop",
+  name: "Miruwa",
   applicationCategory: "HealthApplication",
   operatingSystem: "Web",
   description:

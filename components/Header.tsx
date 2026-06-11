@@ -30,7 +30,7 @@ export function Header({ user }: { user: HeaderUser }) {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <HeartPulse className="size-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">CareLoop</span>
+          <span className="text-lg font-semibold tracking-tight">Miruwa</span>
         </Link>
 
         <nav className="ml-2 hidden items-center gap-1 md:flex">

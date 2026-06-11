@@ -4,7 +4,7 @@
 >
 > **The deal:** disclosed shortcuts are **not** penalized — that is the entire point of this file. Hidden ones are. Undisclosed pre-built code is heavily penalized, each undisclosed mock carries a small penalty, and a faked demo is heavily penalized. Telling the truth here costs you nothing.
 
-CareLoop is a remote chronic-care monitoring prototype for elderly Hong Kong patients. Patients check in over WhatsApp (text or Cantonese voice); AI turns the messy reply into structured data; a **deterministic, auditable rule engine** — never an LLM — decides clinical severity; nurses review only the patients who need it. CareLoop is **monitoring support, not a medical device** — it never diagnoses, prescribes, or replaces clinical judgement.
+Miruwa is a remote chronic-care monitoring prototype for elderly Hong Kong patients. Patients check in over WhatsApp (text or Cantonese voice); AI turns the messy reply into structured data; a **deterministic, auditable rule engine** — never an LLM — decides clinical severity; nurses review only the patients who need it. Miruwa is **monitoring support, not a medical device** — it never diagnoses, prescribes, or replaces clinical judgement.
 
 ---
 
@@ -77,7 +77,7 @@ No other external service is called or faked.
 | shadcn / base-ui UI primitives | generated via the shadcn CLI (`components/ui/*`) | A handful of components | MIT |
 | npm libraries | Next.js, React, Tailwind, Recharts, `@react-pdf/renderer`, `@supabase/supabase-js`, `@anthropic-ai/sdk`, `qrcode`, lucide | Standard dependencies | Respective OSS licenses |
 
-All CareLoop application code (risk engine, data layer, WhatsApp agent, dashboard, exports) was written during the hackathon window.
+All Miruwa application code (risk engine, data layer, WhatsApp agent, dashboard, exports) was written during the hackathon window.
 
 ---
 

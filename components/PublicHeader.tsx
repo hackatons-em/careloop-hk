@@ -22,7 +22,7 @@ export async function PublicHeader() {
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <HeartPulse className="size-5" />
           </span>
-          <span className="text-lg font-semibold tracking-tight">CareLoop</span>
+          <span className="text-lg font-semibold tracking-tight">Miruwa</span>
         </Link>
         <nav className="ml-auto flex items-center gap-1">
           {links.map((l) => (

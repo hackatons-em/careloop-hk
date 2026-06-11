@@ -22,7 +22,7 @@ export function Footer() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <HeartPulse className="size-4 text-primary" />
-            <span className="font-medium text-foreground">CareLoop</span>
+            <span className="font-medium text-foreground">Miruwa</span>
             <span className="hidden sm:inline">{t("tagline")}</span>
           </div>
           <LocaleSwitcher />

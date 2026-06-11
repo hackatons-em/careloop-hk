@@ -1,6 +1,6 @@
-# CareLoop — Dedicated-Instance Provisioning Runbook
+# Miruwa — Dedicated-Instance Provisioning Runbook
 
-Every production hospital runs its **own** CareLoop instance: its own Supabase
+Every production hospital runs its **own** Miruwa instance: its own Supabase
 project (in the customer's preferred region), its own Vercel deployment (or
 Docker host), and its own WhatsApp number. Nothing is shared between
 hospitals — that is the product's data-isolation promise (see `/security`).

@@ -35,7 +35,7 @@ function siteUrl(): string {
 async function sendEmail(to: string, subject: string, text: string): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || !to) return false;
-  const from = process.env.RESEND_FROM_EMAIL ?? "CareLoop <onboarding@resend.dev>";
+  const from = process.env.RESEND_FROM_EMAIL ?? "Miruwa <onboarding@resend.dev>";
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -83,7 +83,7 @@ export async function notifyNurseOfAlert(
     return false;
   }
   const sev = SEVERITY_LABEL[alert.severity];
-  const subject = `[CareLoop] ${sev} — ${patient.name}`;
+  const subject = `[Miruwa] ${sev} — ${patient.name}`;
   const text = [
     KIND_INTRO[kind],
     ``,
@@ -96,7 +96,7 @@ export async function notifyNurseOfAlert(
     ``,
     `Review queue: ${siteUrl()}/alerts`,
     ``,
-    `Severity was decided by CareLoop's deterministic monitoring rules (engine ${alert.engine_version ?? "n/a"}). Monitoring support — not diagnosis.`,
+    `Severity was decided by Miruwa's deterministic monitoring rules (engine ${alert.engine_version ?? "n/a"}). Monitoring support — not diagnosis.`,
   ].join("\n");
   return sendEmail(to, subject, text);
 }
@@ -111,7 +111,7 @@ export async function emailCaregiverAlert(
   text: { en: string; zh: string },
 ): Promise<boolean> {
   if (!to) return false;
-  const subject = `CareLoop update — ${patientName}`;
+  const subject = `Miruwa update — ${patientName}`;
   const body = [text.zh, ``, `—`, ``, text.en].join("\n");
   return sendEmail(to, subject, body);
 }
@@ -123,7 +123,7 @@ export async function emailFamilyDigest(
   text: { en: string; zh: string },
 ): Promise<boolean> {
   if (!to) return false;
-  const subject = `CareLoop weekly update — ${patientName}`;
+  const subject = `Miruwa weekly update — ${patientName}`;
   const body = [text.zh, ``, `—`, ``, text.en].join("\n");
   return sendEmail(to, subject, body);
 }

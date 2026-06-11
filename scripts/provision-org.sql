@@ -1,4 +1,4 @@
--- CareLoop — per-instance provisioning template.
+-- Miruwa — per-instance provisioning template.
 -- Run in the NEW hospital instance's Supabase SQL editor AFTER applying
 -- migrations 0001 → 0004 in order. Replace every <EDIT ME> placeholder.
 

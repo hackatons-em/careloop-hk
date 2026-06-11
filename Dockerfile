@@ -1,4 +1,4 @@
-# CareLoop — self-hosted deployment image (hospitals that can't use Vercel).
+# Miruwa — self-hosted deployment image (hospitals that can't use Vercel).
 # Multi-stage: deps -> build -> minimal runner with Next.js standalone output.
 # All configuration comes from runtime env vars; nothing is baked in.
 

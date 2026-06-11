@@ -1,4 +1,4 @@
-// CareLoop — Synthetic seed data (teammate-1 zone)
+// Miruwa — Synthetic seed data (teammate-1 zone)
 //
 // All data is SYNTHETIC. No real patients. Five elderly Hong Kong chronic-care
 // patients with 7 days of vitals + daily check-ins. The numbers are tuned so

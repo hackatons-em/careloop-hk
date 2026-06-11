@@ -1,4 +1,4 @@
-# CareLoop — Deployment guide
+# Miruwa — Deployment guide
 
 Production deployment on Vercel + Supabase, or self-hosted via Docker.
 

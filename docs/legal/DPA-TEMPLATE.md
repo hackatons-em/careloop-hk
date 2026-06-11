@@ -5,11 +5,11 @@
 > a subscription agreement. Bracketed fields are placeholders.
 
 **Data User (Controller):** [Hospital / Institution legal name] ("Customer")
-**Data Processor:** [CareLoop legal entity name] ("Provider")
+**Data Processor:** [Miruwa legal entity name] ("Provider")
 
 ## 1. Subject matter & roles
 Provider processes personal data on the Customer's behalf solely to provide
-the CareLoop monitoring service. Customer determines the purposes and means;
+the Miruwa monitoring service. Customer determines the purposes and means;
 Provider acts only on the Customer's documented instructions (this DPA, the
 Agreement, and the Service's documented behavior).
 

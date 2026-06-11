@@ -1,4 +1,4 @@
-// Locale configuration. CareLoop ships English + Traditional Chinese (Hong
+// Locale configuration. Miruwa ships English + Traditional Chinese (Hong
 // Kong). Locale selection is cookie-based — URLs never change, so the proxy,
 // robots/sitemap, and deep links are locale-agnostic.
 

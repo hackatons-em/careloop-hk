@@ -1,6 +1,6 @@
 // Outbound channel adapter layer (server-only).
 //
-// One interface for every way CareLoop reaches a human: WhatsApp today,
+// One interface for every way Miruwa reaches a human: WhatsApp today,
 // SMS as the non-WhatsApp fallback (elderly recipients without the app),
 // WeChat once the Official Account application lands. Inbound conversation
 // stays WhatsApp-only for now (the check-in webhook); this layer is for

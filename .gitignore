@@ -53,3 +53,6 @@ next-env.d.ts
 
 # local agent config
 .claude/
+
+# promo video build tooling (temp, not part of the app; secrets live outside the repo)
+/.promo-*.mjs

@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "CareLoop",
+    "appName": "Miruwa",
     "cancel": "取消",
     "save": "儲存",
     "copy": "複製",
@@ -36,7 +36,7 @@
     "pricing": "收費模式",
     "security": "安全保障",
     "contact": "聯絡我們",
-    "disclaimer": "CareLoop 只標示監測風險供專業人員覆查，不作診斷或處方。"
+    "disclaimer": "Miruwa 只標示監測風險供專業人員覆查，不作診斷或處方。"
   },
   "localeSwitcher": {
     "label": "語言"
@@ -50,7 +50,7 @@
   },
   "landing": {
     "badge": "香港長者慢性病監測",
-    "heroTitle": "CareLoop 守護",
+    "heroTitle": "Miruwa 守護",
     "heroTitleAccent": "覆診之間的​空白期。",
     "heroSub": "透過 WhatsApp 每日報到、生命體徵信號及可解釋的規則，協助護士在覆診之間監測長者慢性病患者。",
     "heroCtaSecondary": "了解運作方式",
@@ -64,7 +64,7 @@
     },
     "glimpse": {
       "title": "一條隊列，只看例外。",
-      "sub": "護士毋須逐一檢視 24 位病人——CareLoop 只列出需要覆查的幾位，並清楚說明原因。",
+      "sub": "護士毋須逐一檢視 24 位病人——Miruwa 只列出需要覆查的幾位，並清楚說明原因。",
       "panelLabel": "護士儀表板 · 例外為先",
       "panelCount": "24 位中 3 位需覆查",
       "row1Note": "體重增加 2.3 公斤 · 呼吸急促",
@@ -75,7 +75,7 @@
       "stableLine": "21 位病情穩定——已自動覆檢，毋須跟進"
     },
     "preview": {
-      "label": "病人 · CareLoop",
+      "label": "病人 · Miruwa",
       "bubbleText": "今日好攰……對腳腫咗。",
       "bubbleMeta": "WhatsApp · 上午 8:14",
       "escalate": "需立即跟進",
@@ -147,7 +147,7 @@
       "link": "閱讀安全保障概覽 →"
     },
     "cta": {
-      "title": "在您病房的工作流程上體驗 CareLoop。",
+      "title": "在您病房的工作流程上體驗 Miruwa。",
       "sub": "與我們團隊進行30分鐘示範——配合您的應用場景、語言組合及升級規則。",
       "primary": "預約示範",
       "secondary": "查閱收費方案"
@@ -156,7 +156,7 @@
   "public": {
     "business": {
       "title": "商業案例",
-      "sub": "CareLoop 將覆診之間的監測變成可營運的工作流程。以下說明誰會購買、為何購買，以及如何在規模化下保持安全。",
+      "sub": "Miruwa 將覆診之間的監測變成可營運的工作流程。以下說明誰會購買、為何購買，以及如何在規模化下保持安全。",
       "whoTitle": "誰會付費？",
       "who1": "安老服務營運機構",
       "who2": "居家護理機構",
@@ -185,7 +185,7 @@
       "scale4": "照顧者信任",
       "scale5": "臨床責任",
       "scale6": "工作流程採納",
-      "handleTitle": "CareLoop 如何應對",
+      "handleTitle": "Miruwa 如何應對",
       "handle1": "保守的規則",
       "handle2": "數據完整度評分",
       "handle3": "護士人手覆查把關",
@@ -196,7 +196,7 @@
     },
     "pricing": {
       "title": "收費模式",
-      "sub": "CareLoop 按醫院部署，而非按帳戶收費。每個合作均由雙方共同釐定範圍——以下是常見的合作流程。",
+      "sub": "Miruwa 按醫院部署，而非按帳戶收費。每個合作均由雙方共同釐定範圍——以下是常見的合作流程。",
       "pilotName": "先導計劃",
       "pilotTag": "由此開始",
       "pilot1": "一個病房或護理計劃，設定明確的病人群組",
@@ -223,9 +223,9 @@
     },
     "security": {
       "title": "安全與信任",
-      "sub": "以淺白的語言說明 CareLoop 如何保護病人數據。如有未盡之處，歡迎直接向我們查詢。",
+      "sub": "以淺白的語言說明 Miruwa 如何保護病人數據。如有未盡之處，歡迎直接向我們查詢。",
       "isolationTitle": "一間醫院，一套系統",
-      "isolationBody": "每間正式使用的醫院均運行專屬的 CareLoop 系統——獨立資料庫、獨立應用程式部署、獨立 WhatsApp 號碼。您病人的數據絕不與其他機構共享基礎設施。不是「邏輯分隔」，而是實體分隔。",
+      "isolationBody": "每間正式使用的醫院均運行專屬的 Miruwa 系統——獨立資料庫、獨立應用程式部署、獨立 WhatsApp 號碼。您病人的數據絕不與其他機構共享基礎設施。不是「邏輯分隔」，而是實體分隔。",
       "accessTitle": "存取控制",
       "accessBody": "員工帳戶由您的管理員開立，不設公開註冊。設有管理員及護士兩種角色，每個頁面及 API 請求均在伺服器端重新驗證。",
       "encryptionTitle": "加密",
@@ -239,10 +239,10 @@
       "backupsTitle": "備份與復原",
       "backupsBody": "每日自動備份是標準配置；企業方案可選擇時間點復原（PITR）。",
       "certsTitle": "認證——誠實披露",
-      "certsBody": "CareLoop 尚未取得 SOC 2 或 ISO 27001 認證。我們仍處於早期階段，不會假裝不是。我們的路線圖：先取得 SOC 2 Type I，再到 Type II。我們樂意向任何評估中的醫院提供安全問卷答覆及架構文件。",
+      "certsBody": "Miruwa 尚未取得 SOC 2 或 ISO 27001 認證。我們仍處於早期階段，不會假裝不是。我們的路線圖：先取得 SOC 2 Type I，再到 Type II。我們樂意向任何評估中的醫院提供安全問卷答覆及架構文件。",
       "reportingTitle": "漏洞通報",
       "reportingBody": "請以私下渠道向團隊通報安全問題——切勿透過公開的問題追蹤系統，亦切勿在通報中包含真實病人數據。",
-      "ctaTitle": "正在為您的醫院評估 CareLoop？",
+      "ctaTitle": "正在為您的醫院評估 Miruwa？",
       "ctaSub": "我們樂意向您的資訊科技及數據保障團隊詳細講解。",
       "ctaButton": "預約安全評估會議"
     },
@@ -283,10 +283,10 @@
     "privacy": {
       "title": "私隱政策",
       "updated": "最後更新：2026年6月",
-      "s1h": "CareLoop 的功能",
-      "s1p": "CareLoop 為慢性病護理計劃提供監測支援：收集每日報到及生命體徵讀數，套用確定性升級規則，並將結果呈報護理團隊。CareLoop 不作診斷、不處方藥物，亦不取代臨床判斷。",
+      "s1h": "Miruwa 的功能",
+      "s1p": "Miruwa 為慢性病護理計劃提供監測支援：收集每日報到及生命體徵讀數，套用確定性升級規則，並將結果呈報護理團隊。Miruwa 不作診斷、不處方藥物，亦不取代臨床判斷。",
       "s2h": "我們處理的數據",
-      "s2p": "CareLoop 代表部署機構處理以下數據：護理團隊輸入的病人識別資料（姓名、年齡、病況、照顧者聯絡方式）、傳送至報到號碼的 WhatsApp 訊息及語音轉錄文本、生命體徵讀數（體重、血壓、心率、活動量、睡眠），以及由此產生的風險評估。系統以只增不改的審計紀錄記載每次存取與操作，以確保問責。",
+      "s2p": "Miruwa 代表部署機構處理以下數據：護理團隊輸入的病人識別資料（姓名、年齡、病況、照顧者聯絡方式）、傳送至報到號碼的 WhatsApp 訊息及語音轉錄文本、生命體徵讀數（體重、血壓、心率、活動量、睡眠），以及由此產生的風險評估。系統以只增不改的審計紀錄記載每次存取與操作，以確保問責。",
       "s3h": "數據存放於何處、誰能查閱",
       "s3p": "數據儲存於機構專屬的資料庫（Supabase Postgres），並以該機構為範圍。查閱須使用由機構管理員開立的員工帳戶。語音訊息會被轉錄，自由文字訊息會經 AI 服務（語音轉文字及語言模型）結構化處理；這些服務僅處理訊息內容，絕不判斷臨床嚴重程度。",
       "s4h": "保留期限與權利",
@@ -298,11 +298,11 @@
       "title": "使用條款",
       "updated": "最後更新：2026年6月",
       "s1h": "並非醫療儀器",
-      "s1p": "CareLoop 是監測支援軟件，以確定性、可審計的規則標示監測信號供專業人員覆查。它不作診斷、不處方藥物、不提供治療建議，亦不能取代臨床判斷或緊急服務。如遇緊急情況，請立即致電當地緊急服務。",
+      "s1p": "Miruwa 是監測支援軟件，以確定性、可審計的規則標示監測信號供專業人員覆查。它不作診斷、不處方藥物、不提供治療建議，亦不能取代臨床判斷或緊急服務。如遇緊急情況，請立即致電當地緊急服務。",
       "s2h": "授權使用",
       "s2p": "護士儀表板及病人紀錄僅限由部署機構管理員開立的員工帳戶使用。帳戶屬個人專用，不得共享登入憑證。員工離職時，機構有責任撤銷其存取權限。",
       "s3h": "服務預期",
-      "s3p": "每日報到依賴第三方通訊服務（經 Twilio 的 WhatsApp）及病人回覆；跟進漏報到的責任仍在護理團隊。CareLoop 按與部署機構簽訂的服務協議提供，該協議規管系統可用性、支援及責任條款。",
+      "s3p": "每日報到依賴第三方通訊服務（經 Twilio 的 WhatsApp）及病人回覆；跟進漏報到的責任仍在護理團隊。Miruwa 按與部署機構簽訂的服務協議提供，該協議規管系統可用性、支援及責任條款。",
       "s4h": "數據",
       "s4p": "病人數據的使用受部署機構的協議及以下文件規管：",
       "s4link": "私隱政策"
@@ -311,7 +311,7 @@
   "auth": {
     "login": {
       "metaTitle": "登入",
-      "title": "登入 CareLoop",
+      "title": "登入 Miruwa",
       "sub": "護士及管理員專用的監測儀表板。",
       "email": "電郵",
       "emailPlaceholder": "nurse@hospital.hk",
@@ -343,7 +343,7 @@
       "metaTitle": "沒有存取權限",
       "title": "帳戶尚未開通",
       "bodyPrefix": "您已登入為",
-      "bodySuffix": "，但此帳戶尚未獲得任何 CareLoop 機構的存取權限。請聯絡您機構的管理員完成邀請流程。"
+      "bodySuffix": "，但此帳戶尚未獲得任何 Miruwa 機構的存取權限。請聯絡您機構的管理員完成邀請流程。"
     }
   },
   "dashboard": {
@@ -645,15 +645,15 @@
   },
   "onboard": {
     "metaTitle": "病人登記",
-    "title": "啟動您的 CareLoop 報到",
+    "title": "啟動您的 Miruwa 報到",
     "sub": "在 WhatsApp 完成兩個簡單步驟——毋須安裝應用程式，毋須開戶。",
     "scanCaption": "掃描以開啟 WhatsApp（號碼：{number}）",
     "step1Title": "掃描二維碼並按發送",
-    "step1Body": "WhatsApp 會自動填好「{joinText}」。直接發送即可——這一步將您連接至 CareLoop。",
+    "step1Body": "WhatsApp 會自動填好「{joinText}」。直接發送即可——這一步將您連接至 Miruwa。",
     "step2Title": "發送您的第一條訊息",
-    "step2Body": "回覆您今日的感覺——可以打字，或發送廣東話語音（例如「今日有啲氣促，對腳腫咗」）。CareLoop 會確認您的登記，您的病人紀錄亦會出現在護士儀表板上待確認。",
-    "whyTwo": "為何要兩條訊息？第一條將您連接至 WhatsApp 沙盒；第二條才是 CareLoop 實際收到的第一條訊息，讓系統取得您的號碼（單憑掃描無法得知號碼）。此後 CareLoop 會每日主動發送報到——您只需回覆。",
-    "disclaimer": "CareLoop 屬監測支援——並非診斷或治療工具。"
+    "step2Body": "回覆您今日的感覺——可以打字，或發送廣東話語音（例如「今日有啲氣促，對腳腫咗」）。Miruwa 會確認您的登記，您的病人紀錄亦會出現在護士儀表板上待確認。",
+    "whyTwo": "為何要兩條訊息？第一條將您連接至 WhatsApp 沙盒；第二條才是 Miruwa 實際收到的第一條訊息，讓系統取得您的號碼（單憑掃描無法得知號碼）。此後 Miruwa 會每日主動發送報到——您只需回覆。",
+    "disclaimer": "Miruwa 屬監測支援——並非診斷或治療工具。"
   },
   "settings": {
     "metaTitle": "設定",
@@ -725,7 +725,7 @@
       "title": "機構",
       "name": "名稱",
       "id": "機構編號",
-      "note": "CareLoop 已具備多機構架構——所有紀錄均以此機構為範圍。多機構管理功能將於日後版本推出。"
+      "note": "Miruwa 已具備多機構架構——所有紀錄均以此機構為範圍。多機構管理功能將於日後版本推出。"
     },
     "demo": {
       "title": "示範工具",
@@ -859,7 +859,7 @@
       "summaryReadyTemplate": "每週摘要已備妥（範本）",
       "summaryDesc": "開啟陳太 → 匯出及審計，即可查閱及下載。",
       "summaryFailed": "未能產生摘要",
-      "noNumbers": "尚未取得任何病人的 WhatsApp 號碼——請先向 CareLoop 號碼發送訊息。",
+      "noNumbers": "尚未取得任何病人的 WhatsApp 號碼——請先向 Miruwa 號碼發送訊息。",
       "sent": "每日報到已發送至 {sent}/{total} 位病人。",
       "sendFailed": "未能發送報到"
     }
@@ -951,24 +951,24 @@
       "label2": "供護士／醫生覆查",
       "label3": "不提供治療建議",
       "label4": "示範數據",
-      "banner": "CareLoop 不作診斷或處方，只標示監測風險供專業人員覆查。",
+      "banner": "Miruwa 不作診斷或處方，只標示監測風險供專業人員覆查。",
       "note": "此警示並非診斷或治療建議，而是供專業人員覆查的監測提示。"
     }
   },
   "metadata": {
-    "rootTitle": "CareLoop — 遠程慢性病監測",
-    "rootDescription": "CareLoop 將每日廣東話報到、生命體徵信號及確定性升級規則，轉化為護士覆查工作流程，服務覆診之間的香港長者。監測支援——並非診斷。",
+    "rootTitle": "Miruwa — 遠程慢性病監測",
+    "rootDescription": "Miruwa 將每日廣東話報到、生命體徵信號及確定性升級規則，轉化為護士覆查工作流程，服務覆診之間的香港長者。監測支援——並非診斷。",
     "ogDescription": "每日 WhatsApp 報到、確定性風險規則，以及例外為先的護士儀表板，服務覆診之間的慢性病護理。",
     "landingDescription": "WhatsApp 報到、生命體徵信號及可解釋的確定性規則，協助護士在覆診之間監測長者慢性病患者。監測支援——並非診斷。",
-    "businessDescription": "誰會為 CareLoop 付費及原因：安老服務營運機構、居家護理機構、診所及保險公司——關鍵指標、規模化風險及應對方案。",
+    "businessDescription": "誰會為 Miruwa 付費及原因：安老服務營運機構、居家護理機構、診所及保險公司——關鍵指標、規模化風險及應對方案。",
     "pricingTitle": "收費模式",
-    "pricingDescription": "CareLoop 的合作模式：先導計劃、按病人訂閱及企業專屬系統。不設公開價目表——每間醫院的範圍各有不同。",
+    "pricingDescription": "Miruwa 的合作模式：先導計劃、按病人訂閱及企業專屬系統。不設公開價目表——每間醫院的範圍各有不同。",
     "securityTitle": "安全與信任",
-    "securityDescription": "CareLoop 如何保護病人數據：每間醫院獨立系統、加密、審計紀錄及確定性臨床規則。",
+    "securityDescription": "Miruwa 如何保護病人數據：每間醫院獨立系統、加密、審計紀錄及確定性臨床規則。",
     "contactTitle": "預約示範",
     "contactDescription": "告訴我們您病房或計劃的情況——先導計劃、收費及安全評估。真人會在一個工作天內回覆。",
-    "privacyDescription": "CareLoop 如何處理病人監測數據。",
-    "termsDescription": "CareLoop 監測平台的使用條款。"
+    "privacyDescription": "Miruwa 如何處理病人監測數據。",
+    "termsDescription": "Miruwa 監測平台的使用條款。"
   },
   "notFound": {
     "title": "找不到頁面",

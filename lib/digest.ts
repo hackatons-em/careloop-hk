@@ -4,7 +4,7 @@
 // For every active patient whose family consented: generate (and store) the
 // weekly summary, then deliver the bilingual caregiver text by email and/or
 // WhatsApp. Good news is sent too — families shouldn't only hear from
-// CareLoop when something is wrong.
+// Miruwa when something is wrong.
 
 import "server-only";
 import { sendWithFallback } from "./channels";

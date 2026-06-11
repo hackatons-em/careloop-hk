@@ -112,7 +112,7 @@ export async function POST(req: Request) {
   // On the first message, confirm enrolment to the sender.
   if (isNewPatient) {
     return twiml(
-      `多謝！你已經登記咗 CareLoop 每日報到。Thank you — you're now enrolled in CareLoop daily check-ins. A nurse will review your details.\n\n${result.reply}`,
+      `多謝！你已經登記咗 Miruwa 每日報到。Thank you — you're now enrolled in Miruwa daily check-ins. A nurse will review your details.\n\n${result.reply}`,
     );
   }
   return twiml(result.reply);

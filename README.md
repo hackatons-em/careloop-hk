@@ -1,15 +1,15 @@
-# CareLoop
+# Miruwa
 
 **Remote chronic-care monitoring for elderly Hong Kong patients — between clinic visits.**
 
 Live: **https://careloop-hk.vercel.app** · Disclosure: [`HONESTY.md`](./HONESTY.md) · In-app: `/honesty`
 
-Patients check in over **WhatsApp** (text or Cantonese voice note). CareLoop transcribes and
+Patients check in over **WhatsApp** (text or Cantonese voice note). Miruwa transcribes and
 extracts the message into structured data, runs a **deterministic, auditable rule engine** to decide
 severity, and surfaces only the patients a nurse needs to review — with caregiver alerts, weekly
 clinician summaries, and FHIR-style exports.
 
-CareLoop is **monitoring support, not a medical device.** It does not diagnose or prescribe. AI is
+Miruwa is **monitoring support, not a medical device.** It does not diagnose or prescribe. AI is
 used only for the *language* layer (transcription, extraction, message wording); **clinical severity
 is always decided by explicit rules, never by an LLM.**
 
@@ -123,6 +123,6 @@ See `.env.example` for the full list (rate limiting, Sentry, scheduler, model ov
 
 ## Safety & honesty
 
-CareLoop is monitoring support — not a diagnosis or treatment tool, and not a replacement for a
+Miruwa is monitoring support — not a diagnosis or treatment tool, and not a replacement for a
 clinician or emergency service. All demo data is synthetic; no secrets are committed.
 [`HONESTY.md`](./HONESTY.md) documents exactly what is real vs mocked.

@@ -196,7 +196,7 @@ function signed(n: number | null): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
-const SYSTEM_PROMPT = `You are a clinical documentation assistant for CareLoop, a remote chronic-care MONITORING tool for elderly Hong Kong patients.
+const SYSTEM_PROMPT = `You are a clinical documentation assistant for Miruwa, a remote chronic-care MONITORING tool for elderly Hong Kong patients.
 Rewrite the provided weekly monitoring summary into clear, plain clinical language for a nurse or clinician.
 Hard rules:
 - Do NOT diagnose or speculate about causes.

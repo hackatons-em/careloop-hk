@@ -7,7 +7,7 @@ test.describe("anonymous access", () => {
   test("dashboard redirects to login", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole("heading", { name: "Sign in to CareLoop" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Sign in to Miruwa" })).toBeVisible();
   });
 
   test("patient API returns 401", async ({ request }) => {
@@ -22,7 +22,7 @@ test.describe("anonymous access", () => {
 
   test("landing page renders with no patient data", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("CareLoop");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Miruwa");
     const html = await page.content();
     // Seeded patient names must never appear in public HTML.
     expect(html).not.toContain("Mrs. Wong");

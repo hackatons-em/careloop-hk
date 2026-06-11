@@ -1,4 +1,4 @@
-# CareLoop — Technical Deep Dive (2-min screen recording)
+# Miruwa — Technical Deep Dive (2-min screen recording)
 
 Read-aloud script for the technical video. Just read the indented lines top to
 bottom — each line is about one breath, broken where you'd naturally pause.
@@ -6,7 +6,7 @@ bottom — each line is about one breath, broken where you'd naturally pause.
 
 ## Setup (before you hit record)
 
-- **Left of screen:** CareLoop on a patient's detail page (the live WhatsApp panel visible).
+- **Left of screen:** Miruwa on a patient's detail page (the live WhatsApp panel visible).
 - **Right of screen:** a phone with WhatsApp, already connected to that demo patient.
 - Have a **voice note** ready that says: _"My breath is short."_
 - Open the `/architecture` page in a tab.
@@ -17,7 +17,7 @@ bottom — each line is about one breath, broken where you'd naturally pause.
 
 `[DO]` Show the `/architecture` page.
 
-> This is how CareLoop works under the hood.
+> This is how Miruwa works under the hood.
 >
 > The patient lives entirely inside WhatsApp — there's no app to install.
 > They scan a QR code once to onboard,
@@ -74,7 +74,7 @@ bottom — each line is about one breath, broken where you'd naturally pause.
 > a weekly clinician summary with a PDF,
 > and a FHIR-style export.
 >
-> That's CareLoop:
+> That's Miruwa:
 > meet elderly patients where they already are,
 > and turn their replies into safe, auditable nurse-review tasks —
 > never an AI diagnosis.

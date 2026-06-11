@@ -1,6 +1,6 @@
 {
   "common": {
-    "appName": "CareLoop",
+    "appName": "Miruwa",
     "cancel": "Cancel",
     "save": "Save",
     "copy": "Copy",
@@ -36,7 +36,7 @@
     "pricing": "Pricing",
     "security": "Security",
     "contact": "Contact",
-    "disclaimer": "CareLoop flags monitoring risks for professional review. It does not diagnose or prescribe."
+    "disclaimer": "Miruwa flags monitoring risks for professional review. It does not diagnose or prescribe."
   },
   "localeSwitcher": {
     "label": "Language"
@@ -50,7 +50,7 @@
   },
   "landing": {
     "badge": "Hong Kong elderly chronic-care monitoring",
-    "heroTitle": "CareLoop watches the",
+    "heroTitle": "Miruwa watches the",
     "heroTitleAccent": "gaps between visits.",
     "heroSub": "WhatsApp check-ins, vital signals, and explainable rules help nurses monitor elderly chronic-care patients between clinic visits.",
     "heroCtaSecondary": "See how it works",
@@ -64,7 +64,7 @@
     },
     "glimpse": {
       "title": "One queue. Only the exceptions.",
-      "sub": "Nurses don't scan 24 patients — CareLoop surfaces the few who need review and says exactly why.",
+      "sub": "Nurses don't scan 24 patients — Miruwa surfaces the few who need review and says exactly why.",
       "panelLabel": "Nurse dashboard · exceptions first",
       "panelCount": "3 of 24 need review",
       "row1Note": "Weight up 2.3 kg · breathless",
@@ -75,7 +75,7 @@
       "stableLine": "21 stable patients — checked automatically, nothing to do"
     },
     "preview": {
-      "label": "Patient · CareLoop",
+      "label": "Patient · Miruwa",
       "bubbleText": "Feeling more tired today… my legs look swollen.",
       "bubbleMeta": "WhatsApp · 08:14",
       "escalate": "Escalate",
@@ -147,7 +147,7 @@
       "link": "Read our security overview →"
     },
     "cta": {
-      "title": "See CareLoop on your own ward's workflow.",
+      "title": "See Miruwa on your own ward's workflow.",
       "sub": "A 30-minute walkthrough with our team — your use case, your language mix, your escalation rules.",
       "primary": "Request a demo",
       "secondary": "How pricing works"
@@ -156,7 +156,7 @@
   "public": {
     "business": {
       "title": "Business case",
-      "sub": "CareLoop turns between-visit monitoring into an operational workflow. Here is who buys it, why, and how it stays safe at scale.",
+      "sub": "Miruwa turns between-visit monitoring into an operational workflow. Here is who buys it, why, and how it stays safe at scale.",
       "whoTitle": "Who pays?",
       "who1": "Elderly-care operators",
       "who2": "Home-care agencies",
@@ -185,7 +185,7 @@
       "scale4": "Caregiver trust",
       "scale5": "Clinical liability",
       "scale6": "Workflow adoption",
-      "handleTitle": "How CareLoop handles it",
+      "handleTitle": "How Miruwa handles it",
       "handle1": "Conservative rules",
       "handle2": "Data completeness score",
       "handle3": "Human-in-the-loop nurse review",
@@ -196,7 +196,7 @@
     },
     "pricing": {
       "title": "Pricing that follows the engagement",
-      "sub": "CareLoop is deployed per hospital, not per seat. We scope every engagement together — here is how it usually runs.",
+      "sub": "Miruwa is deployed per hospital, not per seat. We scope every engagement together — here is how it usually runs.",
       "pilotName": "Pilot program",
       "pilotTag": "Start here",
       "pilot1": "One ward or care program, with a defined patient cohort",
@@ -223,9 +223,9 @@
     },
     "security": {
       "title": "Security & trust",
-      "sub": "How CareLoop protects patient data, in plain language. Questions we haven't answered here: ask us directly.",
+      "sub": "How Miruwa protects patient data, in plain language. Questions we haven't answered here: ask us directly.",
       "isolationTitle": "One hospital, one instance",
-      "isolationBody": "Every production hospital runs its own dedicated CareLoop instance — its own database, its own application deployment, its own WhatsApp number. Your patients' data never shares infrastructure with another organization. Not \"logically separated\" — physically separate.",
+      "isolationBody": "Every production hospital runs its own dedicated Miruwa instance — its own database, its own application deployment, its own WhatsApp number. Your patients' data never shares infrastructure with another organization. Not \"logically separated\" — physically separate.",
       "accessTitle": "Access control",
       "accessBody": "Staff accounts are provisioned by your administrator — there is no public signup. Two roles (administrator and nurse), and every page and API call re-checks the session on the server.",
       "encryptionTitle": "Encryption",
@@ -239,10 +239,10 @@
       "backupsTitle": "Backups & recovery",
       "backupsBody": "Daily automated backups are standard; point-in-time recovery is available on enterprise instances.",
       "certsTitle": "Certifications — honest status",
-      "certsBody": "CareLoop is not yet SOC 2 or ISO 27001 certified. We are early, and we won't pretend otherwise. Our roadmap: SOC 2 Type I, then Type II. We will share our security questionnaire answers and architecture documentation with any evaluating hospital.",
+      "certsBody": "Miruwa is not yet SOC 2 or ISO 27001 certified. We are early, and we won't pretend otherwise. Our roadmap: SOC 2 Type I, then Type II. We will share our security questionnaire answers and architecture documentation with any evaluating hospital.",
       "reportingTitle": "Vulnerability reporting",
       "reportingBody": "Report security issues privately to the team — never through public issue trackers, and never with real patient data in the report.",
-      "ctaTitle": "Evaluating CareLoop for your hospital?",
+      "ctaTitle": "Evaluating Miruwa for your hospital?",
       "ctaSub": "We'll walk your IT and data-protection teams through everything.",
       "ctaButton": "Request a security review call"
     },
@@ -283,10 +283,10 @@
     "privacy": {
       "title": "Privacy policy",
       "updated": "Last updated: June 2026",
-      "s1h": "What CareLoop does",
-      "s1p": "CareLoop provides monitoring support for chronic-care programs: it collects daily check-ins and vital readings, applies deterministic escalation rules, and surfaces results to the care team. CareLoop does not diagnose, prescribe, or replace clinical judgment.",
+      "s1h": "What Miruwa does",
+      "s1p": "Miruwa provides monitoring support for chronic-care programs: it collects daily check-ins and vital readings, applies deterministic escalation rules, and surfaces results to the care team. Miruwa does not diagnose, prescribe, or replace clinical judgment.",
       "s2h": "Data we process",
-      "s2p": "On behalf of the deploying healthcare organization, CareLoop processes: patient identification details entered by the care team (name, age, conditions, caregiver contact), WhatsApp messages and voice-note transcripts sent to the check-in number, vital readings (weight, blood pressure, heart rate, activity, sleep), and the resulting risk evaluations. An append-only audit trail records every access and action for accountability.",
+      "s2p": "On behalf of the deploying healthcare organization, Miruwa processes: patient identification details entered by the care team (name, age, conditions, caregiver contact), WhatsApp messages and voice-note transcripts sent to the check-in number, vital readings (weight, blood pressure, heart rate, activity, sleep), and the resulting risk evaluations. An append-only audit trail records every access and action for accountability.",
       "s3h": "Where it lives and who sees it",
       "s3p": "Data is stored in the organization's dedicated database (Supabase Postgres) and is scoped to that organization. Access requires a staff account provisioned by the organization's administrator. Voice notes are transcribed and free-text messages are structured using AI services (speech-to-text and language models); these services process message content only and never decide clinical severity.",
       "s4h": "Retention and rights",
@@ -298,11 +298,11 @@
       "title": "Terms of use",
       "updated": "Last updated: June 2026",
       "s1h": "Not a medical device",
-      "s1p": "CareLoop is monitoring support software. It flags monitoring signals for professional review using deterministic, auditable rules. It does not diagnose, prescribe, or provide treatment recommendations, and it is not a substitute for clinical judgment or emergency services. In an emergency, call local emergency services immediately.",
+      "s1p": "Miruwa is monitoring support software. It flags monitoring signals for professional review using deterministic, auditable rules. It does not diagnose, prescribe, or provide treatment recommendations, and it is not a substitute for clinical judgment or emergency services. In an emergency, call local emergency services immediately.",
       "s2h": "Authorized use",
       "s2p": "The nurse dashboard and patient records are restricted to staff accounts provisioned by the deploying organization's administrator. Accounts are personal; credentials must not be shared. The organization is responsible for revoking access when staff leave.",
       "s3h": "Service expectations",
-      "s3p": "Daily check-ins depend on third-party messaging (WhatsApp via Twilio) and patient response; the care team remains responsible for following up on missed check-ins. CareLoop is provided as part of a service agreement with the deploying organization, which governs uptime, support, and liability.",
+      "s3p": "Daily check-ins depend on third-party messaging (WhatsApp via Twilio) and patient response; the care team remains responsible for following up on missed check-ins. Miruwa is provided as part of a service agreement with the deploying organization, which governs uptime, support, and liability.",
       "s4h": "Data",
       "s4p": "Use of patient data is governed by the deploying organization's agreements and the",
       "s4link": "privacy policy"
@@ -311,7 +311,7 @@
   "auth": {
     "login": {
       "metaTitle": "Sign in",
-      "title": "Sign in to CareLoop",
+      "title": "Sign in to Miruwa",
       "sub": "Nurse and admin access to the monitoring dashboard.",
       "email": "Email",
       "emailPlaceholder": "nurse@hospital.hk",
@@ -343,7 +343,7 @@
       "metaTitle": "No access",
       "title": "Account not provisioned",
       "bodyPrefix": "You're signed in as",
-      "bodySuffix": ", but this account has no access to a CareLoop organization yet. Ask your organization's administrator to complete your invitation."
+      "bodySuffix": ", but this account has no access to a Miruwa organization yet. Ask your organization's administrator to complete your invitation."
     }
   },
   "dashboard": {
@@ -645,15 +645,15 @@
   },
   "onboard": {
     "metaTitle": "Onboard a patient",
-    "title": "Activate your CareLoop check-in",
+    "title": "Activate your Miruwa check-in",
     "sub": "Two quick steps in WhatsApp — no app to install, no account.",
     "scanCaption": "Scan to open WhatsApp to {number}",
     "step1Title": "Scan the QR and hit send",
-    "step1Body": "WhatsApp opens with \"{joinText}\" already typed. Just send it — this connects you to CareLoop.",
+    "step1Body": "WhatsApp opens with \"{joinText}\" already typed. Just send it — this connects you to Miruwa.",
     "step2Title": "Write your first message",
-    "step2Body": "Reply with how you feel today — type, or send a Cantonese voice note (e.g. \"今日有啲氣促，對腳腫咗\"). CareLoop confirms your enrolment, and your patient record appears on the nurse dashboard for review.",
-    "whyTwo": "Why two messages? The first connects you to the WhatsApp sandbox; the second is the first one CareLoop actually receives, so it learns your number (a scan alone never reveals it). From then on, CareLoop sends you the daily check-in first — you just reply.",
-    "disclaimer": "CareLoop is monitoring support — not a diagnosis or treatment tool."
+    "step2Body": "Reply with how you feel today — type, or send a Cantonese voice note (e.g. \"今日有啲氣促，對腳腫咗\"). Miruwa confirms your enrolment, and your patient record appears on the nurse dashboard for review.",
+    "whyTwo": "Why two messages? The first connects you to the WhatsApp sandbox; the second is the first one Miruwa actually receives, so it learns your number (a scan alone never reveals it). From then on, Miruwa sends you the daily check-in first — you just reply.",
+    "disclaimer": "Miruwa is monitoring support — not a diagnosis or treatment tool."
   },
   "settings": {
     "metaTitle": "Settings",
@@ -725,7 +725,7 @@
       "title": "Organization",
       "name": "Name",
       "id": "Organization ID",
-      "note": "CareLoop is multi-tenant ready — every record is scoped to this organization. Multi-organization management lands in a future release."
+      "note": "Miruwa is multi-tenant ready — every record is scoped to this organization. Multi-organization management lands in a future release."
     },
     "demo": {
       "title": "Demo tools",
@@ -859,7 +859,7 @@
       "summaryReadyTemplate": "Weekly summary ready (template)",
       "summaryDesc": "Open Mrs. Chan → Export & audit to view and download.",
       "summaryFailed": "Could not generate summary",
-      "noNumbers": "No patient WhatsApp numbers known yet — message the CareLoop number first.",
+      "noNumbers": "No patient WhatsApp numbers known yet — message the Miruwa number first.",
       "sent": "Daily check-in sent to {sent}/{total} patient(s).",
       "sendFailed": "Could not send check-in"
     }
@@ -951,24 +951,24 @@
       "label2": "For nurse / clinician review",
       "label3": "No treatment recommendation",
       "label4": "Demo data",
-      "banner": "CareLoop does not diagnose or prescribe. It flags monitoring risks for professional review.",
+      "banner": "Miruwa does not diagnose or prescribe. It flags monitoring risks for professional review.",
       "note": "This alert is not a diagnosis or treatment recommendation. It is a monitoring prompt for professional review."
     }
   },
   "metadata": {
-    "rootTitle": "CareLoop — Remote chronic-care monitoring",
-    "rootDescription": "CareLoop turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
+    "rootTitle": "Miruwa — Remote chronic-care monitoring",
+    "rootDescription": "Miruwa turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
     "ogDescription": "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
     "landingDescription": "WhatsApp check-ins, vital signals, and explainable deterministic rules help nurses monitor elderly chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
-    "businessDescription": "Who pays for CareLoop and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
+    "businessDescription": "Who pays for Miruwa and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
     "pricingTitle": "Pricing",
-    "pricingDescription": "How CareLoop engagements work: pilot program, per-patient subscription, and dedicated enterprise instances. No public price list — every hospital's scope differs.",
+    "pricingDescription": "How Miruwa engagements work: pilot program, per-patient subscription, and dedicated enterprise instances. No public price list — every hospital's scope differs.",
     "securityTitle": "Security & trust",
-    "securityDescription": "How CareLoop protects patient data: dedicated instances per hospital, encryption, audit trails, and deterministic clinical rules.",
+    "securityDescription": "How Miruwa protects patient data: dedicated instances per hospital, encryption, audit trails, and deterministic clinical rules.",
     "contactTitle": "Request a demo",
     "contactDescription": "Tell us about your ward or program — pilots, pricing, and security reviews. A real person replies within one business day.",
-    "privacyDescription": "How CareLoop handles patient monitoring data.",
-    "termsDescription": "Terms of use for the CareLoop monitoring platform."
+    "privacyDescription": "How Miruwa handles patient monitoring data.",
+    "termsDescription": "Terms of use for the Miruwa monitoring platform."
   },
   "notFound": {
     "title": "Page not found",

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "CareLoop watches the gaps between visits.";
+export const alt = "Miruwa watches the gaps between visits.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -41,7 +41,7 @@ export default function OpengraphImage() {
             </svg>
           </div>
           <div style={{ display: "flex", fontSize: 40, fontWeight: 700, color: "#0f172a", letterSpacing: "-1px" }}>
-            CareLoop
+            Miruwa
           </div>
         </div>
 
@@ -75,7 +75,7 @@ export default function OpengraphImage() {
             maxWidth: 1040,
           }}
         >
-          <span style={{ color: "#0f172a" }}>CareLoop watches the</span>
+          <span style={{ color: "#0f172a" }}>Miruwa watches the</span>
           <span style={{ color: "#0f766e" }}>gaps between visits.</span>
         </div>
 

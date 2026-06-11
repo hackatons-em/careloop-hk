@@ -1,6 +1,6 @@
 // Organization resolution (server-only).
 //
-// CareLoop is multi-tenant ready: every careloop_* row carries an org_id. The
+// Miruwa is multi-tenant ready: every careloop_* row carries an org_id. The
 // current UX is single-org, so entry points that have no user session (the
 // WhatsApp webhook, cron) resolve the seeded default organization. When real
 // multi-org routing lands (e.g. per-org WhatsApp numbers), this is the one
