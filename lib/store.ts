@@ -17,7 +17,7 @@
 
 import { buildCaregiverAlert } from "./caregiver";
 import { sendWithFallback } from "./channels";
-import { addDays, localMidnightUtcISO, todayISO } from "./dates";
+import { addDays, followUpDueISO, localMidnightUtcISO, todayISO } from "./dates";
 import { isDemoMode } from "./flags";
 import { logger } from "./logger";
 import {
@@ -806,6 +806,7 @@ export async function createPatient(
   await pushAudit(orgId, "patient_created", actor, "patient", patient.id, {
     name: patient.name,
   });
+  await broadcastOrgEvent(orgId, "data_changed");
   return patient;
 }
 
@@ -880,6 +881,9 @@ export async function updatePatient(
       via: "form",
     });
   }
+  // Archiving auto-resolves alerts (handled above) → alerts_changed; any edit
+  // otherwise → data_changed, so other open dashboards refetch promptly.
+  await broadcastOrgEvent(orgId, input.status === "archived" ? "alerts_changed" : "data_changed");
   return updated;
 }
 
@@ -1024,6 +1028,10 @@ export async function submitCheckIn(
 
   await pushAudit(orgId, "checkin_submitted", actor, "patient", patientId, { date });
   const { risk, alert } = await upsertAlertFor(orgId, patientId, actor);
+  // Nudge open dashboards to refetch now (a stable check-in produces no alert,
+  // so afterAlertWrite — which broadcasts — never runs; without this the row
+  // only updates on the 30s poll). A non-escalating ping carries no toast.
+  await broadcastOrgEvent(orgId, "data_changed");
   return { checkin, risk, alert };
 }
 
@@ -1038,7 +1046,9 @@ export async function addVital(
 ): Promise<RiskResult | null> {
   if (!(await fetchPatient(orgId, patientId))) return null;
   await upsertVital(orgId, patientId, date ?? todayISO(), type, value, unit);
-  return (await upsertAlertFor(orgId, patientId, "nurse")).risk;
+  const { risk } = await upsertAlertFor(orgId, patientId, "nurse");
+  await broadcastOrgEvent(orgId, "data_changed");
+  return risk;
 }
 
 export async function evaluatePatient(
@@ -1128,7 +1138,7 @@ export async function createTask(
     patient_id: string;
     alert_id?: string | null;
     description: string;
-    due_at: string;
+    due_at?: string;
     assigned_to?: string;
   },
   actor: string,
@@ -1142,7 +1152,9 @@ export async function createTask(
     patient_id: input.patient_id,
     alert_id: alertId,
     description: input.description,
-    due_at: input.due_at,
+    // Default due time is computed in the clinical timezone server-side, so it
+    // never depends on the nurse's browser zone (and never starts overdue).
+    due_at: input.due_at ?? followUpDueISO(),
     assigned_to: input.assigned_to ?? "",
     status: "open",
     created_by: actor,

@@ -38,6 +38,33 @@ export function addDays(iso: string, delta: number): string {
  * from the date itself (via Intl.formatToParts, so the host machine's own
  * timezone never leaks in), so it stays correct across DST for any tz.
  */
+/**
+ * Default follow-up due instant: 18:00 today in the clinical timezone, or
+ * 09:00 tomorrow if it is already ≥18:00 there — so a task never starts life
+ * overdue. Computed in CARELOOP_TZ (not the caller's zone), so the server owns
+ * the wall-clock instead of trusting a browser's local time.
+ */
+export function followUpDueISO(timeZone = process.env.CARELOOP_TZ ?? "Asia/Hong_Kong"): string {
+  // Current wall-clock hour + date in the target zone.
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    hourCycle: "h23",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+  }).formatToParts(new Date());
+  const get = (t: string) => parts.find((p) => p.type === t)!.value;
+  const localDate = `${get("year")}-${get("month")}-${get("day")}`;
+  const hour = Number(get("hour"));
+  const midnight = localMidnightUtcISO(localDate, timeZone);
+  const base = Date.parse(midnight);
+  // 18:00 today, else 09:00 the next local day.
+  return hour >= 18
+    ? new Date(base + 33 * 3_600_000).toISOString() // +24h + 9h
+    : new Date(base + 18 * 3_600_000).toISOString();
+}
+
 export function localMidnightUtcISO(isoDate: string, timeZone: string): string {
   const [y, m, d] = isoDate.slice(0, 10).split("-").map(Number);
   // T0 = midnight-UTC of the target date. We want M, the instant whose

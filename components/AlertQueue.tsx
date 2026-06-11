@@ -136,10 +136,17 @@ function AlertCard({
   const t = useTranslations("alerts");
   const td = useTranslations("domain.alertStatus");
   const { formatDay, formatDateTime } = useFormat();
-  const [status, setStatus] = useState<AlertStatus>(alert.status);
-  const [note, setNote] = useState(alert.nurse_note ?? "");
-  const [assignee, setAssignee] = useState(alert.assigned_to);
-  const [reassigning, setReassigning] = useState(false);
+  // Edit state is DERIVED from the server prop unless actively being edited, so
+  // a 30s poll / realtime refresh (SLA sweep or another nurse) never shows
+  // stale values and a blur never overwrites a newer note — without any
+  // prop→state resync effect (which the lint rule disallows). A null/false
+  // "editing" marker means "follow the server value".
+  const [stagedStatus, setStagedStatus] = useState<AlertStatus | null>(null);
+  const status = stagedStatus ?? alert.status;
+  const [noteDraft, setNoteDraft] = useState<string | null>(null);
+  const note = noteDraft ?? alert.nurse_note ?? "";
+  const [assigneeDraft, setAssigneeDraft] = useState<string | null>(null);
+  const reassigning = assigneeDraft !== null;
   const [taskOpen, setTaskOpen] = useState(false);
   const [taskText, setTaskText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -149,7 +156,8 @@ function AlertCard({
     try {
       const finalStatus = nextStatus ?? status;
       await api.patchAlert(alert.id, { status: finalStatus, nurse_note: note || null });
-      setStatus(finalStatus);
+      setStagedStatus(null); // back to following the server value
+      setNoteDraft(null);
       await onChanged();
       if (!opts?.quiet) toast.success(t(`toasts.${finalStatus}`));
     } catch (e) {
@@ -159,11 +167,29 @@ function AlertCard({
     }
   }
 
+  // Note-only autosave on blur — must NOT commit a staged-but-un-Saved status
+  // change (the dropdown is committed only by the explicit Save button).
+  async function saveNoteOnly() {
+    if (noteDraft === null || noteDraft === (alert.nurse_note ?? "")) {
+      setNoteDraft(null);
+      return;
+    }
+    setBusy(true);
+    try {
+      await api.patchAlert(alert.id, { nurse_note: noteDraft || null });
+      setNoteDraft(null);
+      await onChanged();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("toasts.failed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function reassign() {
-    const to = assignee.trim();
+    const to = (assigneeDraft ?? "").trim();
     if (!to || to === alert.assigned_to) {
-      setReassigning(false);
-      setAssignee(alert.assigned_to);
+      setAssigneeDraft(null);
       return;
     }
     setBusy(true);
@@ -171,10 +197,10 @@ function AlertCard({
       await api.patchAlert(alert.id, { assigned_to: to });
       await onChanged();
       toast.success(t("card.reassigned", { name: to }));
-      setReassigning(false);
+      setAssigneeDraft(null);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("toasts.failed"));
-      setAssignee(alert.assigned_to);
+      setAssigneeDraft(null);
     } finally {
       setBusy(false);
     }
@@ -185,21 +211,13 @@ function AlertCard({
     if (!description) return;
     setBusy(true);
     try {
-      // Due 18:00 today — or 09:00 tomorrow when 18:00 already passed, so a
-      // task never starts life overdue.
-      const due = new Date();
-      if (due.getHours() >= 18) {
-        due.setDate(due.getDate() + 1);
-        due.setHours(9, 0, 0, 0);
-      } else {
-        due.setHours(18, 0, 0, 0);
-      }
+      // due_at omitted — the server fills a HK-anchored default (18:00 today
+      // or 09:00 tomorrow), so the due time never depends on the browser zone.
       await api.createTask({
         patient_id: alert.patient_id,
         alert_id: alert.id,
         description,
-        due_at: due.toISOString(),
-        assigned_to: assignee || alert.assigned_to,
+        assigned_to: alert.assigned_to,
       });
       setTaskText("");
       setTaskOpen(false);
@@ -231,7 +249,9 @@ function AlertCard({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <AlertStatusBadge status={status} />
+          {/* Badge reflects the SERVER status (always current), not the staged
+              dropdown value. */}
+          <AlertStatusBadge status={alert.status} />
           <span className="text-xs text-muted-foreground">{formatDateTime(alert.created_at)}</span>
         </div>
       </div>
@@ -243,14 +263,17 @@ function AlertCard({
           <span className="inline-flex items-center gap-1.5">
             <Stethoscope className="size-3.5 text-primary" />
             <input
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
+              value={assigneeDraft ?? ""}
+              onChange={(e) => setAssigneeDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") void reassign();
-                if (e.key === "Escape") {
-                  setReassigning(false);
-                  setAssignee(alert.assigned_to);
-                }
+                if (e.key === "Escape") setAssigneeDraft(null);
+              }}
+              onBlur={(e) => {
+                // Cancel cleanly if focus leaves without confirming, so a typed
+                // name isn't left dangling. Ignore blur onto the confirm button.
+                const next = e.relatedTarget as HTMLElement | null;
+                if (next?.dataset.reassignConfirm === undefined) setAssigneeDraft(null);
               }}
               list={`nurses-${alert.id}`}
               autoFocus
@@ -264,7 +287,9 @@ function AlertCard({
             </datalist>
             <button
               type="button"
+              data-reassign-confirm
               disabled={busy}
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => void reassign()}
               className="rounded-md border border-border px-2 py-0.5 text-xs font-medium hover:bg-muted"
             >
@@ -274,7 +299,7 @@ function AlertCard({
         ) : (
           <button
             type="button"
-            onClick={() => setReassigning(true)}
+            onClick={() => setAssigneeDraft(alert.assigned_to)}
             title={t("card.reassignLabel")}
             className="inline-flex items-center gap-1.5 rounded-md outline-none hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring"
           >
@@ -299,9 +324,9 @@ function AlertCard({
           {t("card.nurseNote")}
           <input
             value={note}
-            onChange={(e) => setNote(e.target.value)}
+            onChange={(e) => setNoteDraft(e.target.value)}
             onBlur={() => {
-              if (!busy && note !== (alert.nurse_note ?? "")) void save(undefined, { quiet: true });
+              if (!busy) void saveNoteOnly();
             }}
             placeholder={t("card.notePlaceholder")}
             className="mt-1 w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -309,7 +334,7 @@ function AlertCard({
         </label>
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value as AlertStatus)}
+          onChange={(e) => setStagedStatus(e.target.value as AlertStatus)}
           aria-label={t("card.statusLabel")}
           className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring"
         >

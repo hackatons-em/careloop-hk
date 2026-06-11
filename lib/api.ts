@@ -130,7 +130,7 @@ export const api = {
     patient_id: string;
     alert_id?: string | null;
     description: string;
-    due_at: string;
+    due_at?: string;
     assigned_to?: string;
   }) =>
     fetch("/api/tasks", {

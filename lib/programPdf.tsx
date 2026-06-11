@@ -2,6 +2,13 @@
 // Same @react-pdf/renderer setup as lib/pdf.tsx; Helvetica only, so the
 // document is English — standard for HK hospital administration. Every number
 // comes from getProgramMetrics (recorded data only, no projections).
+//
+// KNOWN LIMITATION (tracked): Helvetica has no CJK glyphs, so a Chinese org or
+// nurse name renders blank/tofu. The fix is to Font.register a CJK face (e.g.
+// Noto Sans HK) and set it as the page font — deferred because a full CJK font
+// is multi-MB and risks the Vercel function-size limit, so it needs a subset
+// build / asset decision rather than an inline patch. Same applies to patient
+// names in lib/pdf.tsx.
 
 import {
   Document,
@@ -191,7 +198,7 @@ export async function renderProgramPdf(args: {
           .sort(([, a], [, b]) => b - a)
           .map(([nurse, count]) => (
             <View key={nurse} style={styles.nurseRow}>
-              <Text>{nurse}</Text>
+              <Text>{nurse && nurse !== "Unassigned" ? nurse : "Unassigned (no nurse)"}</Text>
               <Text style={{ fontFamily: "Helvetica-Bold" }}>{count}</Text>
             </View>
           ))}

@@ -37,6 +37,11 @@ export default async function ProgramPage() {
 
   const completionOnTarget = m.checkin_completion_rate >= TARGET_COMPLETION;
   const maxDay = Math.max(1, ...m.daily_checkins.map((d) => d.count));
+  const totalCheckins = m.daily_checkins.reduce((acc, d) => acc + d.count, 0);
+  const peak = m.daily_checkins.reduce(
+    (best, d) => (d.count > best.count ? d : best),
+    { date: "—", count: 0 },
+  );
   const severities: Severity[] = ["watch", "review_today", "escalate"];
 
   return (
@@ -78,7 +83,16 @@ export default async function ProgramPage() {
       {/* daily check-ins sparkline */}
       <section className="rounded-2xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold">{t("dailyCheckins")}</h2>
-        <div className="mt-4 flex h-24 items-end gap-[3px]" role="img" aria-label={t("dailyCheckins")}>
+        <div
+          className="mt-4 flex h-24 items-end gap-[3px]"
+          role="img"
+          aria-label={t("dailyCheckinsSummary", {
+            total: totalCheckins,
+            days: m.window_days,
+            peakCount: peak.count,
+            peakDate: peak.date,
+          })}
+        >
           {m.daily_checkins.map((d) => (
             <div
               key={d.date}

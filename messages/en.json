@@ -404,6 +404,7 @@
     "activePatients": "Patients monitored",
     "silentNow": "{count} currently not responding",
     "dailyCheckins": "Daily completed check-ins",
+    "dailyCheckinsSummary": "Daily completed check-ins over {days} days: {total} total, peak {peakCount} on {peakDate}.",
     "dailyCheckinsRange": "{from} – {to}",
     "alertVolume": "Alerts raised, by severity",
     "slaBreaches": "{count} acknowledgement-window breach event(s) in the audit trail",
@@ -686,7 +687,8 @@
       "save": "Save settings",
       "saving": "Saving…",
       "saved": "Notification settings saved",
-      "saveFailed": "Could not save settings"
+      "saveFailed": "Could not save settings",
+      "fixFields": "Fix the highlighted fields"
     },
     "rules": {
       "title": "Monitoring rules",

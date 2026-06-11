@@ -97,7 +97,11 @@ export const taskCreateSchema = z
     patient_id: z.string().min(1).max(80),
     alert_id: z.string().max(80).nullable().optional(),
     description: z.string().trim().min(1, "Describe the follow-up").max(500),
-    due_at: z.string().datetime({ offset: true, local: true }),
+    // Require an explicit timezone offset (no ambiguous local datetime) — the
+    // column is timestamptz. Optional: the server fills a HK-anchored default
+    // (followUpDueISO) when omitted, so clients don't compute it in their own
+    // browser zone.
+    due_at: z.string().datetime({ offset: true }).optional(),
     assigned_to: z.string().trim().max(120).default(""),
   })
   .strict();
@@ -287,7 +291,21 @@ export const orgSettingsSchema = z
     sla_ack_minutes_review: z.number().int().min(30).max(2880).optional(),
   })
   .strict()
-  .refine((p) => Object.keys(p).length > 0, { message: "Nothing to update" });
+  .refine((p) => Object.keys(p).length > 0, { message: "Nothing to update" })
+  // When both windows are supplied together, the lower-severity review window
+  // must not be SHORTER than the escalate window (that would re-page
+  // review_today faster than escalate — operationally backwards). Only checked
+  // when both are present, since this is a partial-update schema.
+  .refine(
+    (p) =>
+      p.sla_ack_minutes_escalate === undefined ||
+      p.sla_ack_minutes_review === undefined ||
+      p.sla_ack_minutes_review >= p.sla_ack_minutes_escalate,
+    {
+      message: "Review window must be at least as long as the escalate window",
+      path: ["sla_ack_minutes_review"],
+    },
+  );
 
 export type OrgSettingsInput = z.infer<typeof orgSettingsSchema>;
 
