@@ -8,10 +8,26 @@ import { sweepAlertSlas } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// Hobby ceiling — the combined sweep (silence + SLA + Monday digest) does
+// per-patient work; give it headroom so a large ward doesn't time out.
+export const maxDuration = 60;
+
+// Each leg is isolated: a transient failure in one (or in one patient inside
+// it) is logged and skipped, never aborting the remaining legs/patients. The
+// per-patient isolation lives inside sweepSilence / runWeeklyDigest loops.
+async function leg<T>(name: string, fn: () => Promise<T>): Promise<T | { error: string }> {
+  try {
+    return await fn();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error(`Sweep leg failed: ${name}`, { message });
+    return { error: message };
+  }
+}
 
 async function runSweeps(orgId: string, opts?: { withDigest?: boolean }) {
-  const silence = await sweepSilence(orgId);
-  const sla = await sweepAlertSlas(orgId);
+  const silence = await leg("silence", () => sweepSilence(orgId));
+  const sla = await leg("sla", () => sweepAlertSlas(orgId));
   // The weekly family digest rides the same daily cron (Vercel Hobby allows
   // only two cron jobs) and fires on Mondays, HK time.
   const isMonday =
@@ -19,7 +35,7 @@ async function runSweeps(orgId: string, opts?: { withDigest?: boolean }) {
       weekday: "short",
       timeZone: process.env.CARELOOP_TZ ?? "Asia/Hong_Kong",
     }) === "Mon";
-  const digest = (opts?.withDigest ?? isMonday) ? await runWeeklyDigest(orgId) : null;
+  const digest = (opts?.withDigest ?? isMonday) ? await leg("digest", () => runWeeklyDigest(orgId)) : null;
   return { silence, sla, digest };
 }
 

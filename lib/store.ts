@@ -500,13 +500,15 @@ async function afterAlertWrite(
           ? settings.sla_ack_minutes_escalate
           : settings.sla_ack_minutes_review) * 60_000;
 
-      // --- Nurse paging: fire on create or a genuine re-rise, debounced on
-      //     last_notified_at so a flapping alert pages at most once per window.
-      const recentlyPaged =
-        alert.last_notified_at != null &&
-        Date.now() - Date.parse(alert.last_notified_at) < windowMs;
+      // --- Nurse paging: fire on create or any genuine severity RISE. A rise
+      //     is a clinically distinct event (e.g. review_today → escalate) and
+      //     must never be debounced — a same-severity refresh has raised=false
+      //     and so doesn't page, which is the only "flap" worth suppressing.
+      //     (We deliberately do NOT gate rises on last_notified_at: the SLA
+      //     sweep stamps that column too, and a stale SLA stamp must not mask a
+      //     real escalation page.)
       let nurseSent = false;
-      if ((created || (raised && !recentlyPaged)) && meetsNotifyThreshold(settings, alert.severity)) {
+      if ((created || raised) && meetsNotifyThreshold(settings, alert.severity)) {
         const inbox = alertsInbox(settings);
         nurseSent = await notifyNurseOfAlert(inbox, patient, alert, created ? "created" : "raised");
         if (nurseSent) {
@@ -1320,7 +1322,7 @@ export async function recordHandover(
  */
 export async function sweepAlertSlas(
   orgId: string,
-): Promise<{ checked: number; repaged: number; adminNotified: number }> {
+): Promise<{ checked: number; repaged: number; adminNotified: number; failed: number }> {
   const settings = await getOrgSettings(orgId);
   const inbox = alertsInbox(settings);
   const open = rows(
@@ -1334,45 +1336,56 @@ export async function sweepAlertSlas(
 
   let repaged = 0;
   let adminNotified = 0;
+  let failed = 0;
   const nowMs = Date.now();
 
   for (const alert of open) {
-    // Consistency with creation-time paging: if the org opted out of paging
-    // this severity (notify_min_severity), the SLA chain must not re-page it
-    // either — otherwise a review_today alert the org chose to handle silently
-    // gets paged a window later.
-    if (!meetsNotifyThreshold(settings, alert.severity)) continue;
-    const windowMin =
-      alert.severity === "escalate"
-        ? settings.sla_ack_minutes_escalate
-        : settings.sla_ack_minutes_review;
-    const windowMs = windowMin * 60_000;
-    const sinceNotified = nowMs - Date.parse(alert.last_notified_at ?? alert.created_at);
-    const sinceCreated = nowMs - Date.parse(alert.created_at);
-    if (sinceNotified <= windowMs) continue;
+    // Per-alert isolation: one alert's transient error logs and skips, never
+    // aborting the rest of the SLA chain.
+    try {
+      // Consistency with creation-time paging: if the org opted out of paging
+      // this severity (notify_min_severity), the SLA chain must not re-page it
+      // either — otherwise a review_today alert the org chose to handle silently
+      // gets paged a window later.
+      if (!meetsNotifyThreshold(settings, alert.severity)) continue;
+      const windowMin =
+        alert.severity === "escalate"
+          ? settings.sla_ack_minutes_escalate
+          : settings.sla_ack_minutes_review;
+      const windowMs = windowMin * 60_000;
+      const sinceNotified = nowMs - Date.parse(alert.last_notified_at ?? alert.created_at);
+      const sinceCreated = nowMs - Date.parse(alert.created_at);
+      if (sinceNotified <= windowMs) continue;
 
-    const patient = await fetchPatient(orgId, alert.patient_id);
-    if (!patient || patient.status === "archived") continue;
+      const patient = await fetchPatient(orgId, alert.patient_id);
+      if (!patient || patient.status === "archived") continue;
 
-    const escalateToAdmin = sinceCreated > 2 * windowMs && Boolean(settings.admin_email);
-    const sent = await notifyNurseOfAlert(inbox, patient, alert, "sla_breach");
-    if (sent) repaged += 1;
-    if (escalateToAdmin) {
-      const adminSent = await notifyNurseOfAlert(settings.admin_email, patient, alert, "sla_admin");
-      if (adminSent) adminNotified += 1;
-    }
-    if (sent || escalateToAdmin) {
-      await stampAlertNotified(orgId, alert.id);
-      await pushAudit(orgId, "alert_sla_breached", "system", "alert", alert.id, {
-        severity: alert.severity,
-        minutes_unacknowledged: Math.round(sinceCreated / 60_000),
-        admin_notified: escalateToAdmin,
-        patient_id: alert.patient_id,
+      const escalateToAdmin = sinceCreated > 2 * windowMs && Boolean(settings.admin_email);
+      const sent = await notifyNurseOfAlert(inbox, patient, alert, "sla_breach");
+      if (sent) repaged += 1;
+      if (escalateToAdmin) {
+        const adminSent = await notifyNurseOfAlert(settings.admin_email, patient, alert, "sla_admin");
+        if (adminSent) adminNotified += 1;
+      }
+      if (sent || escalateToAdmin) {
+        await stampAlertNotified(orgId, alert.id);
+        await pushAudit(orgId, "alert_sla_breached", "system", "alert", alert.id, {
+          severity: alert.severity,
+          minutes_unacknowledged: Math.round(sinceCreated / 60_000),
+          admin_notified: escalateToAdmin,
+          patient_id: alert.patient_id,
+        });
+      }
+    } catch (err) {
+      failed += 1;
+      logger.error("SLA sweep: alert skipped.", {
+        alert_id: alert.id,
+        message: err instanceof Error ? err.message : String(err),
       });
     }
   }
   if (repaged > 0) await broadcastOrgEvent(orgId, "alerts_changed");
-  return { checked: open.length, repaged, adminNotified };
+  return { checked: open.length, repaged, adminNotified, failed };
 }
 
 /** Canonical risky check-in for the demo replay button (Mrs. Chan). */

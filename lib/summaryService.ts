@@ -8,10 +8,13 @@
 
 import Anthropic from "@anthropic-ai/sdk";
 import { buildCaregiverAlert } from "./caregiver";
+import { addDays, todayISO } from "./dates";
 import { logger } from "./logger";
 import { weightGain3d as computeWeightGain3d } from "./riskEngine";
 import { SEVERITY_LABEL, type PatientTimeline, type Severity, type WeeklySummary } from "./types";
 import { series } from "./vitals";
+
+const SUMMARY_WINDOW_DAYS = 7;
 
 export interface SummaryStats {
   weekStart: string;
@@ -63,7 +66,25 @@ function reviewItems(severity: Severity, codes: string[]): string[] {
 }
 
 export function summaryStats(timeline: PatientTimeline): SummaryStats {
-  const { daily, checkins, risk, risk_trend, patient } = timeline;
+  const { patient, risk } = timeline;
+  // Clamp to the trailing 7 clinical days so "week" is a TRUE calendar week:
+  // weekStart/weekEnd are derived deterministically from the window end (not
+  // from the earliest backfilled vital), keeping the digest dedup key
+  // (week_start) stable and the stats scoped to the reporting week.
+  const allDates = [
+    ...timeline.daily.map((d) => d.date),
+    ...timeline.checkins.map((c) => c.date),
+    ...timeline.risk_trend.map((r) => r.date),
+  ]
+    .filter(Boolean)
+    .sort();
+  const weekEnd = allDates[allDates.length - 1] ?? todayISO();
+  const weekStart = addDays(weekEnd, -(SUMMARY_WINDOW_DAYS - 1));
+  const inWindow = (date: string) => date >= weekStart && date <= weekEnd;
+  const daily = timeline.daily.filter((d) => inWindow(d.date));
+  const checkins = timeline.checkins.filter((c) => inWindow(c.date));
+  const risk_trend = timeline.risk_trend.filter((r) => inWindow(r.date));
+
   const weights = series(daily, "weight").map((s) => s.value);
   const weightStart = weights[0] ?? null;
   const weightEnd = weights[weights.length - 1] ?? null;
@@ -92,15 +113,14 @@ export function summaryStats(timeline: PatientTimeline): SummaryStats {
   const endSeverity = risk.severity;
 
   const weightDays = series(daily, "weight").length;
-  const expectedDays = 7;
   const dataCompleteness = Math.min(
     1,
-    Math.round(((weightDays + checkins.length) / (expectedDays * 2)) * 100) / 100,
+    Math.round(((weightDays + checkins.length) / (SUMMARY_WINDOW_DAYS * 2)) * 100) / 100,
   );
 
   return {
-    weekStart: risk_trend[0]?.date ?? "",
-    weekEnd: risk_trend[risk_trend.length - 1]?.date ?? "",
+    weekStart,
+    weekEnd,
     weightStart,
     weightEnd,
     weightGainTotal,
@@ -193,17 +213,23 @@ async function polishWithClaude(draft: string): Promise<string | null> {
   try {
     const client = new Anthropic({ apiKey });
     const model = process.env.CARELOOP_SUMMARY_MODEL ?? "claude-sonnet-4-6";
-    const msg = await client.messages.create({
-      model,
-      max_tokens: 600,
-      system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
-      messages: [
-        {
-          role: "user",
-          content: `Rewrite this weekly monitoring summary into plain clinical prose, keeping every number and rule code:\n\n${draft}`,
-        },
-      ],
-    });
+    const msg = await client.messages.create(
+      {
+        model,
+        max_tokens: 600,
+        system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+        messages: [
+          {
+            role: "user",
+            content: `Rewrite this weekly monitoring summary into plain clinical prose, keeping every number and rule code:\n\n${draft}`,
+          },
+        ],
+      },
+      // Cap a single call so one hung request can't blow the cron budget — the
+      // catch falls back to the deterministic template, so a timeout degrades
+      // gracefully rather than failing the digest.
+      { timeout: 8000, maxRetries: 1 },
+    );
     const text = msg.content
       .filter((b): b is Anthropic.TextBlock => b.type === "text")
       .map((b) => b.text)
