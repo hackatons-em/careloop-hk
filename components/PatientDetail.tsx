@@ -111,7 +111,7 @@ export function PatientDetail({
         href="/dashboard"
         className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" /> {t("back")}
+        <ChevronLeft className="size-4 rtl:rotate-180" /> {t("back")}
       </Link>
 
       {/* Pending review: auto-created from WhatsApp, awaiting nurse confirmation */}
@@ -207,7 +207,7 @@ export function PatientDetail({
       {/* Dashboard-style: fixed viewport, each column scrolls internally */}
       <div className="grid min-h-0 flex-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
         {/* LEFT: risk + detail tabs, scrolls internally */}
-        <div className="min-h-0 space-y-4 overflow-y-auto pb-1 pr-0.5">
+        <div className="min-h-0 space-y-4 overflow-y-auto pb-1 pe-0.5">
           {/* Why flagged */}
           <div className="cl-rise" style={{ animationDelay: "100ms" }}>
             <RiskCard risk={risk} />
@@ -314,7 +314,7 @@ export function PatientDetail({
 
         {/* RIGHT: WhatsApp chat stays prominent; the column scrolls so the
             caregiver alert never collides with or squeezes the chat. */}
-        <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto pb-1 pl-0.5">
+        <aside className="flex min-h-0 flex-col gap-4 overflow-y-auto pb-1 ps-0.5">
           <ConversationPanel
             patientId={patientId}
             onActivity={handleChanged}

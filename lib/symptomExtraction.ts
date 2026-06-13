@@ -24,7 +24,7 @@ export interface ExtractedCheckIn {
   extracted_by: "ai" | "keywords";
 }
 
-const SYSTEM_PROMPT = `You convert ONE daily health check-in message from an elderly Hong Kong chronic-care patient (usually Cantonese, sometimes English) into structured monitoring fields.
+const SYSTEM_PROMPT = `You convert ONE daily health check-in message from an elderly chronic-care patient (usually Cantonese, sometimes English or Modern Standard Arabic) into structured monitoring fields.
 
 You are NOT diagnosing and NOT giving advice. You only map what the patient explicitly says onto a fixed schema.
 
@@ -42,11 +42,11 @@ Return ONLY a JSON object (no markdown, no prose) with exactly these keys:
 
 Rules:
 - Use null when the patient did not mention that item. Do NOT guess.
-- shortness_of_breath = true for breathlessness (氣促 / 氣喘 / 喘 / 唞唔到氣 / short of breath / breathless).
-- swelling = true for swelling in legs/feet/ankles (腫 / 水腫 / 腳腫).
-- dizziness = true for 頭暈 / 暈 / dizzy / lightheaded.
-- chest_discomfort = true for chest pain or discomfort (胸口痛 / 胸口唔舒服 / chest).
-- medication_taken = false if they forgot/missed/did not take medicine (唔記得食藥 / 冇食藥 / 忘記食藥 / missed / forgot / didn't take); true if they confirm taking it (食咗藥 / took my medicine); null if not mentioned.
+- shortness_of_breath = true for breathlessness (氣促 / 氣喘 / 喘 / 唞唔到氣 / short of breath / breathless / ضيق في التنفس / صعوبة في التنفس).
+- swelling = true for swelling in legs/feet/ankles (腫 / 水腫 / 腳腫 / تورّم / انتفاخ).
+- dizziness = true for 頭暈 / 暈 / dizzy / lightheaded / دوخة / دوار.
+- chest_discomfort = true for chest pain or discomfort (胸口痛 / 胸口唔舒服 / chest / ألم في الصدر / انزعاج في الصدر).
+- medication_taken = false if they forgot/missed/did not take medicine (唔記得食藥 / 冇食藥 / 忘記食藥 / missed / forgot / didn't take / لم آخذ الدواء / نسيت الدواء); true if they confirm taking it (食咗藥 / took my medicine / تناولت الدواء); null if not mentioned.
 - weight_kg = a number only if they state a body weight, else null.
 - summary = a short neutral English description of what they said. No diagnosis.
 Output the JSON only.`;
@@ -89,20 +89,36 @@ export function keywordExtract(message: string): ExtractedCheckIn {
   const has = (...needles: string[]) =>
     needles.some((n) => m.includes(n) || lower.includes(n.toLowerCase()));
 
-  const sob = has("氣促", "氣喘", "喘", "唞唔到氣", "short of breath", "breathless", "out of breath");
-  const swelling = has("水腫", "腳腫", "腫", "swelling", "swollen");
-  const dizziness = has("頭暈", "暈", "dizzy", "lightheaded");
-  const chest = has("胸口痛", "胸口唔舒服", "胸口", "chest pain", "chest discomfort");
+  const sob = has(
+    "氣促", "氣喘", "喘", "唞唔到氣", "short of breath", "breathless", "out of breath",
+    "ضيق في التنفس", "ضيق التنفس", "صعوبة في التنفس", "صعوبة التنفس",
+  );
+  const swelling = has("水腫", "腳腫", "腫", "swelling", "swollen", "تورّم", "تورم", "انتفاخ");
+  const dizziness = has("頭暈", "暈", "dizzy", "lightheaded", "دوخة", "دوار");
+  const chest = has(
+    "胸口痛", "胸口唔舒服", "胸口", "chest pain", "chest discomfort",
+    "ألم في الصدر", "انزعاج في الصدر", "وجع في الصدر",
+  );
 
-  const missedMed = has("唔記得食藥", "冇食藥", "忘記食藥", "未食藥", "missed", "forgot", "didn't take", "did not take");
-  const tookMed = has("食咗藥", "有食藥", "took my medicine", "took my meds", "taken my medicine");
+  const missedMed = has(
+    "唔記得食藥", "冇食藥", "忘記食藥", "未食藥", "missed", "forgot", "didn't take", "did not take",
+    "لم آخذ الدواء", "نسيت الدواء", "لم أتناول الدواء", "فاتني الدواء",
+  );
+  const tookMed = has(
+    "食咗藥", "有食藥", "took my medicine", "took my meds", "taken my medicine",
+    "تناولت الدواء", "أخذت الدواء", "تناولت دوائي",
+  );
   const medication_taken = missedMed ? false : tookMed ? true : null;
 
-  const weightMatch = message.match(/(\d{2,3}(?:\.\d)?)\s*(?:kg|公斤|kilo)/i);
+  const weightMatch = message.match(/(\d{2,3}(?:\.\d)?)\s*(?:kg|公斤|kilo|كجم|كغ|كيلو)/i);
   const weight_kg = weightMatch ? Number(weightMatch[1]) : null;
 
   return {
-    mood: has("唔舒服", "unwell", "bad") ? "unwell" : has("攰", "tired") ? "tired" : null,
+    mood: has("唔舒服", "unwell", "bad", "تعبان", "لست بخير", "متوعك")
+      ? "unwell"
+      : has("攰", "tired", "متعب", "تعب")
+        ? "tired"
+        : null,
     shortness_of_breath: sob ? true : null,
     swelling: swelling ? true : null,
     dizziness: dizziness ? true : null,

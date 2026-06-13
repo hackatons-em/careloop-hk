@@ -19,7 +19,7 @@ export default async function NewPatientPage() {
         href="/dashboard"
         className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" /> {t("back")}
+        <ChevronLeft className="size-4 rtl:rotate-180" /> {t("back")}
       </Link>
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>

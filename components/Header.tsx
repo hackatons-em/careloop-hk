@@ -33,7 +33,7 @@ export function Header({ user }: { user: HeaderUser }) {
           <span className="text-lg font-semibold tracking-tight">Miruwa</span>
         </Link>
 
-        <nav className="ml-2 hidden items-center gap-1 md:flex">
+        <nav className="ms-2 hidden items-center gap-1 md:flex">
           {nav.map((item) => {
             const active = pathname === item.href || pathname.startsWith(item.href + "/");
             return (
@@ -50,7 +50,7 @@ export function Header({ user }: { user: HeaderUser }) {
               >
                 {item.label}
                 {item.href === "/alerts" && openAlerts > 0 && (
-                  <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
+                  <span className="ms-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
                     {openAlerts}
                   </span>
                 )}
@@ -59,7 +59,7 @@ export function Header({ user }: { user: HeaderUser }) {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ms-auto flex items-center gap-1.5">
           {degraded && (
             <span className="hidden items-center gap-1.5 rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground sm:inline-flex">
               <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-muted-foreground" />
@@ -74,7 +74,7 @@ export function Header({ user }: { user: HeaderUser }) {
           >
             <Bell className="size-5" />
             {openAlerts > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
+              <span className="absolute -end-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-semibold text-white">
                 {openAlerts}
               </span>
             )}
@@ -118,7 +118,7 @@ export function Header({ user }: { user: HeaderUser }) {
                 >
                   {item.label}
                   {item.href === "/alerts" && openAlerts > 0 && (
-                    <span className="ml-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
+                    <span className="ms-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[11px] font-semibold text-white">
                       {openAlerts}
                     </span>
                   )}

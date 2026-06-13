@@ -87,7 +87,7 @@ export default async function SecurityPage() {
             href="/contact?interest=other"
             className="inline-flex h-10 items-center gap-1.5 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {t("ctaButton")} <ArrowRight className="size-4" />
+            {t("ctaButton")} <ArrowRight className="size-4 rtl:rotate-180" />
           </Link>
         </div>
       </section>

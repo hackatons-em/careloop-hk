@@ -24,7 +24,7 @@ export async function PublicHeader() {
           </span>
           <span className="text-lg font-semibold tracking-tight">Miruwa</span>
         </Link>
-        <nav className="ml-auto flex items-center gap-1">
+        <nav className="ms-auto flex items-center gap-1">
           {links.map((l) => (
             <Link
               key={l.href}
@@ -34,10 +34,10 @@ export async function PublicHeader() {
               {l.label}
             </Link>
           ))}
-          <LocaleSwitcher className="ml-1" />
+          <LocaleSwitcher className="ms-1" />
           <Link
             href="/login"
-            className="ml-1 inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="ms-1 inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {tc("signIn")}
           </Link>

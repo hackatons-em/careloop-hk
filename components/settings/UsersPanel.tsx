@@ -76,7 +76,7 @@ export function UsersPanel({ currentUserId }: { currentUserId: string }) {
                 <p className="truncate text-sm font-medium">
                   {u.name}
                   {u.id === currentUserId && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">{t("you")}</span>
+                    <span className="ms-1.5 text-xs text-muted-foreground">{t("you")}</span>
                   )}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">{u.email}</p>

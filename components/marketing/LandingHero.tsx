@@ -46,7 +46,7 @@ export async function LandingHero() {
               href="/contact"
               className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
-              {tc("requestDemo")} <ArrowRight className="size-4" />
+              {tc("requestDemo")} <ArrowRight className="size-4 rtl:rotate-180" />
             </Link>
             <a
               href="#how-it-works"
@@ -67,7 +67,7 @@ export async function LandingHero() {
         <div className="relative mx-auto w-full max-w-md pt-16 lg:max-w-none">
           {/* the cause: a patient's WhatsApp message */}
           <div
-            className="cl-rise absolute left-1 top-0 z-0 max-w-[250px] rounded-2xl rounded-tr-sm bg-[#dcf8c6] px-3.5 py-2 text-sm text-neutral-800 shadow-md"
+            className="cl-rise absolute start-1 top-0 z-0 max-w-[250px] rounded-2xl rounded-se-sm bg-[#dcf8c6] px-3.5 py-2 text-sm text-neutral-800 shadow-md"
             style={{ animationDelay: "120ms" }}
           >
             <p>{t("preview.bubbleText")}</p>
@@ -76,7 +76,7 @@ export async function LandingHero() {
 
           {/* the effect: the escalation card */}
           <div
-            className="cl-rise relative z-10 ml-auto w-[min(100%,26rem)] rounded-2xl border border-border bg-card p-5 shadow-xl"
+            className="cl-rise relative z-10 ms-auto w-[min(100%,26rem)] rounded-2xl border border-border bg-card p-5 shadow-xl"
             style={{ animationDelay: "260ms" }}
           >
             <div className="flex items-center justify-between">

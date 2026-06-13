@@ -92,7 +92,7 @@ export default async function PricingPage() {
                   : "border border-border bg-card hover:bg-muted",
               )}
             >
-              {tier.cta} <ArrowRight className="size-4" />
+              {tier.cta} <ArrowRight className="size-4 rtl:rotate-180" />
             </Link>
           </section>
         ))}

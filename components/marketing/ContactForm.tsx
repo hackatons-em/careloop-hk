@@ -172,7 +172,7 @@ export function ContactForm({ defaultInterest }: { defaultInterest: LeadInterest
         </Field>
 
         {/* Honeypot — visually hidden, skipped by humans, filled by bots. */}
-        <div aria-hidden className="absolute -left-[9999px] top-auto h-px w-px overflow-hidden">
+        <div aria-hidden className="absolute -start-[9999px] top-auto h-px w-px overflow-hidden">
           <label htmlFor="contact-website">Website</label>
           <input
             id="contact-website"

@@ -165,7 +165,7 @@ export const api = {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notify_family }),
-    }).then(json<{ en: string; zh: string; alert_status: string | null }>),
+    }).then(json<{ en: string; zh: string; ar: string; alert_status: string | null }>),
 
   importCsv: (patient_id: string, csv: string) =>
     fetch("/api/demo/import-csv", {

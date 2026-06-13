@@ -150,6 +150,8 @@ const patientFieldsSchema = z
     age: z.number().int().min(1, "Enter an age between 1 and 120").max(120, "Enter an age between 1 and 120"),
     gender: z.enum(["female", "male", "other"]),
     language: z.string().trim().min(1, "Language is required").max(40),
+    /** Outbound WhatsApp + family message language. "auto" = bilingual zh+en. */
+    preferred_language: z.enum(["auto", "en", "zh-HK", "ar"]),
     living_status: z.string().trim().min(1, "Living status is required").max(80),
     conditions: z.array(z.string().trim().min(1).max(80)).min(1, "Add at least one condition").max(20),
     caregiver_name: z.string().trim().max(120),
@@ -188,6 +190,7 @@ const patientFieldsSchema = z
   .strict();
 
 export const patientCreateSchema = patientFieldsSchema.extend({
+  preferred_language: z.enum(["auto", "en", "zh-HK", "ar"]).default("auto"),
   caregiver_name: z.string().trim().max(120).default(""),
   caregiver_phone: z
     .string()

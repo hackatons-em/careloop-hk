@@ -1,14 +1,14 @@
 // Server-side monthly program-outcomes PDF (board/renewal report).
-// Same @react-pdf/renderer setup as lib/pdf.tsx; Helvetica only, so the
-// document is English — standard for HK hospital administration. Every number
-// comes from getProgramMetrics (recorded data only, no projections).
+// The document is English/Helvetica/LTR by design (standard for HK hospital
+// administration; deterministic layout). Every number comes from
+// getProgramMetrics (recorded data only, no projections).
 //
-// KNOWN LIMITATION (tracked): Helvetica has no CJK glyphs, so a Chinese org or
-// nurse name renders blank/tofu. The fix is to Font.register a CJK face (e.g.
-// Noto Sans HK) and set it as the page font — deferred because a full CJK font
-// is multi-MB and risks the Vercel function-size limit, so it needs a subset
-// build / asset decision rather than an inline patch. Same applies to patient
-// names in lib/pdf.tsx.
+// Arabic glyphs: user-provided fields (org name, nurse names) use a registered
+// Noto Naskh Arabic face via pdfFontFor() so Arabic renders instead of tofu;
+// Latin text stays Helvetica. If @react-pdf's bidi engine throws on a
+// pathological mixed-script string, we retry once with Arabic disabled so the
+// export never fails. (CJK names remain a separate, documented limitation —
+// Helvetica has no CJK glyphs.)
 
 import {
   Document,
@@ -18,6 +18,8 @@ import {
   View,
   renderToBuffer,
 } from "@react-pdf/renderer";
+import { logger } from "./logger";
+import { pdfFontFor } from "./pdfFonts";
 import type { ProgramMetrics } from "./store";
 import { SEVERITY_LABEL, type Severity } from "./types";
 import { SEVERITY_STYLE } from "./severity";
@@ -45,11 +47,7 @@ const styles = StyleSheet.create({
   brandSub: { fontSize: 9, color: C.muted },
   docTitle: { fontSize: 12, fontFamily: "Helvetica-Bold", textAlign: "right" },
   grid: { flexDirection: "row", flexWrap: "wrap", marginBottom: 10 },
-  metric: {
-    width: "25%",
-    paddingRight: 8,
-    marginBottom: 8,
-  },
+  metric: { width: "25%", paddingRight: 8, marginBottom: 8 },
   metricBox: {
     backgroundColor: C.bg,
     borderWidth: 1,
@@ -91,6 +89,8 @@ const styles = StyleSheet.create({
   },
 });
 
+type Styles = typeof styles;
+
 function pct(x: number): string {
   return `${Math.round(x * 100)}%`;
 }
@@ -105,6 +105,8 @@ export async function renderProgramPdf(args: {
   orgName: string;
   metrics: ProgramMetrics;
   generatedAt: string;
+  /** Accepted for API symmetry with the weekly PDF; layout is locale-agnostic. */
+  locale?: string | null;
 }): Promise<Buffer> {
   const { orgName, metrics: m, generatedAt } = args;
   const severities: Severity[] = ["watch", "review_today", "escalate"];
@@ -112,13 +114,15 @@ export async function renderProgramPdf(args: {
   const maxDay = Math.max(1, ...m.daily_checkins.map((d) => d.count));
   const completionOnTarget = m.checkin_completion_rate >= 0.7;
 
-  const doc = (
+  const build = (useArabic: boolean) => (
     <Document title="Miruwa program outcomes" author="Miruwa">
       <Page size="A4" style={styles.page}>
         <View style={styles.headerRow}>
           <View>
             <Text style={styles.brand}>Miruwa</Text>
-            <Text style={styles.brandSub}>{orgName}</Text>
+            <Text style={[styles.brandSub, { fontFamily: pdfFontFor(orgName, { useArabic }) }]}>
+              {orgName}
+            </Text>
           </View>
           <View>
             <Text style={styles.docTitle}>Program outcomes — last {m.window_days} days</Text>
@@ -128,6 +132,7 @@ export async function renderProgramPdf(args: {
 
         <View style={styles.grid}>
           <Metric
+            styles={styles}
             label="Check-in completion"
             value={pct(m.checkin_completion_rate)}
             sub={
@@ -136,13 +141,20 @@ export async function renderProgramPdf(args: {
                 : "Below the 70% pilot commitment"
             }
           />
-          <Metric label="Medication adherence" value={pct(m.adherence_rate)} sub="Of check-ins reporting medication" />
           <Metric
+            styles={styles}
+            label="Medication adherence"
+            value={pct(m.adherence_rate)}
+            sub="Of check-ins reporting medication"
+          />
+          <Metric
+            styles={styles}
             label="Median time to acknowledge"
             value={minutes(m.ack_minutes.median)}
             sub={`p90 ${minutes(m.ack_minutes.p90)} - ${m.ack_minutes.samples} alerts`}
           />
           <Metric
+            styles={styles}
             label="Patients monitored"
             value={String(m.active_patients)}
             sub={`${m.silent_patients} currently not responding`}
@@ -198,7 +210,9 @@ export async function renderProgramPdf(args: {
           .sort(([, a], [, b]) => b - a)
           .map(([nurse, count]) => (
             <View key={nurse} style={styles.nurseRow}>
-              <Text>{nurse && nurse !== "Unassigned" ? nurse : "Unassigned (no nurse)"}</Text>
+              <Text style={{ fontFamily: pdfFontFor(nurse, { useArabic }) }}>
+                {nurse && nurse !== "Unassigned" ? nurse : "Unassigned (no nurse)"}
+              </Text>
               <Text style={{ fontFamily: "Helvetica-Bold" }}>{count}</Text>
             </View>
           ))}
@@ -215,10 +229,27 @@ export async function renderProgramPdf(args: {
     </Document>
   );
 
-  return renderToBuffer(doc);
+  try {
+    return await renderToBuffer(build(true));
+  } catch (err) {
+    // @react-pdf/textkit bidi can throw on pathological mixed Arabic+number/dash
+    // runs — retry with Arabic disabled so the export never fails.
+    logger.warn("Program PDF render failed; retrying with Arabic fonts disabled.", { err });
+    return await renderToBuffer(build(false));
+  }
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub: string }) {
+function Metric({
+  styles,
+  label,
+  value,
+  sub,
+}: {
+  styles: Styles;
+  label: string;
+  value: string;
+  sub: string;
+}) {
   return (
     <View style={styles.metric}>
       <View style={styles.metricBox}>

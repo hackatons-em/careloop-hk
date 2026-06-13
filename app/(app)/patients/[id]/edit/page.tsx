@@ -35,7 +35,7 @@ export default async function EditPatientPage({
         href={`/patients/${id}`}
         className="inline-flex items-center gap-1 rounded-md text-sm text-muted-foreground outline-none hover:text-foreground focus-visible:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <ChevronLeft className="size-4" /> {t("back", { name: patient.name })}
+        <ChevronLeft className="size-4 rtl:rotate-180" /> {t("back", { name: patient.name })}
       </Link>
       <div>
         <div className="flex flex-wrap items-center gap-3">

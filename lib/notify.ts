@@ -108,11 +108,13 @@ export async function notifyNurseOfAlert(
 export async function emailCaregiverAlert(
   to: string,
   patientName: string,
-  text: { en: string; zh: string },
+  text: { en: string; zh: string; ar: string },
+  preferred?: string | null,
 ): Promise<boolean> {
   if (!to) return false;
   const subject = `Miruwa update — ${patientName}`;
-  const body = [text.zh, ``, `—`, ``, text.en].join("\n");
+  const body =
+    preferred === "ar" ? text.ar : [text.zh, ``, `—`, ``, text.en].join("\n");
   return sendEmail(to, subject, body);
 }
 
@@ -120,10 +122,12 @@ export async function emailCaregiverAlert(
 export async function emailFamilyDigest(
   to: string,
   patientName: string,
-  text: { en: string; zh: string },
+  text: { en: string; zh: string; ar: string },
+  preferred?: string | null,
 ): Promise<boolean> {
   if (!to) return false;
   const subject = `Miruwa weekly update — ${patientName}`;
-  const body = [text.zh, ``, `—`, ``, text.en].join("\n");
+  const body =
+    preferred === "ar" ? text.ar : [text.zh, ``, `—`, ``, text.en].join("\n");
   return sendEmail(to, subject, body);
 }

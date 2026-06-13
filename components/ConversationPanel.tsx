@@ -95,7 +95,7 @@ export function ConversationPanel({
       <div className="flex items-center gap-2 border-b border-border px-4 py-3">
         <MessageCircle className="size-4 text-primary" />
         <h2 className="font-semibold">{t("title")}</h2>
-        <span className="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="ms-auto flex items-center gap-1.5 text-xs text-muted-foreground">
           <span className="size-1.5 animate-pulse rounded-full bg-green-500" /> {t("live")}
         </span>
       </div>
@@ -113,8 +113,8 @@ export function ConversationPanel({
                   className={cn(
                     "max-w-[85%] rounded-2xl px-3 py-2 text-sm",
                     isPatient
-                      ? "rounded-tl-sm bg-muted text-foreground"
-                      : "rounded-tr-sm bg-[#dcf8c6] text-neutral-800",
+                      ? "rounded-ss-sm bg-muted text-foreground"
+                      : "rounded-se-sm bg-[#dcf8c6] text-neutral-800",
                   )}
                 >
                   {m.kind === "voice" && (

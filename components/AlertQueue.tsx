@@ -314,7 +314,7 @@ function AlertCard({
       </div>
 
       <p className="mt-2 flex items-start gap-1.5 text-sm">
-        <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-primary" />
+        <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-primary rtl:rotate-180" />
         <span className="font-medium">{alert.recommended_action}</span>
       </p>
 
@@ -367,7 +367,7 @@ function AlertCard({
             onClick={() => save()}
             className="gap-1.5"
           >
-            {t("card.save")} <ChevronRight className="size-4" />
+            {t("card.save")} <ChevronRight className="size-4 rtl:rotate-180" />
           </Button>
         </div>
       </div>

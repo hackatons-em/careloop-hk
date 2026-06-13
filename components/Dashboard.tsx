@@ -198,13 +198,13 @@ export function Dashboard() {
       {/* search + worklist actions */}
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-[220px] flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("searchPlaceholder")}
             aria-label={t("searchPlaceholder")}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
         <button
@@ -323,7 +323,7 @@ export function Dashboard() {
                   {t(`nextAction.${row.risk.severity}`)}
                 </TableCell>
                 <TableCell>
-                  <ChevronRight aria-hidden className="size-4 text-muted-foreground" />
+                  <ChevronRight aria-hidden className="size-4 text-muted-foreground rtl:rotate-180" />
                 </TableCell>
               </TableRow>
             ))}
@@ -469,7 +469,7 @@ function FocusedCard({ row }: { row: PatientRow }) {
           href={`/patients/${row.patient.id}`}
           className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {t("openPatient")} <ArrowRight className="size-4" />
+          {t("openPatient")} <ArrowRight className="size-4 rtl:rotate-180" />
         </Link>
       </div>
     </div>

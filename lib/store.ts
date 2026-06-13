@@ -15,7 +15,7 @@
 // NOTE: import this only from server code (route handlers, server components).
 // Never from a Client Component — it uses the service-role key.
 
-import { buildCaregiverAlert } from "./caregiver";
+import { buildCaregiverAlert, formatCaregiverMessage } from "./caregiver";
 import { sendWithFallback } from "./channels";
 import { addDays, followUpDueISO, localMidnightUtcISO, todayISO } from "./dates";
 import { isDemoMode } from "./flags";
@@ -126,6 +126,7 @@ function rowToPatient(r: Record<string, unknown>): Patient {
     age: Number(r.age),
     gender: r.gender as string,
     language: r.language as string,
+    preferred_language: ((r.preferred_language as string) || "auto") as Patient["preferred_language"],
     living_status: r.living_status as string,
     conditions: (r.conditions as string[]) ?? [],
     caregiver_name: r.caregiver_name as string,
@@ -200,6 +201,7 @@ function rowToSummary(r: Record<string, unknown>): WeeklySummary {
     generated_text: r.generated_text as string,
     caregiver_text_en: r.caregiver_text_en as string,
     caregiver_text_zh: r.caregiver_text_zh as string,
+    caregiver_text_ar: (r.caregiver_text_ar as string) ?? "",
     data_completeness: Number(r.data_completeness),
     generated_by: r.generated_by as WeeklySummary["generated_by"],
     created_at: r.created_at as string,
@@ -545,12 +547,19 @@ async function afterAlertWrite(
           const r = await sendWithFallback(
             ["whatsapp", "sms"],
             patient.caregiver_phone.replace(/\s+/g, ""),
-            `${text.zh}\n\n${text.en}`,
+            formatCaregiverMessage(text, patient.preferred_language),
           );
           if (r.delivered) channels.push(r.delivered);
         }
         if (patient.caregiver_email) {
-          if (await emailCaregiverAlert(patient.caregiver_email, patient.name, text)) {
+          if (
+            await emailCaregiverAlert(
+              patient.caregiver_email,
+              patient.name,
+              text,
+              patient.preferred_language,
+            )
+          ) {
             channels.push("email");
           }
         }
@@ -787,6 +796,7 @@ export async function createPatient(
     age: input.age,
     gender: input.gender,
     language: input.language,
+    preferred_language: input.preferred_language ?? "auto",
     living_status: input.living_status,
     conditions: input.conditions,
     caregiver_name: input.caregiver_name ?? "",
@@ -829,6 +839,7 @@ export async function updatePatient(
     "age",
     "gender",
     "language",
+    "preferred_language",
     "living_status",
     "conditions",
     "caregiver_name",

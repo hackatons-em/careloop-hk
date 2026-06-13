@@ -13,7 +13,10 @@ import { requireTwilioSignature } from "@/lib/twilioSig";
 // Keyword opt-out for family-bound auto-sends (PDPO). Check-ins themselves
 // continue — enrollment is managed by the ward; family-messaging consent
 // belongs to the patient.
-const OPT_OUT_KEYWORDS = new Set(["stop", "unsubscribe", "取消", "停止", "取消通知"]);
+const OPT_OUT_KEYWORDS = new Set([
+  "stop", "unsubscribe", "取消", "停止", "取消通知",
+  "توقف", "إيقاف", "ايقاف", "إلغاء", "الغاء",
+]);
 
 export const dynamic = "force-dynamic";
 
@@ -79,7 +82,8 @@ export async function POST(req: Request) {
     for (const pid of targets) await optOutFamilyMessaging(orgId, pid);
     return twiml(
       "已為你取消家人通知，日常報到會照常繼續。\n" +
-        "Family notifications are switched off. Daily check-ins continue as usual.",
+        "Family notifications are switched off. Daily check-ins continue as usual.\n" +
+        "تم إيقاف إشعارات العائلة. تستمر عمليات تسجيل الدخول اليومية كالمعتاد.",
     );
   }
 
@@ -109,11 +113,14 @@ export async function POST(req: Request) {
   if (!result) {
     return twiml("多謝！我哋收到咗你嘅訊息。Thank you — we've received your message.");
   }
-  // On the first message, confirm enrolment to the sender.
+  // On the first message, confirm enrolment to the sender — in the language
+  // they wrote in (Arabic gets Arabic; otherwise the bilingual zh+en line).
   if (isNewPatient) {
-    return twiml(
-      `多謝！你已經登記咗 Miruwa 每日報到。Thank you — you're now enrolled in Miruwa daily check-ins. A nurse will review your details.\n\n${result.reply}`,
-    );
+    const enrolled =
+      result.language === "ar"
+        ? "شكرًا! تم تسجيلك في تسجيل الدخول اليومي عبر Miruwa. ستراجع ممرضة تفاصيلك."
+        : "多謝！你已經登記咗 Miruwa 每日報到。Thank you — you're now enrolled in Miruwa daily check-ins. A nurse will review your details.";
+    return twiml(`${enrolled}\n\n${result.reply}`);
   }
   return twiml(result.reply);
 }

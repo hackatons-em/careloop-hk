@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Arabic } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { Toaster } from "sonner";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { getDir } from "@/lib/direction";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://miruwa.com";
 
@@ -25,6 +26,14 @@ const geistMono = Geist_Mono({
   preload: false,
 });
 
+// Arabic webfont — Geist has no Arabic glyphs, so the RTL UI would otherwise
+// fall back to an unpredictable system face. Scoped to lang="ar" via globals.css.
+const notoSansArabic = Noto_Sans_Arabic({
+  variable: "--font-arabic",
+  subsets: ["arabic"],
+  display: "swap",
+});
+
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const t = await getTranslations("metadata");
@@ -39,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       siteName: "Miruwa",
-      locale: locale === "zh-HK" ? "zh_HK" : "en_HK",
+      locale: locale === "zh-HK" ? "zh_HK" : locale === "ar" ? "ar_AR" : "en_HK",
       title: t("rootTitle"),
       description: t("ogDescription"),
       url: SITE_URL,
@@ -56,16 +65,18 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
+  const dir = getDir(locale);
   const t = await getTranslations("common");
   return (
     <html
       lang={locale}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      dir={dir}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansArabic.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"
         >
           {t("skipToContent")}
         </a>
@@ -75,7 +86,13 @@ export default async function RootLayout({
               {children}
               <Footer />
             </div>
-            <Toaster richColors position="top-right" theme="light" closeButton />
+            <Toaster
+              richColors
+              position={dir === "rtl" ? "top-left" : "top-right"}
+              dir={dir}
+              theme="light"
+              closeButton
+            />
           </TooltipProvider>
         </NextIntlClientProvider>
       </body>

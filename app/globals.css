@@ -135,6 +135,21 @@
   html[lang="zh-HK"] h1 {
     word-break: keep-all;
   }
+  /* Arabic (RTL): lead the font stack with Noto Sans Arabic — Geist has no
+     Arabic glyphs. `dir="rtl"` on <html> (set in layout.tsx) drives the layout
+     mirroring; logical Tailwind utilities (ms-/me-/ps-/pe-/start-/end-) flip
+     with it. Negative tracking cramps Arabic script, so neutralize it. */
+  html[lang="ar"] {
+    --font-sans: var(--font-arabic), "Segoe UI", "Tahoma", sans-serif;
+    --font-heading: var(--font-arabic), "Segoe UI", "Tahoma", sans-serif;
+  }
+  html[lang="ar"] h1,
+  html[lang="ar"] h2,
+  html[lang="ar"] h3,
+  html[lang="ar"] h4,
+  html[lang="ar"] .tracking-tight {
+    letter-spacing: 0;
+  }
 }
 
 /* Print: weekly clinician summary should print cleanly to PDF. */

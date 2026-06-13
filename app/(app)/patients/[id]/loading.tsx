@@ -34,9 +34,9 @@ export default function PatientLoading() {
         <div className="rounded-2xl border border-border bg-card p-4">
           <Skeleton className="h-4 w-40" />
           <div className="mt-4 space-y-3">
-            <Skeleton className="ml-auto h-12 w-3/4 rounded-xl" />
+            <Skeleton className="ms-auto h-12 w-3/4 rounded-xl" />
             <Skeleton className="h-12 w-3/4 rounded-xl" />
-            <Skeleton className="ml-auto h-12 w-2/3 rounded-xl" />
+            <Skeleton className="ms-auto h-12 w-2/3 rounded-xl" />
           </div>
         </div>
       </div>

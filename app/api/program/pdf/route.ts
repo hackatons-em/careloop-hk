@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { requireAuth } from "@/lib/auth";
 import { getOrganization } from "@/lib/org";
 import { renderProgramPdf } from "@/lib/programPdf";
@@ -11,13 +12,15 @@ export async function GET(req: Request) {
   const auth = await requireAuth(req, "admin");
   if (auth.response) return auth.response;
 
-  const [metrics, org] = await Promise.all([
+  const [metrics, org, locale] = await Promise.all([
     getProgramMetrics(auth.ctx.orgId, 30),
     getOrganization(auth.ctx.orgId),
+    getLocale(),
   ]);
   const buffer = await renderProgramPdf({
     orgName: org?.name ?? "—",
     metrics,
+    locale,
     generatedAt: new Date().toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",

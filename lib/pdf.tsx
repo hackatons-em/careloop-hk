@@ -1,5 +1,10 @@
 // Server-side weekly clinician PDF (uses @react-pdf/renderer in Node).
 // Marked external in next.config.ts. Imported only by the PDF route handler.
+//
+// English/Helvetica/LTR by design. User-provided fields (patient/nurse/caregiver
+// names, conditions, living situation) use a registered Noto Naskh Arabic face
+// via pdfFontFor() so Arabic renders instead of tofu; Latin stays Helvetica. A
+// bidi failure retries once with Arabic disabled so the export never fails.
 
 import {
   Document,
@@ -10,6 +15,8 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 import { formatDayYear } from "./format";
+import { logger } from "./logger";
+import { pdfFontFor } from "./pdfFonts";
 import { SEVERITY_STYLE } from "./severity";
 import type { SummaryStats } from "./summaryService";
 import { SEVERITY_LABEL, type Patient } from "./types";
@@ -93,6 +100,8 @@ export interface PdfArgs {
   stats: SummaryStats;
   narrative: string;
   generatedBy: "ai" | "template";
+  /** Accepted for API symmetry; field fonts auto-detect Arabic per string. */
+  locale?: string | null;
 }
 
 function signed(n: number | null): string {
@@ -100,8 +109,10 @@ function signed(n: number | null): string {
   return n >= 0 ? `+${n}` : `${n}`;
 }
 
-function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
+function SummaryDoc({ patient, stats, narrative, generatedBy, useArabic }: PdfArgs & { useArabic: boolean }) {
   const sev = SEVERITY_STYLE[stats.endSeverity];
+  // Arabic-aware font for a user-provided value (bold to match the `v` style).
+  const vf = (text: string) => [styles.v, { fontFamily: pdfFontFor(text, { bold: true, useArabic }) }];
   return (
     <Document
       title={`Miruwa weekly summary — ${patient.name}`}
@@ -127,7 +138,7 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
           <View style={styles.row}>
             <View style={styles.kv}>
               <Text style={styles.k}>Name</Text>
-              <Text style={styles.v}>{patient.name}</Text>
+              <Text style={vf(patient.name)}>{patient.name}</Text>
             </View>
             <View style={styles.kv}>
               <Text style={styles.k}>Age / sex</Text>
@@ -137,19 +148,19 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
             </View>
             <View style={styles.kv}>
               <Text style={styles.k}>Conditions</Text>
-              <Text style={styles.v}>{patient.conditions.join(", ")}</Text>
+              <Text style={vf(patient.conditions.join(", "))}>{patient.conditions.join(", ")}</Text>
             </View>
             <View style={styles.kv}>
               <Text style={styles.k}>Nurse</Text>
-              <Text style={styles.v}>{patient.assigned_nurse}</Text>
+              <Text style={vf(patient.assigned_nurse)}>{patient.assigned_nurse}</Text>
             </View>
             <View style={styles.kv}>
               <Text style={styles.k}>Caregiver</Text>
-              <Text style={styles.v}>{patient.caregiver_name}</Text>
+              <Text style={vf(patient.caregiver_name)}>{patient.caregiver_name}</Text>
             </View>
             <View style={styles.kv}>
               <Text style={styles.k}>Living</Text>
-              <Text style={styles.v}>{patient.living_status}</Text>
+              <Text style={vf(patient.living_status)}>{patient.living_status}</Text>
             </View>
           </View>
         </View>
@@ -233,7 +244,9 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
           <Text style={styles.sectionTitle}>
             Summary ({generatedBy === "ai" ? "AI-assisted wording" : "deterministic template"})
           </Text>
-          <Text style={styles.narrative}>{narrative}</Text>
+          <Text style={[styles.narrative, { fontFamily: pdfFontFor(narrative, { useArabic }) }]}>
+            {narrative}
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -241,7 +254,7 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
           {stats.reviewItems.map((item) => (
             <View key={item} style={styles.bullet}>
               <Text style={styles.bulletDot}>•</Text>
-              <Text style={{ flex: 1 }}>{item}</Text>
+              <Text style={[{ flex: 1 }, { fontFamily: pdfFontFor(item, { useArabic }) }]}>{item}</Text>
             </View>
           ))}
         </View>
@@ -261,6 +274,13 @@ function SummaryDoc({ patient, stats, narrative, generatedBy }: PdfArgs) {
   );
 }
 
-export function renderSummaryPdf(args: PdfArgs): Promise<Buffer> {
-  return renderToBuffer(<SummaryDoc {...args} />);
+export async function renderSummaryPdf(args: PdfArgs): Promise<Buffer> {
+  try {
+    return await renderToBuffer(<SummaryDoc {...args} useArabic={true} />);
+  } catch (err) {
+    // @react-pdf/textkit bidi can throw on pathological mixed Arabic+number/dash
+    // runs — retry with Arabic disabled so the export never fails.
+    logger.warn("Weekly PDF render failed; retrying with Arabic fonts disabled.", { err });
+    return await renderToBuffer(<SummaryDoc {...args} useArabic={false} />);
+  }
 }

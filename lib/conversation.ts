@@ -16,7 +16,7 @@ import { supa } from "./supabase";
 import type { ExtractedCheckIn } from "./symptomExtraction";
 import type { Severity } from "./types";
 
-export type Lang = "zh" | "en";
+export type Lang = "zh" | "en" | "ar";
 export type Direction = "inbound" | "outbound";
 export type MessageKind = "text" | "voice" | "system";
 export type FieldKey = "mood" | "sob" | "swelling" | "dizziness" | "chest" | "meds";
@@ -165,13 +165,25 @@ const COLLECTED_KEY: Record<FieldKey, keyof Collected> = {
   meds: "medication_taken",
 };
 
-export const FIELD_QUESTION: Record<FieldKey, { zh: string; en: string }> = {
-  mood: { zh: "今日覺得點呀？", en: "How are you feeling today?" },
-  sob: { zh: "今日有冇覺得氣促？", en: "Any shortness of breath today?" },
-  swelling: { zh: "對腳或腳踝有冇腫？", en: "Any swelling in your legs or feet?" },
-  dizziness: { zh: "有冇頭暈？", en: "Any dizziness?" },
-  chest: { zh: "胸口有冇唔舒服？", en: "Any chest discomfort?" },
-  meds: { zh: "今日食咗藥未？", en: "Have you taken your medicine today?" },
+export const FIELD_QUESTION: Record<FieldKey, { zh: string; en: string; ar: string }> = {
+  mood: { zh: "今日覺得點呀？", en: "How are you feeling today?", ar: "كيف تشعر اليوم؟" },
+  sob: {
+    zh: "今日有冇覺得氣促？",
+    en: "Any shortness of breath today?",
+    ar: "هل تشعر بضيق في التنفس اليوم؟",
+  },
+  swelling: {
+    zh: "對腳或腳踝有冇腫？",
+    en: "Any swelling in your legs or feet?",
+    ar: "هل يوجد تورّم في ساقيك أو قدميك؟",
+  },
+  dizziness: { zh: "有冇頭暈？", en: "Any dizziness?", ar: "هل تشعر بدوخة؟" },
+  chest: { zh: "胸口有冇唔舒服？", en: "Any chest discomfort?", ar: "هل تشعر بأي انزعاج في صدرك؟" },
+  meds: {
+    zh: "今日食咗藥未？",
+    en: "Have you taken your medicine today?",
+    ar: "هل تناولت دواءك اليوم؟",
+  },
 };
 
 /** Required field set: mood + BREATHING are asked of every patient (breathing is

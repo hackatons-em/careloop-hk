@@ -8,6 +8,14 @@ import type { DailyCheckIn, DailyVitals, Patient, Severity } from "./types";
 export interface CaregiverAlert {
   en: string;
   zh: string;
+  ar: string;
+}
+
+/** Format a caregiver alert for delivery. Arabic-preference families get the
+ * Arabic text; everyone else gets the historical bilingual (zh + en) message. */
+export function formatCaregiverMessage(text: CaregiverAlert, preferred?: string | null): string {
+  if (preferred === "ar") return text.ar;
+  return `${text.zh}\n\n${text.en}`;
 }
 
 const ZH_SURNAME: Record<string, string> = {
@@ -53,6 +61,25 @@ const DISCLAIMER_EN =
   "This message shares what changed in monitoring. It is not a diagnosis or treatment advice.";
 const DISCLAIMER_ZH = "此訊息只說明監測上的變化，並非診斷或治療建議。";
 
+const RECO_AR: Record<Severity, string> = {
+  escalate:
+    "توصي Miruwa بمراجعة الممرضة اليوم. إذا كانت الأعراض شديدة أو ازدادت سوءًا، فيُرجى طلب الرعاية الطبية العاجلة.",
+  review_today: "توصي Miruwa بمراجعة الممرضة اليوم.",
+  watch: "تقترح Miruwa المتابعة عن كثب والاستمرار في تسجيل الدخول اليومي.",
+  stable: "تبدو المتابعة مستقرة اليوم. يُرجى الاستمرار في تسجيل الدخول اليومي.",
+};
+
+const DISCLAIMER_AR =
+  "تشرح هذه الرسالة ما تغيّر في المتابعة. وهي ليست تشخيصًا أو نصيحة علاجية.";
+
+/** Arabic "and"-join: "أ"، "أ وب"، "أ، ب وج". The conjunction و attaches to
+ * the following word without a space, per Arabic convention. */
+function joinListAr(items: string[]): string {
+  if (items.length === 1) return items[0];
+  if (items.length === 2) return `${items[0]} و${items[1]}`;
+  return `${items.slice(0, -1).join("، ")} و${items[items.length - 1]}`;
+}
+
 export function buildCaregiverAlert(
   patient: Patient,
   daily: DailyVitals[],
@@ -66,21 +93,26 @@ export function buildCaregiverAlert(
 
   const symptomsEn: string[] = [];
   const symptomsZh: string[] = [];
+  const symptomsAr: string[] = [];
   if (latest?.shortness_of_breath) {
     symptomsEn.push("shortness of breath");
     symptomsZh.push("呼吸急促");
+    symptomsAr.push("ضيق في التنفس");
   }
   if (latest?.swelling) {
     symptomsEn.push("swelling in the legs or feet");
     symptomsZh.push("腳部或腳踝水腫");
+    symptomsAr.push("تورّم في الساقين أو القدمين");
   }
   if (latest?.dizziness) {
     symptomsEn.push("dizziness");
     symptomsZh.push("頭暈");
+    symptomsAr.push("دوخة");
   }
   if (latest?.chest_discomfort) {
     symptomsEn.push("chest discomfort");
     symptomsZh.push("胸口不適");
+    symptomsAr.push("انزعاج في الصدر");
   }
 
   const gainRaw = weightGain3d(daily);
@@ -119,7 +151,28 @@ export function buildCaregiverAlert(
   zh.push(RECO_ZH[severity]);
   zh.push(DISCLAIMER_ZH);
 
-  return { en: en.join(" "), zh: zh.join("") };
+  // --- Arabic (MSA) ---
+  // Gender drives verb/possessive agreement; unknown defaults to the masculine
+  // generic, as is conventional in MSA.
+  const female = patient.gender === "female";
+  const reported = female ? "أبلغت" : "أبلغ";
+  const poss = female ? "وزنها" : "وزنه";
+  const ar: string[] = [];
+  if (symptomsAr.length > 0) {
+    ar.push(`${reported} ${name} اليوم عن ${joinListAr(symptomsAr)}.`);
+  } else if (severity === "stable") {
+    ar.push(`يبدو تسجيل الدخول اليومي لـ ${name} مستقرًا اليوم.`);
+  } else {
+    ar.push(`تغيّرت بيانات المتابعة الأخيرة لـ ${name}.`);
+  }
+  if (gain !== null && gain >= 1) {
+    ar.push(`زاد ${poss} ${gain} كجم خلال آخر 3 أيام.`);
+  }
+  if (medMissed) ar.push("كما فاتت جرعة من الدواء اليوم.");
+  ar.push(RECO_AR[severity]);
+  ar.push(DISCLAIMER_AR);
+
+  return { en: en.join(" "), zh: zh.join(""), ar: ar.join(" ") };
 }
 
 function joinList(items: string[]): string {

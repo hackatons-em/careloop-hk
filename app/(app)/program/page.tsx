@@ -20,10 +20,10 @@ function pct(x: number): string {
   return `${Math.round(x * 100)}%`;
 }
 
-function minutes(m: number | null): string {
+function minutes(m: number | null, units: { min: string; hour: string }): string {
   if (m === null) return "—";
-  if (m < 60) return `${m} min`;
-  return `${Math.round((m / 60) * 10) / 10} h`;
+  if (m < 60) return `${m} ${units.min}`;
+  return `${Math.round((m / 60) * 10) / 10} ${units.hour}`;
 }
 
 /**
@@ -35,6 +35,7 @@ export default async function ProgramPage() {
   const t = await getTranslations("program");
   const m = await getProgramMetrics(ctx.orgId, 30);
 
+  const units = { min: t("unitMin"), hour: t("unitHour") };
   const completionOnTarget = m.checkin_completion_rate >= TARGET_COMPLETION;
   const maxDay = Math.max(1, ...m.daily_checkins.map((d) => d.count));
   const totalCheckins = m.daily_checkins.reduce((acc, d) => acc + d.count, 0);
@@ -74,8 +75,8 @@ export default async function ProgramPage() {
         <Metric
           icon={Clock3}
           label={t("timeToAck")}
-          value={minutes(m.ack_minutes.median)}
-          sub={t("timeToAckSub", { p90: minutes(m.ack_minutes.p90), n: m.ack_minutes.samples })}
+          value={minutes(m.ack_minutes.median, units)}
+          sub={t("timeToAckSub", { p90: minutes(m.ack_minutes.p90, units), n: m.ack_minutes.samples })}
         />
         <Metric icon={Users} label={t("activePatients")} value={String(m.active_patients)} sub={t("silentNow", { count: m.silent_patients })} />
       </div>
@@ -84,6 +85,7 @@ export default async function ProgramPage() {
       <section className="rounded-2xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold">{t("dailyCheckins")}</h2>
         <div
+          dir="ltr"
           className="mt-4 flex h-24 items-end gap-[3px]"
           role="img"
           aria-label={t("dailyCheckinsSummary", {
@@ -127,7 +129,7 @@ export default async function ProgramPage() {
                       style={{ width: total > 0 ? `${(count / total) * 100}%` : "0%" }}
                     />
                   </div>
-                  <span className="w-8 text-right text-sm font-semibold">{count}</span>
+                  <span className="w-8 text-end text-sm font-semibold">{count}</span>
                 </li>
               );
             })}

@@ -126,7 +126,7 @@ export async function LandingSections() {
               {n < steps.length - 1 && (
                 <ArrowRight
                   aria-hidden
-                  className="absolute -right-5 top-[26px] hidden size-4 text-muted-foreground/40 lg:block"
+                  className="absolute -end-5 top-[26px] hidden size-4 text-muted-foreground/40 rtl:rotate-180 lg:block"
                 />
               )}
             </div>
@@ -201,7 +201,7 @@ export async function LandingSections() {
             href="/contact"
             className="inline-flex h-11 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground shadow-sm outline-none transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            {t("cta.primary")} <ArrowRight className="size-4" />
+            {t("cta.primary")} <ArrowRight className="size-4 rtl:rotate-180" />
           </Link>
           <Link
             href="/pricing"

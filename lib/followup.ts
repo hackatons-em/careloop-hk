@@ -8,6 +8,12 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { FIELD_QUESTION, type FieldKey, type Lang } from "./conversation";
 
+const LANG_NAME: Record<Lang, string> = {
+  zh: "natural spoken Hong Kong Cantonese (Traditional Chinese characters)",
+  en: "plain English",
+  ar: "Modern Standard Arabic (formal, clear, suitable for an elderly reader)",
+};
+
 export async function generateFollowUp(
   field: FieldKey,
   lang: Lang,
@@ -21,10 +27,7 @@ export async function generateFollowUp(
   try {
     const client = new Anthropic({ apiKey });
     const model = process.env.CARELOOP_EXTRACT_MODEL ?? "claude-sonnet-4-6";
-    const langName =
-      lang === "zh"
-        ? "natural spoken Hong Kong Cantonese (Traditional Chinese characters)"
-        : "plain English";
+    const langName = LANG_NAME[lang];
     const msg = await client.messages.create({
       model,
       max_tokens: 180,
@@ -68,17 +71,19 @@ export function confirmationReply(
 ): string {
   if (status === "escalated") {
     if (familyNotified) {
-      return lang === "zh"
-        ? "多謝你嘅報到。我哋會安排護士今日跟進，亦會通知你嘅家人。"
-        : "Thank you for checking in. We will have a nurse follow up with you today and inform your family.";
+      if (lang === "zh") return "多謝你嘅報到。我哋會安排護士今日跟進，亦會通知你嘅家人。";
+      if (lang === "ar")
+        return "شكرًا لك على تسجيل الدخول. سنرتب متابعة من ممرضة اليوم، وسنُبلغ عائلتك أيضًا.";
+      return "Thank you for checking in. We will have a nurse follow up with you today and inform your family.";
     }
-    return lang === "zh"
-      ? "多謝你嘅報到。我哋會安排護士今日跟進。不妨同屋企人講聲你今日嘅情況。"
-      : "Thank you for checking in. We will have a nurse follow up with you today. Please do let your family know how you are feeling.";
+    if (lang === "zh") return "多謝你嘅報到。我哋會安排護士今日跟進。不妨同屋企人講聲你今日嘅情況。";
+    if (lang === "ar")
+      return "شكرًا لك على تسجيل الدخول. سنرتب متابعة من ممرضة اليوم. من فضلك أخبر عائلتك بما تشعر به.";
+    return "Thank you for checking in. We will have a nurse follow up with you today. Please do let your family know how you are feeling.";
   }
-  return lang === "zh"
-    ? "多謝你嘅報到。今日嘅報到已完成，各項指標都在正常範圍。"
-    : "Thank you. Your check-in is complete and your readings are within the expected range today.";
+  if (lang === "zh") return "多謝你嘅報到。今日嘅報到已完成，各項指標都在正常範圍。";
+  if (lang === "ar") return "شكرًا لك. اكتمل تسجيل دخولك اليوم وقراءاتك ضمن النطاق المتوقع.";
+  return "Thank you. Your check-in is complete and your readings are within the expected range today.";
 }
 
 /** Closing message written by Claude in the patient's language. Falls back to
@@ -98,10 +103,7 @@ export async function generateConfirmation(
   try {
     const client = new Anthropic({ apiKey });
     const model = process.env.CARELOOP_EXTRACT_MODEL ?? "claude-sonnet-4-6";
-    const langName =
-      lang === "zh"
-        ? "natural spoken Hong Kong Cantonese (Traditional Chinese characters)"
-        : "plain English";
+    const langName = LANG_NAME[lang];
     const familyLine = familyNotified
       ? "their family will be told"
       : "gently suggest they let their family know how they are feeling (do NOT promise that we will contact the family)";

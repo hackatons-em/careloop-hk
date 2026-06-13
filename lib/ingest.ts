@@ -48,6 +48,7 @@ export interface IngestResult {
 }
 
 function detectLang(text: string): Lang {
+  if (/[؀-ۿݐ-ݿ]/.test(text)) return "ar"; // Arabic + supplement
   return /[一-鿿]/.test(text) ? "zh" : "en";
 }
 

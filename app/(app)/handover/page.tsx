@@ -68,7 +68,7 @@ export default async function HandoverPage({
             href="/dashboard"
             className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
           >
-            <ArrowLeft className="size-3.5" /> {t("back")}
+            <ArrowLeft className="size-3.5 rtl:rotate-180" /> {t("back")}
           </Link>
           <h1 className="mt-1 flex items-center gap-2 text-2xl font-semibold tracking-tight">
             <ClipboardList className="size-6 text-primary" /> {t("title")}

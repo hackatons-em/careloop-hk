@@ -54,7 +54,7 @@ export function RiskCard({ risk }: { risk: RiskResult }) {
       )}
 
       <div className="mt-4 flex items-start gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2">
-        <ArrowRightCircle className="mt-0.5 size-4 shrink-0 text-primary" />
+        <ArrowRightCircle className="mt-0.5 size-4 shrink-0 text-primary rtl:rotate-180" />
         <div>
           <p className="text-xs font-medium text-muted-foreground">{t("recommendedAction")}</p>
           <p className="text-sm">{td(`recommendedAction.${risk.severity}`)}</p>

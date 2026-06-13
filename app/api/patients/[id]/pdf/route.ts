@@ -1,3 +1,4 @@
+import { getLocale } from "next-intl/server";
 import { requireAuth } from "@/lib/auth";
 import { renderSummaryPdf } from "@/lib/pdf";
 import { getLatestSummary, getTimeline, recordAudit } from "@/lib/store";
@@ -25,6 +26,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     stats,
     narrative,
     generatedBy,
+    locale: await getLocale(),
   });
   await recordAudit(auth.ctx.orgId, "pdf_exported", auth.ctx.email, "patient", id, {});
 

@@ -17,7 +17,7 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html lang="en">
+    <html lang="en" dir="ltr">
       <body
         style={{
           fontFamily: "system-ui, sans-serif",

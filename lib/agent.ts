@@ -47,10 +47,28 @@ export async function sendDailyCheckIn(
     };
   }
 
-  const zh = zhName(patient.name);
-  const prompt =
-    `早晨，${zh}。係時候做你今日嘅每日報到。今日覺得點呀？\n\n` +
-    `Good morning, ${patient.name}. It is time for your daily check-in. How are you feeling today?`;
+  // Outbound language follows the patient's preference. "auto" (the default)
+  // keeps the historical bilingual zh+en prompt; inbound replies are always
+  // auto-detected regardless, so the thread can still switch language naturally.
+  const pref = patient.preferred_language ?? "auto";
+  const zhPrompt = `早晨，${zhName(patient.name)}。係時候做你今日嘅每日報到。今日覺得點呀？`;
+  const enPrompt = `Good morning, ${patient.name}. It is time for your daily check-in. How are you feeling today?`;
+  const arPrompt = `صباح الخير، ${patient.name}. حان وقت تسجيل الدخول اليومي. كيف تشعر اليوم؟`;
+  let prompt: string;
+  let language: "zh" | "en" | "ar";
+  if (pref === "ar") {
+    prompt = arPrompt;
+    language = "ar";
+  } else if (pref === "en") {
+    prompt = enPrompt;
+    language = "en";
+  } else if (pref === "zh-HK") {
+    prompt = zhPrompt;
+    language = "zh";
+  } else {
+    prompt = `${zhPrompt}\n\n${enPrompt}`;
+    language = "zh";
+  }
 
   const sent = await sendWhatsApp(to, prompt);
   if (!sent.ok) return { ok: false, error: sent.error };
@@ -62,7 +80,7 @@ export async function sendDailyCheckIn(
     channel: "whatsapp",
     kind: "text",
     body: prompt,
-    language: "zh",
+    language,
   });
 
   return { ok: true, to, sid: sent.sid };

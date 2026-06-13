@@ -24,6 +24,22 @@ test.describe("locale switcher", () => {
     await expect(page.locator("html")).toHaveAttribute("lang", "en");
   });
 
+  test("switches to Arabic and applies RTL", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
+
+    // Switch to Arabic via the ع toggle.
+    await page.getByRole("button", { name: "ع" }).first().click();
+    await expect(page.getByRole("heading", { name: "تسجيل الدخول إلى Miruwa" })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("lang", "ar");
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+
+    // Persists across reload.
+    await page.reload();
+    await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+    await expect(page.getByRole("heading", { name: "تسجيل الدخول إلى Miruwa" })).toBeVisible();
+  });
+
   test("public marketing pages render in Chinese", async ({ page }) => {
     await page.goto("/pricing");
     await page.getByRole("button", { name: "繁" }).first().click();

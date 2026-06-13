@@ -49,12 +49,19 @@ export type VitalSource = "manual" | "wearable_csv" | "mock";
  * deleted (hidden from lists, history preserved). */
 export type PatientStatus = "active" | "pending_review" | "archived";
 
+/** Preferred message language for outbound WhatsApp check-ins + caregiver
+ * delivery. "auto" keeps the historical bilingual (zh + en) outbound prompt;
+ * inbound replies are always auto-detected regardless of this setting. */
+export type PreferredLanguage = "auto" | "en" | "zh-HK" | "ar";
+
 export interface Patient {
   id: string;
   name: string;
   age: number;
   gender: string;
   language: string;
+  /** Outbound message language preference. Defaults to "auto" when unset. */
+  preferred_language?: PreferredLanguage;
   living_status: string;
   conditions: string[];
   caregiver_name: string;
@@ -148,6 +155,7 @@ export interface WeeklySummary {
   generated_text: string; // clinician-facing summary
   caregiver_text_en: string;
   caregiver_text_zh: string;
+  caregiver_text_ar: string;
   data_completeness: number; // 0..1
   generated_by: "ai" | "template";
   created_at: string;

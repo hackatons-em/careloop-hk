@@ -7,6 +7,7 @@
 // Miruwa when something is wrong.
 
 import "server-only";
+import { formatCaregiverMessage } from "./caregiver";
 import { sendWithFallback } from "./channels";
 import { logger } from "./logger";
 import { emailFamilyDigest } from "./notify";
@@ -41,16 +42,21 @@ async function digestOne(orgId: string, patient: Patient): Promise<DigestOutcome
   if (await digestAlreadySent(orgId, patient.id, summary.week_start)) return "skipped";
   await saveWeeklySummary(orgId, summary, "system");
 
-  const text = { en: summary.caregiver_text_en, zh: summary.caregiver_text_zh };
+  const text = {
+    en: summary.caregiver_text_en,
+    zh: summary.caregiver_text_zh,
+    ar: summary.caregiver_text_ar,
+  };
   const channels: string[] = [];
   if (patient.caregiver_email) {
-    if (await emailFamilyDigest(patient.caregiver_email, patient.name, text)) channels.push("email");
+    if (await emailFamilyDigest(patient.caregiver_email, patient.name, text, patient.preferred_language))
+      channels.push("email");
   }
   if (patient.caregiver_phone) {
     const r = await sendWithFallback(
       ["whatsapp", "sms"],
       patient.caregiver_phone.replace(/\s+/g, ""),
-      `${text.zh}\n\n${text.en}`,
+      formatCaregiverMessage(text, patient.preferred_language),
     );
     if (r.delivered) channels.push(r.delivered);
   }

@@ -19,6 +19,7 @@ interface FormState {
   age: string;
   gender: string;
   language: string;
+  preferred_language: string;
   living_status: string;
   conditions: string[];
   caregiver_name: string;
@@ -38,6 +39,7 @@ function fromPatient(p?: Patient): FormState {
     age: p && p.age > 0 ? String(p.age) : "",
     gender: p?.gender || "female",
     language: p?.language ?? "Cantonese",
+    preferred_language: p?.preferred_language ?? "auto",
     living_status: p?.living_status ?? "",
     conditions: p?.conditions ?? [],
     caregiver_name: p?.caregiver_name ?? "",
@@ -58,6 +60,7 @@ function toPayload(f: FormState): PatientCreateInput {
     age: Number(f.age),
     gender: f.gender as PatientCreateInput["gender"],
     language: f.language.trim(),
+    preferred_language: f.preferred_language as PatientCreateInput["preferred_language"],
     living_status: f.living_status.trim(),
     conditions: f.conditions,
     caregiver_name: f.caregiver_name.trim(),
@@ -322,6 +325,25 @@ export function PatientForm({
                 onChange={(e) => set("phone", e.target.value)}
                 placeholder="+85291234567"
               />
+            )}
+          </Field>
+          <Field
+            label={t("preferredLanguage")}
+            error={errors.preferred_language}
+            hint={t("preferredLanguageHint")}
+            className="sm:col-span-2"
+          >
+            {(props) => (
+              <NativeSelect
+                {...props}
+                value={form.preferred_language}
+                onChange={(e) => set("preferred_language", e.target.value)}
+              >
+                <option value="auto">{t("preferredLanguageAuto")}</option>
+                <option value="en">{t("preferredLanguageEn")}</option>
+                <option value="zh-HK">{t("preferredLanguageZh")}</option>
+                <option value="ar">{t("preferredLanguageAr")}</option>
+              </NativeSelect>
             )}
           </Field>
           <Field label={t("caregiverName")} error={errors.caregiver_name}>

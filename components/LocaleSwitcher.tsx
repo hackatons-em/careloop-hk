@@ -7,7 +7,7 @@ import { setLocale } from "@/i18n/actions";
 import { LOCALES, type Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 
-const LABEL: Record<Locale, string> = { en: "EN", "zh-HK": "繁" };
+const LABEL: Record<Locale, string> = { en: "EN", "zh-HK": "繁", ar: "ع" };
 
 /** Compact EN | 繁 toggle (same segmented style as the caregiver-alert
  * language toggle). Persists via cookie, then refreshes the tree. */

@@ -37,6 +37,13 @@ const nextConfig: NextConfig = {
   // @react-pdf/renderer is a heavy Node library; keep it out of the bundler so
   // server-side PDF generation works reliably.
   serverExternalPackages: ["@react-pdf/renderer"],
+  // The Arabic PDF font (lib/pdf-fonts) is read from disk at render time
+  // (lib/pdfFonts.ts). Force the file-tracer to bundle it into the PDF route
+  // functions so Arabic glyphs render in production (not just locally).
+  outputFileTracingIncludes: {
+    "/api/program/pdf": ["./lib/pdf-fonts/**"],
+    "/api/patients/[id]/pdf": ["./lib/pdf-fonts/**"],
+  },
   // Self-host story: `docker build` uses the standalone server output.
   output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   async headers() {

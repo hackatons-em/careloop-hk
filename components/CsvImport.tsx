@@ -78,7 +78,7 @@ export function CsvImport({
             accept=".csv,text/csv"
             onChange={onFile}
             aria-label={t("chooseFile")}
-            className="text-sm file:mr-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1 file:text-sm"
+            className="text-sm file:me-3 file:rounded-md file:border file:border-border file:bg-muted file:px-3 file:py-1 file:text-sm"
           />
           <textarea
             value={text}

@@ -19,9 +19,19 @@ import { evaluatePatient, getPatients } from "./store";
 import { supa } from "./supabase";
 import { sendWhatsApp } from "./whatsapp";
 
-const REMINDER =
-  "提提你：今日仲未完成每日報到，得閒回覆一句就得喇。\n\n" +
+const REMINDER_ZH = "提提你：今日仲未完成每日報到，得閒回覆一句就得喇。";
+const REMINDER_EN =
   "A gentle reminder: today's check-in isn't finished yet. A short reply is all it takes.";
+const REMINDER_AR = "تذكير لطيف: لم يكتمل تسجيل دخولك اليوم بعد. يكفي ردّ قصير.";
+
+/** The silence reminder in the patient's preferred language. "auto" (default)
+ * keeps the historical bilingual zh+en reminder. */
+function reminderFor(pref?: string): { body: string; language: "zh" | "en" | "ar" } {
+  if (pref === "ar") return { body: REMINDER_AR, language: "ar" };
+  if (pref === "en") return { body: REMINDER_EN, language: "en" };
+  if (pref === "zh-HK") return { body: REMINDER_ZH, language: "zh" };
+  return { body: `${REMINDER_ZH}\n\n${REMINDER_EN}`, language: "zh" };
+}
 
 interface TodayTraffic {
   inbound: number;
@@ -91,7 +101,8 @@ export async function sweepSilence(orgId: string): Promise<SilenceSweepResult> {
       if (promptedToday) {
         // One reminder only: morning prompt was outbound #1, the reminder is #2.
         if (t.outbound < 2 && patient.phone) {
-          const sent = await sendWhatsApp(patient.phone, REMINDER);
+          const reminder = reminderFor(patient.preferred_language);
+          const sent = await sendWhatsApp(patient.phone, reminder.body);
           if (sent.ok) {
             reprompted += 1;
             await appendMessage(orgId, {
@@ -99,8 +110,8 @@ export async function sweepSilence(orgId: string): Promise<SilenceSweepResult> {
               direction: "outbound",
               channel: "whatsapp",
               kind: "text",
-              body: REMINDER,
-              language: "zh",
+              body: reminder.body,
+              language: reminder.language,
             });
           }
         }

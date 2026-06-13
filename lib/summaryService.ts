@@ -262,6 +262,7 @@ export async function generateWeeklySummary(
     generated_text: polished ?? draft,
     caregiver_text_en: caregiver.en,
     caregiver_text_zh: caregiver.zh,
+    caregiver_text_ar: caregiver.ar,
     data_completeness: stats.dataCompleteness,
     generated_by: polished ? "ai" : "template",
   };

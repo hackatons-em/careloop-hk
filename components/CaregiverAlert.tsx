@@ -20,9 +20,11 @@ export function CaregiverAlert({
 }) {
   const t = useTranslations("panels.caregiver");
   const locale = useLocale();
-  // The caregiver message itself is independently bilingual; default the
+  // The caregiver message itself is independently multilingual; default the
   // preview to the UI language.
-  const [lang, setLang] = useState<"en" | "zh">(locale === "zh-HK" ? "zh" : "en");
+  const [lang, setLang] = useState<"en" | "zh" | "ar">(
+    locale === "zh-HK" ? "zh" : locale === "ar" ? "ar" : "en",
+  );
   const [busy, setBusy] = useState(false);
 
   const text = buildCaregiverAlert(
@@ -31,7 +33,8 @@ export function CaregiverAlert({
     timeline.checkins,
     timeline.risk.severity,
   );
-  const body = lang === "en" ? text.en : text.zh;
+  const body = lang === "en" ? text.en : lang === "zh" ? text.zh : text.ar;
+  const LANG_LABEL = { en: "EN", zh: "繁中", ar: "عربي" } as const;
 
   async function copy() {
     try {
@@ -63,26 +66,29 @@ export function CaregiverAlert({
           <h2 className="font-semibold">{t("title")}</h2>
         </div>
         <div className="flex rounded-lg border border-border p-0.5 text-xs">
-          {(["en", "zh"] as const).map((l) => (
+          {(["en", "zh", "ar"] as const).map((l) => (
             <button
               key={l}
               onClick={() => setLang(l)}
               aria-pressed={lang === l}
+              lang={l === "zh" ? "zh-HK" : l}
               className={cn(
                 "rounded-md px-2 py-0.5 font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring",
                 lang === l ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
-              {l === "en" ? "EN" : "繁中"}
+              {LANG_LABEL[l]}
             </button>
           ))}
         </div>
       </div>
 
       <p
+        dir={lang === "ar" ? "rtl" : "ltr"}
+        lang={lang === "zh" ? "zh-HK" : lang}
         className={cn(
           "mt-3 rounded-lg border border-border bg-muted/30 p-3 text-sm leading-relaxed",
-          lang === "zh" && "leading-loose",
+          (lang === "zh" || lang === "ar") && "leading-loose",
         )}
       >
         {body}
