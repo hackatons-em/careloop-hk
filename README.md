@@ -2,7 +2,7 @@
 
 **Remote chronic-care monitoring for elderly Hong Kong patients — between clinic visits.**
 
-Live: **https://careloop-hk.vercel.app** · Disclosure: [`HONESTY.md`](./HONESTY.md) · In-app: `/honesty`
+Live: **https://careloop-hk.vercel.app**
 
 Patients check in over **WhatsApp** (text or Cantonese voice note). Miruwa transcribes and
 extracts the message into structured data, runs a **deterministic, auditable rule engine** to decide
@@ -60,7 +60,7 @@ re-evaluates on every message and raises an alert the moment a red flag appears.
 | SYM-001 | patient reports breathlessness / swelling / chest discomfort | Review today |
 
 Thresholds are demonstration values informed by ESC/HFSA and ACC/AHA guidance — not clinically
-validated. See [`HONESTY.md`](./HONESTY.md).
+validated.
 
 ## Try it
 
@@ -125,4 +125,3 @@ See `.env.example` for the full list (rate limiting, Sentry, scheduler, model ov
 
 Miruwa is monitoring support — not a diagnosis or treatment tool, and not a replacement for a
 clinician or emergency service. All demo data is synthetic; no secrets are committed.
-[`HONESTY.md`](./HONESTY.md) documents exactly what is real vs mocked.

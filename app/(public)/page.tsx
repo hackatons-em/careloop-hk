@@ -19,7 +19,7 @@ const JSON_LD = {
   applicationCategory: "HealthApplication",
   operatingSystem: "Web",
   description:
-    "Remote chronic-care monitoring for elderly Hong Kong patients: daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard.",
+    "Remote chronic-care monitoring: daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard.",
 };
 
 export default function Landing() {

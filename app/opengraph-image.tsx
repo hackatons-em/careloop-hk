@@ -60,7 +60,7 @@ export default function OpengraphImage() {
             alignSelf: "flex-start",
           }}
         >
-          Hong Kong elderly chronic-care monitoring
+          Built for hospital care teams
         </div>
 
         <div

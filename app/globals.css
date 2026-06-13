@@ -224,6 +224,139 @@
   box-shadow: 0 10px 30px -16px rgb(15 23 42 / 0.18);
 }
 
+/* Scroll-reveal: fade + rise the first time a block enters the viewport.
+   The hidden initial state is gated on `.js` (set before paint in the root
+   layout) so no-JS visitors and crawlers always see fully-visible content.
+   The Reveal component toggles `.is-visible` via IntersectionObserver. */
+.js .cl-reveal {
+  opacity: 0;
+  transform: translateY(16px);
+}
+.js .cl-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Hero demo: ambient "rules are continuously evaluating" life. All loops are
+   transform/opacity only — content never moves, so there is zero layout shift.
+   Reduced-motion neutralizes them via the global block below (iteration-count 1
+   + near-zero duration settles each at its resting 100%/0% keyframe). */
+@keyframes cl-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes cl-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+@keyframes cl-sweep {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(2px) scale(1.06);
+  }
+}
+/* RTL mirror: nudge toward the logical start (left in LTR, right in RTL). */
+@keyframes cl-sweep-rtl {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(-2px) scale(1.06);
+  }
+}
+.cl-float {
+  animation: cl-float 4.5s ease-in-out infinite;
+}
+.cl-pulse-dot {
+  animation: cl-pulse-dot 2s ease-in-out infinite;
+}
+.cl-sweep {
+  animation: cl-sweep 7.5s ease-in-out infinite;
+  transform-origin: left center;
+}
+[dir="rtl"] .cl-sweep {
+  animation-name: cl-sweep-rtl;
+  transform-origin: right center;
+}
+
+/* Voice showcase — waveform "recording" bars. scaleY only (grows from bottom),
+   so no layout shift; stagger via inline animation-delay per bar. Reduced-motion
+   settles to the 100% keyframe (short static bars). */
+@keyframes cl-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+.cl-wave-bar {
+  transform-origin: bottom;
+  animation: cl-wave 1s ease-in-out infinite;
+}
+
+/* Voice showcase — "transcribing" shimmer sweep across the transcript zone. */
+@keyframes cl-shimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(260%);
+  }
+}
+.cl-shimmer {
+  animation: cl-shimmer 1.2s ease-in-out infinite;
+}
+[dir="rtl"] .cl-shimmer {
+  animation-direction: reverse;
+}
+
+/* Voice showcase — breadth-ticker marquee (transcription reach). The track holds
+   two identical copies; translating -50% scrolls exactly one copy for a seamless
+   loop. RTL reverses direction. Reduced-motion settles to -50% (content visible,
+   not scrolling). */
+@keyframes cl-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.cl-ticker-track {
+  width: max-content;
+  animation: cl-scroll 32s linear infinite;
+}
+[dir="rtl"] .cl-ticker-track {
+  animation-direction: reverse;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -236,5 +369,10 @@
   .cl-card:hover {
     transform: none;
     box-shadow: none;
+  }
+  /* Never leave reveal content hidden for reduced-motion users. */
+  .js .cl-reveal {
+    opacity: 1;
+    transform: none;
   }
 }

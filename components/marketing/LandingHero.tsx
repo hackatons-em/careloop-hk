@@ -2,14 +2,15 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
   ArrowRight,
+  Building2,
   Check,
   Droplet,
-  HeartPulse,
   Pill,
   ShieldCheck,
   TrendingUp,
   Wind,
 } from "lucide-react";
+import { Parallax } from "@/components/marketing/Parallax";
 
 /** Server-rendered hero: headline + CTAs on the left; the WhatsApp-message →
  * escalation-card causality composition on the right; honest product-fact
@@ -33,7 +34,7 @@ export async function LandingHero() {
         {/* Left: message */}
         <div className="cl-rise-solid">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-            <HeartPulse className="size-3.5" /> {t("badge")}
+            <Building2 className="size-3.5" /> {t("badge")}
           </span>
           <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]">
             {t("heroTitle")} <span className="text-primary">{t("heroTitleAccent")}</span>
@@ -64,7 +65,7 @@ export async function LandingHero() {
         {/* Right: WhatsApp message → escalation, in one glance. pt-16 clears
             the two-line bubble (~70px) while keeping a few px of layered
             overlap with the card below it. */}
-        <div className="relative mx-auto w-full max-w-md pt-16 lg:max-w-none">
+        <Parallax className="relative mx-auto w-full max-w-md pt-16 lg:max-w-none">
           {/* the cause: a patient's WhatsApp message */}
           <div
             className="cl-rise absolute start-1 top-0 z-0 max-w-[250px] rounded-2xl rounded-se-sm bg-[#dcf8c6] px-3.5 py-2 text-sm text-neutral-800 shadow-md"
@@ -82,7 +83,7 @@ export async function LandingHero() {
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">{t("preview.label")}</span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700">
-                <span className="size-1.5 rounded-full bg-red-500" /> {t("preview.escalate")}
+                <span className="cl-pulse-dot size-1.5 rounded-full bg-red-500" /> {t("preview.escalate")}
               </span>
             </div>
             <p className="mt-3 text-xl font-semibold tracking-tight">{t("preview.name")}</p>
@@ -92,9 +93,12 @@ export async function LandingHero() {
               {t("preview.latestSignals")}
             </p>
             <ul className="mt-2 space-y-2">
-              {signals.map((s) => (
+              {signals.map((s, i) => (
                 <li key={s.label} className="flex items-center gap-2.5 text-sm">
-                  <s.icon className="size-4 text-red-500" />
+                  <s.icon
+                    className="cl-sweep size-4 text-red-500"
+                    style={{ animationDelay: `${i * 0.5}s` }}
+                  />
                   {s.label}
                 </li>
               ))}
@@ -119,7 +123,7 @@ export async function LandingHero() {
             </div>
             <p className="mt-3 text-xs text-muted-foreground">{t("preview.forReview")}</p>
           </div>
-        </div>
+        </Parallax>
       </div>
 
       {/* proof: honest product facts (no fake logos) */}

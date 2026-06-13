@@ -17,6 +17,8 @@ import {
   Users,
 } from "lucide-react";
 import { DashboardGlimpse } from "@/components/marketing/DashboardGlimpse";
+import { Reveal } from "@/components/marketing/Reveal";
+import { VoiceShowcase } from "@/components/marketing/VoiceShowcase";
 
 /** Server-rendered marketing narrative below the hero — SEO-indexable, same
  * card idiom as the rest of the product, zero client JS. */
@@ -58,6 +60,7 @@ export async function LandingSections() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-16 pb-16 pt-8">
       {/* The problem: the gap between visits */}
+      <Reveal>
       <section>
         <div className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -104,8 +107,10 @@ export async function LandingSections() {
           </ul>
         </div>
       </section>
+      </Reveal>
 
       {/* How it works */}
+      <Reveal>
       <section id="how-it-works" className="scroll-mt-24">
         <div className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("how.title")}</h2>
@@ -133,11 +138,38 @@ export async function LandingSections() {
           ))}
         </div>
       </section>
+      </Reveal>
+
+      {/* Voice showcase: record → transcribe → structure → reply, cycling languages */}
+      <Reveal>
+      <section>
+        <div className="text-center">
+          <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t("voice.title")}</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-sm text-muted-foreground">{t("voice.sub")}</p>
+        </div>
+        <div className="mt-8">
+          <VoiceShowcase
+            claim={t("voice.claim")}
+            labels={{
+              recording: t("voice.recording"),
+              transcribing: t("voice.transcribing"),
+              nurseReview: t("voice.nurseReview"),
+              patientLabel: t("voice.patientLabel"),
+              transcribedLabel: t("voice.transcribedLabel"),
+              matchedRule: t("voice.matchedRule"),
+            }}
+          />
+        </div>
+      </section>
+      </Reveal>
 
       {/* Exception-first dashboard glimpse */}
-      <DashboardGlimpse />
+      <Reveal>
+        <DashboardGlimpse />
+      </Reveal>
 
       {/* Features */}
+      <Reveal>
       <section>
         <div className="text-center">
           <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -164,8 +196,10 @@ export async function LandingSections() {
           ))}
         </div>
       </section>
+      </Reveal>
 
       {/* Trust strip */}
+      <Reveal>
       <section className="rounded-2xl bg-[#0a1626] p-7 text-white md:p-8">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
           <div>
@@ -189,8 +223,10 @@ export async function LandingSections() {
           </Link>
         </div>
       </section>
+      </Reveal>
 
       {/* CTA band */}
+      <Reveal>
       <section className="rounded-2xl border border-border bg-card p-8 text-center md:p-12">
         <h2 className="text-balance text-2xl font-semibold tracking-tight sm:text-3xl">
           {t("cta.title")}
@@ -211,6 +247,7 @@ export async function LandingSections() {
           </Link>
         </div>
       </section>
+      </Reveal>
     </div>
   );
 }

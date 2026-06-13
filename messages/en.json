@@ -29,7 +29,7 @@
     "reconnecting": "Reconnecting…"
   },
   "footer": {
-    "tagline": "— remote chronic-care monitoring, Hong Kong.",
+    "tagline": "— remote chronic-care monitoring.",
     "privacy": "Privacy",
     "terms": "Terms",
     "businessCase": "Business case",
@@ -49,24 +49,24 @@
     "signOut": "Sign out"
   },
   "landing": {
-    "badge": "Hong Kong elderly chronic-care monitoring",
+    "badge": "Built for hospital care teams",
     "heroTitle": "Miruwa watches the",
     "heroTitleAccent": "gaps between visits.",
-    "heroSub": "WhatsApp check-ins, vital signals, and explainable rules help nurses monitor elderly chronic-care patients between clinic visits.",
+    "heroSub": "Daily WhatsApp check-ins capture weight, blood pressure, and missed medications. Deterministic rules surface only the patients who need review — so nursing time shifts from scanning charts to acting on what matters.",
     "heroCtaSecondary": "See how it works",
     "safetyLine": "Monitoring support only. Not diagnosis. No treatment recommendation.",
     "proof": {
       "label": "Built for hospital evaluation",
       "item1": "Deterministic rules — no AI diagnosis",
       "item2": "English · 繁體中文 · العربية",
-      "item3": "Audit-ready",
+      "item3": "Every escalation cites its rule + data",
       "item4": "Dedicated instance per hospital"
     },
     "glimpse": {
       "title": "One queue. Only the exceptions.",
-      "sub": "Nurses don't scan 24 patients — Miruwa surfaces the few who need review and says exactly why.",
+      "sub": "A nurse doesn't scan 24 patients to find the 3 who need review. Miruwa surfaces escalations first, and every one cites the exact rule (HF-001: weight +2 kg in 3 days) and the patient's real data — not a black box, fully auditable.",
       "panelLabel": "Nurse dashboard · exceptions first",
-      "panelCount": "3 of 24 need review",
+      "panelCount": "<needed></needed> of <total></total> need review",
       "row1Note": "Weight up 2.3 kg · breathless",
       "row2Name": "Mr. Cheung, 81",
       "row2Note": "BP high two mornings in a row",
@@ -91,8 +91,8 @@
       "forReview": "For nurse review · not diagnosis"
     },
     "problem": {
-      "title": "The gap between visits",
-      "sub": "The risk is not only inside the clinic. It is the long period where symptoms, adherence, and daily changes become invisible.",
+      "title": "The gap between visits is where risk lives.",
+      "sub": "Patients with chronic conditions like heart failure and hypertension can deteriorate in the weeks between appointments. Small early signals — weight up 2 kg in three days, missed medications, persistent swelling — quietly become crises. No nurse can manually check every patient, every day.",
       "step1Title": "Clinic visit",
       "step1Body": "Patient seen, plan updated.",
       "step2Title": "Long gap",
@@ -111,8 +111,8 @@
   },
   "sections": {
     "how": {
-      "title": "How it works",
-      "sub": "From a WhatsApp message to a nurse decision — four steps, no app for the patient to install.",
+      "title": "From a WhatsApp message to a nurse decision.",
+      "sub": "Four steps. No app for the patient to install, no manual data entry for your team.",
       "step1Title": "Patient answers on WhatsApp",
       "step1Body": "A daily Cantonese, English, or Arabic check-in. No app to install, no login to forget.",
       "step2Title": "Signals are structured",
@@ -122,9 +122,20 @@
       "step4Title": "Nurses see exceptions first",
       "step4Body": "An exception-first dashboard with a full audit trail. One nurse covers a whole ward."
     },
+    "voice": {
+      "title": "Voice in. Understood.",
+      "sub": "An elderly patient records a voice message in their own language over WhatsApp. Miruwa transcribes it, structures the symptoms for the nurse, and replies in the patient's language.",
+      "claim": "Miruwa transcribes voice notes in ~100 languages and replies in the patient's language — English, 繁體中文, العربية today.",
+      "recording": "Recording",
+      "transcribing": "Transcribing…",
+      "nurseReview": "Nurse review",
+      "patientLabel": "Patient · WhatsApp",
+      "transcribedLabel": "Transcribed",
+      "matchedRule": "Matched rule"
+    },
     "features": {
-      "title": "Everything a monitoring program needs",
-      "sub": "Built for clinical accountability, not engagement metrics.",
+      "title": "Built for clinical accountability.",
+      "sub": "Not engagement metrics — the exports, alerts, and audit trail a monitoring program actually runs on.",
       "f1Title": "Deterministic risk engine",
       "f1Body": "Conservative, explainable rules with rule IDs. Every escalation says exactly why.",
       "f2Title": "Multilingual check-ins",
@@ -147,8 +158,8 @@
       "link": "Read our security overview →"
     },
     "cta": {
-      "title": "See Miruwa on your own ward's workflow.",
-      "sub": "A 30-minute walkthrough with our team — your use case, your language mix, your escalation rules.",
+      "title": "See Miruwa live on your ward's workflow.",
+      "sub": "A 30-minute session with our team — your patient mix, your languages, your escalation rules. No pitch deck, just the product, live.",
       "primary": "Request a demo",
       "secondary": "How pricing works"
     }
@@ -235,10 +246,10 @@
       "deterministicTitle": "Deterministic by design",
       "deterministicBody": "Escalation severity is decided by explainable, versioned rules — never by an AI model. AI is used only to structure language (transcription, wording), never to judge clinical risk.",
       "residencyTitle": "Data residency",
-      "residencyBody": "Each dedicated instance is provisioned in your preferred cloud region — for Hong Kong deployments, typically Singapore. (Our public demo runs in the US; production instances are placed where you need them.)",
+      "residencyBody": "Each dedicated instance is provisioned in your preferred cloud region. (Our public demo runs in the US; production instances are placed where you need them.)",
       "backupsTitle": "Backups & recovery",
       "backupsBody": "Daily automated backups are standard; point-in-time recovery is available on enterprise instances.",
-      "certsTitle": "Certifications — honest status",
+      "certsTitle": "Certifications",
       "certsBody": "Miruwa is not yet SOC 2 or ISO 27001 certified. We are early, and we won't pretend otherwise. Our roadmap: SOC 2 Type I, then Type II. We will share our security questionnaire answers and architecture documentation with any evaluating hospital.",
       "reportingTitle": "Vulnerability reporting",
       "reportingBody": "Report security issues privately to the team — never through public issue trackers, and never with real patient data in the report.",
@@ -965,9 +976,9 @@
   },
   "metadata": {
     "rootTitle": "Miruwa — Remote chronic-care monitoring",
-    "rootDescription": "Miruwa turns daily Cantonese check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for elderly Hong Kong patients between clinic visits. Monitoring support — not diagnosis.",
+    "rootDescription": "Miruwa turns daily WhatsApp check-ins, vital signals, and deterministic escalation rules into a nurse-review workflow for chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
     "ogDescription": "Daily WhatsApp check-ins, deterministic risk rules, and an exception-first nurse dashboard for chronic care between clinic visits.",
-    "landingDescription": "WhatsApp check-ins, vital signals, and explainable deterministic rules help nurses monitor elderly chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
+    "landingDescription": "Daily WhatsApp check-ins, vital signals, and deterministic rules help nurses monitor chronic-care patients between clinic visits. Monitoring support — not diagnosis.",
     "businessDescription": "Who pays for Miruwa and why: elderly-care operators, home-care agencies, clinics and insurers — KPIs, risks at scale, and mitigations.",
     "pricingTitle": "Pricing",
     "pricingDescription": "How Miruwa engagements work: pilot program, per-patient subscription, and dedicated enterprise instances. No public price list — every hospital's scope differs.",

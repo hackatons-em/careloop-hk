@@ -71,9 +71,21 @@ export default async function RootLayout({
     <html
       lang={locale}
       dir={dir}
+      // The inline script below adds `.js` to <html> before hydration; that
+      // intentional className mutation would otherwise trip a hydration
+      // attribute warning on this element (next-themes does the same).
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${notoSansArabic.variable} h-full antialiased`}
     >
       <body className="min-h-full">
+        {/* Mark the document JS-capable before first paint. Scroll-reveal's
+            hidden initial state is gated on `.js` (see globals.css), so a
+            no-JS visitor — or a crawler — always gets fully-visible content. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('js')",
+          }}
+        />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:start-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-primary-foreground"

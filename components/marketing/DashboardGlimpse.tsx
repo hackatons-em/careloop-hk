@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { CountUp } from "@/components/marketing/CountUp";
 import { SEVERITY_STYLE } from "@/lib/severity";
 import type { Severity } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -32,7 +33,10 @@ export async function DashboardGlimpse() {
             {t("glimpse.panelLabel")}
           </span>
           <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-slate-600">
-            {t("glimpse.panelCount")}
+            {t.rich("glimpse.panelCount", {
+              needed: () => <CountUp end={3} />,
+              total: () => <CountUp end={24} />,
+            })}
           </span>
         </div>
         <div className="divide-y divide-border rounded-xl border border-border bg-background/70">

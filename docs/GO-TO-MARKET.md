@@ -67,8 +67,7 @@ only you can do. The product is ready; these unlock selling it.
       **completed by the founder (2026-06-10).** Backed by a prior 19-agent AI
       linguistic QA pass (15 corrections applied) and the reviewer package at
       `docs/ZH-HK-REVIEW-GUIDE.md`.
-- [ ] Position statement: monitoring support, not a medical device (HONESTY.md
-      wording is the base)
+- [ ] Position statement: monitoring support, not a medical device
 
 ## Sales operations
 - [ ] Check **Settings → Leads** daily (email ping is now live via Resend)
