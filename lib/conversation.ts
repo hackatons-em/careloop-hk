@@ -145,6 +145,48 @@ export async function getPatientPhone(
   return (data?.[0]?.phone as string | undefined) ?? undefined;
 }
 
+/** Phone link for every patient in the org as a patient_id -> `whatsapp:+E164`
+ * map — the batch form of getPatientPhone, so the daily round resolves all
+ * numbers in ONE query instead of N. Newest link per patient wins. */
+export async function getOrgPhoneMap(orgId: string): Promise<Map<string, string>> {
+  const { data, error } = await supa()
+    .from("careloop_links")
+    .select("patient_id, phone, created_at")
+    .eq("org_id", orgId)
+    .order("created_at", { ascending: true });
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  // Ascending order → the LAST write for a patient is its newest link, matching
+  // getPatientPhone's "order by created_at desc limit 1".
+  const map = new Map<string, string>();
+  for (const r of data ?? []) map.set(r.patient_id as string, r.phone as string);
+  return map;
+}
+
+/** Per-patient inbound/outbound message counts since a UTC instant, in one
+ * query — the batch form of "have we already contacted this patient today",
+ * used by the daily round to stay idempotent. Mirrors lib/silence.ts
+ * todaysTraffic; created_at is timestamptz so `sinceUtc` must be the true UTC
+ * instant of local midnight (see localMidnightUtcISO). */
+export async function getMessageCountsSince(
+  orgId: string,
+  sinceUtc: string,
+): Promise<Map<string, { inbound: number; outbound: number }>> {
+  const { data, error } = await supa()
+    .from("careloop_messages")
+    .select("patient_id, direction")
+    .eq("org_id", orgId)
+    .gte("created_at", sinceUtc);
+  if (error) throw new Error(`Supabase: ${error.message}`);
+  const map = new Map<string, { inbound: number; outbound: number }>();
+  for (const r of data ?? []) {
+    const t = map.get(r.patient_id as string) ?? { inbound: 0, outbound: 0 };
+    if (r.direction === "inbound") t.inbound += 1;
+    else t.outbound += 1;
+    map.set(r.patient_id as string, t);
+  }
+  return map;
+}
+
 // --- field metadata (pure) ------------------------------------------------
 
 const CONDITION_SYMPTOMS: Record<string, FieldKey[]> = {

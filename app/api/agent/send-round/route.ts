@@ -5,16 +5,24 @@ import { logger } from "@/lib/logger";
 import { getDefaultOrgId } from "@/lib/org";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+// Hobby ceiling — the round sends to every active patient (bounded-concurrent
+// Twilio sends); give it headroom so a large ward doesn't time out mid-round.
+export const maxDuration = 60;
 
 // GET /api/agent/send-round — Vercel Cron daily trigger (vercel.json): message
-// every patient with a known WhatsApp number. Bearer CRON_SECRET; fail-closed
-// in production.
+// every active patient with a known WhatsApp number, skipping anyone already
+// contacted today. Bearer CRON_SECRET; fail-closed in production.
 export async function GET(req: Request) {
   const denied = requireCronAuthIfConfigured(req);
   if (denied) return denied;
   const orgId = await getDefaultOrgId();
   const result = await sendDailyCheckInRound(orgId);
-  logger.info("Daily check-in round finished.", { sent: result.sent, total: result.total });
+  logger.info("Daily check-in round finished.", {
+    sent: result.sent,
+    total: result.total,
+    skipped: result.skipped,
+  });
   return Response.json(result);
 }
 

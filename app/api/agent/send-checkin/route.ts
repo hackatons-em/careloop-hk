@@ -10,6 +10,8 @@ const DEFAULT_PATIENT = process.env.CARELOOP_WHATSAPP_PATIENT ?? "patient-mrs-ch
 
 // POST /api/agent/send-checkin — in-app trigger: send the outbound daily
 // check-in to one patient (body { patientId }). Requires a signed-in user.
+// Unlike the daily round, this has NO "already contacted today" guard — a nurse
+// pressing send wants the message to go out now.
 export async function POST(req: Request) {
   const auth = await requireAuth(req);
   if (auth.response) return auth.response;
