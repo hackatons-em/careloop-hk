@@ -69,7 +69,7 @@ function exportCsv(rows: PatientRow[]) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `careloop-worklist-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `miruwa-worklist-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }

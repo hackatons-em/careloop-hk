@@ -20,7 +20,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     return new Response(JSON.stringify(bundle, null, 2), {
       headers: {
         "Content-Type": "application/fhir+json",
-        "Content-Disposition": `attachment; filename="careloop-${id}-fhir.json"`,
+        "Content-Disposition": `attachment; filename="miruwa-${id}-fhir.json"`,
       },
     });
   }

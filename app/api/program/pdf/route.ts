@@ -35,7 +35,7 @@ export async function GET(req: Request) {
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="careloop-program-outcomes.pdf"`,
+      "Content-Disposition": `attachment; filename="miruwa-program-outcomes.pdf"`,
     },
   });
 }

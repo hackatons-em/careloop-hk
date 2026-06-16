@@ -33,7 +33,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   return new Response(new Uint8Array(buffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="careloop-${id}-weekly-summary.pdf"`,
+      "Content-Disposition": `attachment; filename="miruwa-${id}-weekly-summary.pdf"`,
     },
   });
 }

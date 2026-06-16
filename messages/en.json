@@ -664,6 +664,8 @@
   },
   "onboard": {
     "metaTitle": "Onboard a patient",
+    "notConfigured": "WhatsApp onboarding isn't set up yet. Ask your administrator to finish the WhatsApp configuration.",
+    "sandboxNotice": "Sandbox — for testing only. Real patients can't be onboarded until the production WhatsApp Business number is live.",
     "title": "Activate your Miruwa check-in",
     "sub": "Two quick steps in WhatsApp — no app to install, no account.",
     "scanCaption": "Scan to open WhatsApp to {number}",
@@ -969,7 +971,6 @@
       "label1": "Not diagnosis",
       "label2": "For nurse / clinician review",
       "label3": "No treatment recommendation",
-      "label4": "Demo data",
       "banner": "Miruwa does not diagnose or prescribe. It flags monitoring risks for professional review.",
       "note": "This alert is not a diagnosis or treatment recommendation. It is a monitoring prompt for professional review."
     }

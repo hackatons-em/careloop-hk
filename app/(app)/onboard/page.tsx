@@ -9,9 +9,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export const dynamic = "force-dynamic";
 
-// Twilio sandbox number + join code (overridable; defaults from the sandbox).
-const NUMBER = process.env.CARELOOP_WHATSAPP_SANDBOX_NUMBER ?? "14155238886";
-const JOIN_CODE = process.env.CARELOOP_WHATSAPP_JOIN_CODE ?? "bell-iron";
+// Twilio WhatsApp sender + join code. 14155238886 is Twilio's shared sandbox
+// sender (fine as a default); the join code has NO default — it's deployment-
+// specific, so an unset value shows a "not configured" state rather than a
+// stale, wrong code.
+const SANDBOX_NUMBER = "14155238886";
+const NUMBER = process.env.CARELOOP_WHATSAPP_SANDBOX_NUMBER ?? SANDBOX_NUMBER;
+const JOIN_CODE = process.env.CARELOOP_WHATSAPP_JOIN_CODE;
+const IS_SANDBOX = NUMBER === SANDBOX_NUMBER;
 
 // Onboarding, two explicit steps:
 //   1. Scan the QR -> WhatsApp opens with "join <code>" prefilled -> send it.
@@ -21,6 +26,15 @@ const JOIN_CODE = process.env.CARELOOP_WHATSAPP_JOIN_CODE ?? "bell-iron";
 //      nothing — WhatsApp only reveals the number once the person messages us.
 export default async function OnboardPage() {
   const t = await getTranslations("onboard");
+  // No join code configured -> show a clear notice instead of a broken QR.
+  if (!JOIN_CODE) {
+    return (
+      <div className="mx-auto max-w-lg space-y-2 py-10 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("notConfigured")}</p>
+      </div>
+    );
+  }
   const joinText = `join ${JOIN_CODE}`;
   const waUrl = `https://wa.me/${NUMBER}?text=${encodeURIComponent(joinText)}`;
   const qrSvg = await QRCode.toString(waUrl, { type: "svg", margin: 1, width: 240 });
@@ -32,6 +46,12 @@ export default async function OnboardPage() {
         <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("sub")}</p>
       </div>
+
+      {IS_SANDBOX && (
+        <p className="rounded-xl border border-border bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
+          {t("sandboxNotice")}
+        </p>
+      )}
 
       <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6">
         <div

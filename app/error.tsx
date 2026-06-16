@@ -17,7 +17,7 @@ export default function AppError({
   const t = useTranslations("errorPage");
 
   useEffect(() => {
-    console.error("[careloop] unhandled error:", error);
+    console.error("[miruwa] unhandled error:", error);
     Sentry.captureException(error);
   }, [error]);
 

@@ -664,6 +664,8 @@
   },
   "onboard": {
     "metaTitle": "病人登記",
+    "notConfigured": "尚未設定 WhatsApp 登記。請聯絡您的管理員完成 WhatsApp 設定。",
+    "sandboxNotice": "沙盒環境——僅供測試。正式 WhatsApp Business 號碼啟用前，無法登記真實病人。",
     "title": "啟動您的 Miruwa 報到",
     "sub": "在 WhatsApp 完成兩個簡單步驟——毋須安裝應用程式，毋須開戶。",
     "scanCaption": "掃描以開啟 WhatsApp（號碼：{number}）",
@@ -969,7 +971,6 @@
       "label1": "並非診斷",
       "label2": "供護士／醫生覆查",
       "label3": "不提供治療建議",
-      "label4": "示範數據",
       "banner": "Miruwa 不作診斷或處方，只標示監測風險供專業人員覆查。",
       "note": "此警示並非診斷或治療建議，而是供專業人員覆查的監測提示。"
     }

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /** Row of small safety chips for risky screens. */
 export function SafetyLabels({ className }: { className?: string }) {
   const t = useTranslations("domain.safety");
-  const labels = [t("label1"), t("label2"), t("label3"), t("label4")];
+  const labels = [t("label1"), t("label2"), t("label3")];
   return (
     <div className={cn("flex flex-wrap gap-1.5", className)}>
       {labels.map((label) => (

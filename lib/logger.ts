@@ -36,7 +36,7 @@ function emit(level: Level, msg: string, ctx?: LogContext): void {
   }
 
   const extra = Object.keys(payload).length ? ` ${JSON.stringify(payload)}` : "";
-  const line = `[careloop] ${level} ${msg}${extra}`;
+  const line = `[miruwa] ${level} ${msg}${extra}`;
   if (level === "error") console.error(line);
   else if (level === "warn") console.warn(line);
   else console.log(line);

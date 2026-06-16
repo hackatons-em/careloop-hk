@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { QrCode, UserPlus } from "lucide-react";
 import { Dashboard } from "@/components/Dashboard";
 import { DemoControls } from "@/components/DemoControls";
-import { SafetyLabels } from "@/components/SafetyLabels";
 import { requireAuthOrRedirect } from "@/lib/auth";
 import { isDemoMode } from "@/lib/flags";
 
@@ -28,7 +27,6 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t("sub")}</p>
-          <SafetyLabels className="mt-3" />
         </div>
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-start lg:flex-col lg:items-end">
           <div className="flex flex-wrap gap-2">

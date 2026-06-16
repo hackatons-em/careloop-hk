@@ -5,6 +5,7 @@
 // activity), a QuestionnaireResponse for the latest daily check-in, and a
 // ServiceRequest for the nurse-review follow-up task.
 
+import { isDemoMode } from "./flags";
 import type { DailyVitals, PatientTimeline } from "./types";
 import { series } from "./vitals";
 
@@ -12,6 +13,9 @@ type Json = Record<string, unknown>;
 
 const LOINC = "http://loinc.org";
 const UCUM = "http://unitsofmeasure.org";
+// FHIR extension/identifier namespace — derived from the live domain (not the
+// retired careloop.hk). These are canonical identifier URIs, not fetchable.
+const FHIR_BASE = `${process.env.NEXT_PUBLIC_SITE_URL ?? "https://miruwa.com"}/fhir`;
 
 function vitalCategory(): Json {
   return {
@@ -45,11 +49,11 @@ export function buildFhirBundle(timeline: PatientTimeline): Json {
       birthDate: `${birthYear}-01-01`,
       extension: [
         {
-          url: "https://careloop.hk/fhir/StructureDefinition/conditions",
+          url: `${FHIR_BASE}/StructureDefinition/conditions`,
           valueString: patient.conditions.join(", "),
         },
         {
-          url: "https://careloop.hk/fhir/StructureDefinition/assigned-nurse",
+          url: `${FHIR_BASE}/StructureDefinition/assigned-nurse`,
           valueString: patient.assigned_nurse,
         },
       ],
@@ -172,12 +176,17 @@ export function buildFhirBundle(timeline: PatientTimeline): Json {
     },
   });
 
-  return {
+  const bundle: Json = {
     resourceType: "Bundle",
     id: `bundle-${short}`,
     type: "collection",
     timestamp: new Date().toISOString(),
-    meta: { tag: [{ system: "https://careloop.hk/fhir", code: "demo", display: "Synthetic demo data" }] },
     entry: entries,
   };
+  // Only demo deployments carry the synthetic-data tag. A real pilot export must
+  // NOT be labelled "Synthetic demo data" — a receiving EHR could discard it.
+  if (isDemoMode()) {
+    bundle.meta = { tag: [{ system: FHIR_BASE, code: "demo", display: "Synthetic demo data" }] };
+  }
+  return bundle;
 }
