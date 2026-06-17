@@ -22,11 +22,24 @@ jobs:
         id: probe
         run: |
           set +e
-          STATUS=$(curl -s -o /tmp/body -w "%{http_code}" --max-time 20 "https://miruwa.com/api/health")
+          # Probe the www host directly (the apex 308-redirects to it) and follow
+          # redirects (-L) for safety. Retry up to 3x so a single transient blip
+          # (cold start / network) never raises a false outage alert.
+          URL="https://www.miruwa.com/api/health"
+          STATUS=000
+          for attempt in 1 2 3; do
+            STATUS=$(curl -sL -o /tmp/body -w "%{http_code}" --max-time 20 "$URL")
+            if [ "$STATUS" = "200" ]; then
+              echo "Health OK (HTTP 200) on attempt $attempt"
+              break
+            fi
+            echo "Attempt $attempt: HTTP $STATUS"
+            [ "$attempt" -lt 3 ] && sleep 10
+          done
           echo "status=$STATUS" >> "$GITHUB_OUTPUT"
-          echo "body=$(cat /tmp/body | head -c 200)" >> "$GITHUB_OUTPUT"
+          echo "body=$(head -c 200 /tmp/body)" >> "$GITHUB_OUTPUT"
           if [ "$STATUS" != "200" ]; then
-            echo "Health check failed with HTTP $STATUS"
+            echo "Health check failed after 3 attempts with HTTP $STATUS"
             exit 1
           fi
       - name: Open or update outage issue
