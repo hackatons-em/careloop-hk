@@ -77,6 +77,10 @@ export interface Patient {
   consent_caregiver_alerts: boolean;
   consent_family_digest: boolean;
   consent_updated_at: string | null;
+  /** Explicit opt-in to receive WhatsApp check-in messages. Captured at QR
+   * self-intake; optional so existing Patient literals stay valid. */
+  consent_messaging?: boolean;
+  consent_messaging_at?: string | null;
 }
 
 export interface DailyCheckIn {

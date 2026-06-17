@@ -7,6 +7,7 @@ import {
   leadPatchSchema,
   leadSchema,
   patientCreateSchema,
+  patientIntakeSchema,
   patientUpdateSchema,
   vitalInputSchema,
 } from "./validation";
@@ -189,5 +190,52 @@ describe("inviteUserSchema", () => {
     expect(
       inviteUserSchema.safeParse({ email: "a@b.co", name: "A", role: "superadmin" }).success,
     ).toBe(false);
+  });
+});
+
+describe("patientIntakeSchema", () => {
+  const valid = {
+    name: "Mrs. Chan",
+    phone: "+85291234567",
+    consent_messaging: true,
+  };
+
+  it("accepts a minimal valid intake and defaults language to auto", () => {
+    const r = patientIntakeSchema.safeParse(valid);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.preferred_language).toBe("auto");
+  });
+
+  it("requires a name", () => {
+    expect(patientIntakeSchema.safeParse({ ...valid, name: " " }).success).toBe(false);
+  });
+
+  it("requires an E.164 WhatsApp number", () => {
+    expect(patientIntakeSchema.safeParse({ ...valid, phone: "91234567" }).success).toBe(false);
+    expect(patientIntakeSchema.safeParse({ ...valid, phone: null }).success).toBe(false);
+  });
+
+  it("requires explicit messaging consent (literal true)", () => {
+    expect(patientIntakeSchema.safeParse({ ...valid, consent_messaging: false }).success).toBe(
+      false,
+    );
+    // consent omitted entirely
+    expect(patientIntakeSchema.safeParse({ name: "X", phone: "+85291234567" }).success).toBe(false);
+  });
+
+  it("accepts the supported languages and rejects others", () => {
+    expect(patientIntakeSchema.safeParse({ ...valid, preferred_language: "ar" }).success).toBe(
+      true,
+    );
+    expect(patientIntakeSchema.safeParse({ ...valid, preferred_language: "fr" }).success).toBe(
+      false,
+    );
+  });
+
+  it("passes the honeypot field through and rejects unknown keys", () => {
+    const r = patientIntakeSchema.safeParse({ ...valid, website: "spam.example" });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.website).toBe("spam.example");
+    expect(patientIntakeSchema.safeParse({ ...valid, admin: true }).success).toBe(false);
   });
 });

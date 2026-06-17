@@ -17,6 +17,7 @@ const PUBLIC_PAGES = new Set([
   "/pricing",
   "/security",
   "/contact",
+  "/intake",
 ]);
 
 // Routes that manage their own authentication (webhook signature, cron bearer
@@ -28,6 +29,7 @@ const PUBLIC_PREFIXES = [
   "/api/auth",
   "/api/health",
   "/api/leads",
+  "/api/intake",
 ];
 
 function isPublic(path: string): boolean {

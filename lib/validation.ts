@@ -223,6 +223,26 @@ export const patientUpdateSchema = patientFieldsSchema
 export type PatientCreateInput = z.infer<typeof patientCreateSchema>;
 export type PatientUpdateInput = z.infer<typeof patientUpdateSchema>;
 
+// Public QR self-intake — a patient registers themselves from the waiting-room
+// QR. Deliberately minimal (name + WhatsApp number + language + explicit
+// messaging consent); the nurse completes the clinical detail on review. The
+// record is created as `pending_review`, so nothing here reaches a clinical
+// flow until a nurse confirms it.
+export const patientIntakeSchema = z
+  .object({
+    name: z.string().trim().min(1, "Name is required").max(120),
+    // Required here — it is the WhatsApp channel the check-ins are sent to.
+    phone: e164,
+    preferred_language: z.enum(["auto", "en", "zh-HK", "ar"]).default("auto"),
+    // Must opt in to receive WhatsApp check-in messages.
+    consent_messaging: z.literal(true),
+    // Honeypot: humans leave it blank, bots fill it. Non-empty -> silent OK.
+    // Defaults to "" (mirrors leadSchema) so an omitted field parses cleanly.
+    website: z.string().max(200).default(""),
+  })
+  .strict();
+export type PatientIntakeInput = z.infer<typeof patientIntakeSchema>;
+
 // --- leads (public contact form) ----------------------------------------------
 
 export const leadInterests = ["pilot", "demo", "pricing", "other"] as const;

@@ -7,13 +7,17 @@ import "server-only";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-type LimiterName = "webhook" | "api" | "auth" | "leads";
+type LimiterName = "webhook" | "api" | "auth" | "leads" | "intake";
 
 const LIMITS: Record<LimiterName, { tokens: number; windowSeconds: number }> = {
   webhook: { tokens: 30, windowSeconds: 60 }, // per phone number
   api: { tokens: 240, windowSeconds: 60 }, // per user (dashboard polls several endpoints)
   auth: { tokens: 10, windowSeconds: 60 }, // per IP (invites, sensitive admin ops)
   leads: { tokens: 5, windowSeconds: 3600 }, // per IP — public contact form
+  // per IP — public QR self-intake. Higher than leads because a clinic waiting
+  // room shares one NAT/WiFi IP; the pending_review nurse gate is the real
+  // abuse backstop, so this only needs to stop runaway automation.
+  intake: { tokens: 30, windowSeconds: 3600 },
 };
 
 function upstashConfigured(): boolean {

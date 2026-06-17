@@ -54,6 +54,7 @@ import type {
   PatientRow,
   PatientStatus,
   PatientTimeline,
+  PreferredLanguage,
   RiskAlert,
   RiskResult,
   VitalReading,
@@ -62,7 +63,7 @@ import type {
 } from "./types";
 import { SEVERITY_ORDER } from "./types";
 import { toDailyVitals } from "./vitals";
-import type { PatientCreateInput, PatientUpdateInput } from "./validation";
+import type { PatientCreateInput, PatientIntakeInput, PatientUpdateInput } from "./validation";
 
 // --- helpers --------------------------------------------------------------
 
@@ -140,6 +141,8 @@ function rowToPatient(r: Record<string, unknown>): Patient {
     consent_caregiver_alerts: Boolean(r.consent_caregiver_alerts),
     consent_family_digest: Boolean(r.consent_family_digest),
     consent_updated_at: (r.consent_updated_at as string | null) ?? null,
+    consent_messaging: Boolean(r.consent_messaging),
+    consent_messaging_at: (r.consent_messaging_at as string | null) ?? null,
   };
 }
 
@@ -1870,6 +1873,115 @@ export async function createPatientFromWhatsApp(orgId: string, phone: string): P
   await pushAudit(orgId, "patient_created", "whatsapp-webhook", "patient", patient.id, {
     source: "whatsapp_inbound",
   });
+  return patient.id;
+}
+
+/** A free-text `language` value (the NOT-NULL column) derived from the chosen
+ * outbound preference, so the nurse sees a sensible starting point on review. */
+function intakeLanguageLabel(pref: PreferredLanguage): string {
+  switch (pref) {
+    case "ar":
+      return "Arabic";
+    case "en":
+      return "English";
+    case "zh-HK":
+      return "Cantonese";
+    default:
+      return "Cantonese";
+  }
+}
+
+/**
+ * Patient self-intake from the public QR form (`POST /api/intake`).
+ *
+ * Creates a MINIMAL `pending_review` record from the patient's own input — real
+ * name + WhatsApp number + language + explicit messaging consent — and links
+ * the phone so the inbound webhook routes to THIS record (no shell, no demo
+ * clone). A nurse completes the clinical detail and activates it on review.
+ *
+ * Security: this is a public, unauthenticated endpoint, so it must never
+ * overwrite a confirmed patient. If the number already belongs to an `active`
+ * or `archived` patient we leave it untouched; only a still-`pending_review`
+ * record (the patient re-submitted before a nurse got to it) is refreshed.
+ *
+ * Race-safe: the unique (org_id, phone) index makes a concurrent second insert
+ * fail with 23505; we then return the winner's id.
+ */
+export async function createPatientFromIntake(
+  orgId: string,
+  input: PatientIntakeInput,
+): Promise<string> {
+  const e164 = input.phone; // already validated bare +E.164
+  const pref = input.preferred_language ?? "auto";
+
+  const existingId = await findPatientByPhone(orgId, e164);
+  if (existingId) {
+    const existing = await getPatient(orgId, existingId);
+    // Only a record still awaiting review may be updated from the public form.
+    if (existing && existing.status === "pending_review") {
+      const { error } = await supa()
+        .from("careloop_patients")
+        .update({
+          name: input.name,
+          preferred_language: pref,
+          language: intakeLanguageLabel(pref),
+          consent_messaging: true,
+          consent_messaging_at: now(),
+        })
+        .eq("org_id", orgId)
+        .eq("id", existingId);
+      if (error) throw new Error(`Supabase: ${error.message}`);
+      await upsertLink(orgId, e164, existingId);
+      await pushAudit(orgId, "patient_updated", "qr_intake", "patient", existingId, {
+        source: "qr_intake",
+      });
+      await broadcastOrgEvent(orgId, "data_changed");
+    }
+    // active/archived: leave the confirmed record untouched, report success.
+    return existingId;
+  }
+
+  const patient = {
+    id: genId("patient"),
+    name: input.name,
+    age: 0, // unknown until a nurse reviews — UI renders "—"
+    gender: "",
+    language: intakeLanguageLabel(pref),
+    preferred_language: pref,
+    living_status: "",
+    conditions: [] as string[],
+    caregiver_name: "",
+    caregiver_phone: "",
+    caregiver_email: "",
+    assigned_nurse: "Unassigned",
+    baseline_weight: 0,
+    baseline_steps: 0,
+    phone: e164,
+    status: "pending_review" as PatientStatus,
+    consent_caregiver_alerts: false,
+    consent_family_digest: false,
+    consent_updated_at: null,
+    consent_messaging: true,
+    consent_messaging_at: now(),
+  };
+  const { error } = await supa()
+    .from("careloop_patients")
+    .insert({ ...patient, org_id: orgId });
+  if (error) {
+    if ((error as { code?: string }).code === "23505") {
+      const winner = await findPatientByPhone(orgId, e164);
+      if (winner) {
+        await upsertLink(orgId, e164, winner);
+        return winner;
+      }
+    }
+    throw new Error(`Supabase: ${error.message}`);
+  }
+  await upsertLink(orgId, e164, patient.id);
+  await pushAudit(orgId, "patient_created", "qr_intake", "patient", patient.id, {
+    source: "qr_intake",
+  });
+  await broadcastOrgEvent(orgId, "data_changed");
   return patient.id;
 }
 
