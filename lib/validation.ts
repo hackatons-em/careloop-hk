@@ -243,6 +243,31 @@ export const patientIntakeSchema = z
   .strict();
 export type PatientIntakeInput = z.infer<typeof patientIntakeSchema>;
 
+// --- wearables (Terra) ------------------------------------------------------
+
+// Terra webhook envelope. Payloads are large + provider-variable, so we only
+// pin the fields we route on and pass the rest through (the normalizer in
+// lib/wearableIngest.ts defensively extracts metrics from `data`).
+export const terraWebhookSchema = z
+  .object({
+    type: z.string().min(1),
+    user: z
+      .object({
+        user_id: z.string().min(1),
+        reference_id: z.string().nullable().optional(),
+        provider: z.string().nullable().optional(),
+      })
+      .passthrough()
+      .optional(),
+    data: z.array(z.unknown()).optional(),
+    status: z.string().optional(),
+  })
+  .passthrough();
+export type TerraWebhook = z.infer<typeof terraWebhookSchema>;
+
+// Nurse-initiated "connect a device" request (auth-gated route).
+export const wearableConnectSchema = z.object({ patient_id: z.string().min(1).max(80) }).strict();
+
 // --- leads (public contact form) ----------------------------------------------
 
 export const leadInterests = ["pilot", "demo", "pricing", "other"] as const;

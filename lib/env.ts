@@ -82,6 +82,13 @@ export function validateEnv(): void {
       "RESEND_API_KEY/LEADS_NOTIFY_EMAIL unset — leads stored in DB only, no email notification.",
     );
   }
+  if (!process.env.TERRA_DEV_ID || !process.env.TERRA_API_KEY) {
+    logger.info("Terra unset — wearable sync disabled (connect + webhook inactive).");
+  } else if (isProd && !process.env.TERRA_SIGNING_SECRET) {
+    logger.warn(
+      "TERRA_SIGNING_SECRET unset — wearable webhook signature validation disabled. Set it in production.",
+    );
+  }
   if (process.env.DEMO_MODE === "true") {
     logger.warn("DEMO_MODE enabled — demo tooling active and clock frozen to the demo week. Do not use for real patients.");
   }

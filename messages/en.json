@@ -503,6 +503,28 @@
     }
   },
   "patient": {
+    "wearable": {
+      "title": "Live today",
+      "connectButton": "Connect device",
+      "addDevice": "Add device",
+      "connectHint": "Scan to connect a watch or health app",
+      "notConnected": "No wearable connected yet.",
+      "noDataYet": "Connected — waiting for the first sync.",
+      "syncedAgo": "Synced {mins} min ago",
+      "syncedJustNow": "Synced just now",
+      "never": "Not synced yet",
+      "openLink": "Open link",
+      "copyLink": "Copy link",
+      "copied": "Link copied",
+      "close": "Close",
+      "consentNote": "By connecting, the patient agrees to share their wearable data with the care team.",
+      "connectError": "Couldn't start device connection.",
+      "metrics": {
+        "heart_rate": "Heart rate",
+        "spo2": "Blood oxygen",
+        "steps": "Steps"
+      }
+    },
     "detail": {
       "back": "Back to dashboard",
       "sendCheckin": "Send check-in",

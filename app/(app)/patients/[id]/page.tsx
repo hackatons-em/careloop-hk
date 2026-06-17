@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PatientDetail } from "@/components/PatientDetail";
 import { requireAuthOrRedirect } from "@/lib/auth";
 import { getTimeline } from "@/lib/store";
+import { terraConfigured } from "@/lib/terra";
 
 export const dynamic = "force-dynamic";
 
@@ -11,5 +12,7 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
   const timeline = await getTimeline(ctx.orgId, id);
   if (!timeline) notFound();
 
-  return <PatientDetail patientId={id} initialTimeline={timeline} />;
+  return (
+    <PatientDetail patientId={id} initialTimeline={timeline} wearableEnabled={terraConfigured()} />
+  );
 }

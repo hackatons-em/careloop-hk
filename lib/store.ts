@@ -58,7 +58,9 @@ import type {
   RiskAlert,
   RiskResult,
   VitalReading,
+  VitalSource,
   VitalType,
+  WearableSample,
   WeeklySummary,
 } from "./types";
 import { SEVERITY_ORDER } from "./types";
@@ -143,6 +145,8 @@ function rowToPatient(r: Record<string, unknown>): Patient {
     consent_updated_at: (r.consent_updated_at as string | null) ?? null,
     consent_messaging: Boolean(r.consent_messaging),
     consent_messaging_at: (r.consent_messaging_at as string | null) ?? null,
+    consent_wearable: Boolean(r.consent_wearable),
+    consent_wearable_at: (r.consent_wearable_at as string | null) ?? null,
   };
 }
 
@@ -974,16 +978,18 @@ async function upsertVital(
   type: VitalType,
   value: number,
   unit: string,
+  source: VitalSource = "manual",
+  ts?: string,
 ): Promise<void> {
   const row = {
     id: `vital-${shortId(patientId)}-${date}-${type}`,
     patient_id: patientId,
     org_id: orgId,
-    ts: `${date}T09:00:00Z`,
+    ts: ts ?? `${date}T09:00:00Z`,
     type,
     value,
     unit,
-    source: "manual" as const,
+    source,
   };
   const { error } = await supa().from("careloop_vitals").upsert(row, { onConflict: "id" });
   if (error) throw new Error(`Supabase: ${error.message}`);
@@ -1067,6 +1073,118 @@ export async function addVital(
   const { risk, broadcasted } = await upsertAlertFor(orgId, patientId, "nurse");
   if (!broadcasted) await broadcastOrgEvent(orgId, "data_changed");
   return risk;
+}
+
+// --- wearables (Terra) ----------------------------------------------------
+
+function rowToWearableSample(r: Record<string, unknown>): WearableSample {
+  return {
+    id: r.id as string,
+    patient_id: r.patient_id as string,
+    type: r.type as string,
+    timestamp: r.ts as string,
+    value: Number(r.value),
+    unit: r.unit as string,
+    provider: (r.provider as string) ?? "",
+  };
+}
+
+/**
+ * Wearable ingest: store raw intraday samples AND the per-day rollup that the
+ * daily risk engine reads, then re-evaluate risk + broadcast ONCE for the whole
+ * payload (mirrors addVital). Risk is only re-evaluated when a daily rollup
+ * changed; samples alone just refresh the live view.
+ */
+export async function recordWearableData(
+  orgId: string,
+  patientId: string,
+  provider: string,
+  samples: { type: string; ts: string; value: number; unit: string }[],
+  rollup: { date: string; type: VitalType; value: number; unit: string }[],
+): Promise<void> {
+  if (!(await fetchPatient(orgId, patientId))) return;
+
+  if (samples.length > 0) {
+    const sampleRows = samples.map((s) => ({
+      id: `wear-${shortId(patientId)}-${s.type}-${new Date(s.ts).getTime()}`,
+      org_id: orgId,
+      patient_id: patientId,
+      type: s.type,
+      ts: s.ts,
+      value: s.value,
+      unit: s.unit,
+      provider,
+    }));
+    const { error } = await supa()
+      .from("careloop_wearable_samples")
+      .upsert(sampleRows, { onConflict: "id" });
+    if (error) throw new Error(`Supabase: ${error.message}`);
+  }
+
+  // Roll up into the daily vitals the risk engine reads — but NEVER overwrite a
+  // clinician-entered (or CSV-imported) reading, which shares the same
+  // deterministic id. Wearable data only fills gaps or updates prior wearable rows.
+  let wroteRollup = false;
+  for (const r of rollup) {
+    const id = `vital-${shortId(patientId)}-${r.date}-${r.type}`;
+    const existing = await supa()
+      .from("careloop_vitals")
+      .select("source")
+      .eq("org_id", orgId)
+      .eq("id", id)
+      .maybeSingle();
+    if (existing.error) throw new Error(`Supabase: ${existing.error.message}`);
+    // Keep clinician-origin readings — a manual nurse entry ("manual") or a CSV
+    // import ("wearable_csv") — over live wearable data. Prior wearable/mock rows
+    // may be updated.
+    const src = existing.data?.source;
+    if (src === "manual" || src === "wearable_csv") continue;
+    await upsertVital(orgId, patientId, r.date, r.type, r.value, r.unit, "wearable", `${r.date}T12:00:00Z`);
+    wroteRollup = true;
+  }
+
+  let broadcasted = false;
+  if (wroteRollup) {
+    broadcasted = (await upsertAlertFor(orgId, patientId, "wearable")).broadcasted;
+  }
+  if (!broadcasted && (samples.length > 0 || wroteRollup)) {
+    await broadcastOrgEvent(orgId, "data_changed");
+  }
+}
+
+/** Raw wearable samples for a patient within [date, date+1) UTC, oldest first. */
+export async function getWearableSamplesForDay(
+  orgId: string,
+  patientId: string,
+  dateISO: string,
+): Promise<WearableSample[]> {
+  // Bound the LOCAL day (Hong Kong by default) expressed as real UTC instants —
+  // ts is stored in true UTC, so a naive `${date}T00:00Z` window would be offset
+  // by the tz and miss the local morning. Mirrors lib/silence.ts.
+  const tz = process.env.CARELOOP_TZ ?? "Asia/Hong_Kong";
+  const data = rows<Record<string, unknown>>(
+    await supa()
+      .from("careloop_wearable_samples")
+      .select("*")
+      .eq("org_id", orgId)
+      .eq("patient_id", patientId)
+      .gte("ts", localMidnightUtcISO(dateISO, tz))
+      .lt("ts", localMidnightUtcISO(addDays(dateISO, 1), tz))
+      .order("ts", { ascending: true })
+      .limit(5000),
+  );
+  return data.map(rowToWearableSample);
+}
+
+/** Stamp wearable-sharing consent the first time a device is linked. */
+export async function stampWearableConsent(orgId: string, patientId: string): Promise<void> {
+  const { error } = await supa()
+    .from("careloop_patients")
+    .update({ consent_wearable: true, consent_wearable_at: now() })
+    .eq("org_id", orgId)
+    .eq("id", patientId)
+    .eq("consent_wearable", false);
+  if (error) throw new Error(`Supabase: ${error.message}`);
 }
 
 export async function evaluatePatient(

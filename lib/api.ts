@@ -13,6 +13,7 @@ import type {
   RiskResult,
   WeeklySummary,
   DailyCheckIn,
+  WearableSample,
 } from "./types";
 import type { PatientCreateInput, PatientUpdateInput } from "./validation";
 
@@ -82,11 +83,26 @@ export interface LeadPayload {
   website: string;
 }
 
+export interface WearableTodayResponse {
+  date: string;
+  samples: WearableSample[];
+  connection: { provider: string; connected_at: string; last_sync_at: string | null } | null;
+}
+
 export const api = {
   patients: () => fetch("/api/patients").then(json<PatientRow[]>),
   timeline: (id: string) => fetch(`/api/patients/${id}/timeline`).then(json<PatientTimeline>),
   alerts: () => fetch("/api/alerts").then(json<RiskAlert[]>),
   audit: (limit = 50) => fetch(`/api/audit-events?limit=${limit}`).then(json<AuditEvent[]>),
+
+  wearableToday: (id: string) =>
+    fetch(`/api/patients/${id}/wearable-today`).then(json<WearableTodayResponse>),
+  wearableConnect: (patient_id: string) =>
+    fetch("/api/wearable/connect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ patient_id }),
+    }).then(json<{ url: string; expires_in: number }>),
 
   createPatient: (payload: PatientCreateInput) =>
     fetch("/api/patients", {

@@ -42,7 +42,21 @@ export type VitalType =
   | "sleep_hours";
 
 export type CheckInSource = "simulated_call" | "web_form" | "imported";
-export type VitalSource = "manual" | "wearable_csv" | "mock";
+export type VitalSource = "manual" | "wearable_csv" | "wearable" | "mock";
+
+/** A raw intraday sample from a connected wearable (high-frequency; powers the
+ * live "today" view). `type` is free-form (heart_rate, steps, spo2,
+ * resting_heart_rate, hrv, …) so it can carry metrics beyond the daily
+ * VitalType set; the daily rollup is stored separately in careloop_vitals. */
+export interface WearableSample {
+  id: string;
+  patient_id: string;
+  type: string;
+  timestamp: string;
+  value: number;
+  unit: string;
+  provider: string;
+}
 
 /** Lifecycle of a patient record. `pending_review` = auto-created from an
  * unknown WhatsApp number, awaiting nurse confirmation. `archived` = soft
@@ -81,6 +95,9 @@ export interface Patient {
    * self-intake; optional so existing Patient literals stay valid. */
   consent_messaging?: boolean;
   consent_messaging_at?: string | null;
+  /** Explicit opt-in to share wearable/smartwatch data with the clinic + Terra. */
+  consent_wearable?: boolean;
+  consent_wearable_at?: string | null;
 }
 
 export interface DailyCheckIn {

@@ -30,6 +30,7 @@ const PUBLIC_PREFIXES = [
   "/api/health",
   "/api/leads",
   "/api/intake",
+  "/api/wearable/terra",
 ];
 
 function isPublic(path: string): boolean {

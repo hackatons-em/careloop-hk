@@ -503,6 +503,28 @@
     }
   },
   "patient": {
+    "wearable": {
+      "title": "今日即時",
+      "connectButton": "連接裝置",
+      "addDevice": "新增裝置",
+      "connectHint": "掃描以連接智能手錶或健康應用程式",
+      "notConnected": "尚未連接任何穿戴裝置。",
+      "noDataYet": "已連接——正在等待首次同步。",
+      "syncedAgo": "{mins} 分鐘前同步",
+      "syncedJustNow": "剛剛同步",
+      "never": "尚未同步",
+      "openLink": "開啟連結",
+      "copyLink": "複製連結",
+      "copied": "已複製連結",
+      "close": "關閉",
+      "consentNote": "連接即表示病人同意與醫護團隊分享其穿戴裝置數據。",
+      "connectError": "無法開始連接裝置。",
+      "metrics": {
+        "heart_rate": "心率",
+        "spo2": "血氧",
+        "steps": "步數"
+      }
+    },
     "detail": {
       "back": "返回儀表板",
       "sendCheckin": "發送報到",

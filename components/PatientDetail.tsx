@@ -28,6 +28,7 @@ import { ConversationPanel } from "@/components/ConversationPanel";
 import { NeedsReviewBadge } from "@/components/NeedsReviewBadge";
 import { WeeklySummaryPanel } from "@/components/WeeklySummaryPanel";
 import { FhirExportPanel } from "@/components/FhirExportPanel";
+import { WearableToday } from "@/components/WearableToday";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
@@ -53,9 +54,11 @@ import { cn } from "@/lib/utils";
 export function PatientDetail({
   patientId,
   initialTimeline,
+  wearableEnabled,
 }: {
   patientId: string;
   initialTimeline: PatientTimeline;
+  wearableEnabled: boolean;
 }) {
   const t = useTranslations("patient.detail");
   const tds = useTranslations("domain.severity");
@@ -212,6 +215,13 @@ export function PatientDetail({
           <div className="cl-rise" style={{ animationDelay: "100ms" }}>
             <RiskCard risk={risk} />
           </div>
+
+          {/* Live intraday wearable data (only when Terra is configured) */}
+          {wearableEnabled && (
+            <div className="cl-rise" style={{ animationDelay: "150ms" }}>
+              <WearableToday patientId={patientId} />
+            </div>
+          )}
 
           {/* Secondary detail behind tabs */}
           <Tabs defaultValue="trends" className="cl-rise w-full">

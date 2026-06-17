@@ -7,7 +7,7 @@ import "server-only";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
-type LimiterName = "webhook" | "api" | "auth" | "leads" | "intake";
+type LimiterName = "webhook" | "api" | "auth" | "leads" | "intake" | "wearable_webhook";
 
 const LIMITS: Record<LimiterName, { tokens: number; windowSeconds: number }> = {
   webhook: { tokens: 30, windowSeconds: 60 }, // per phone number
@@ -18,6 +18,9 @@ const LIMITS: Record<LimiterName, { tokens: number; windowSeconds: number }> = {
   // room shares one NAT/WiFi IP; the pending_review nurse gate is the real
   // abuse backstop, so this only needs to stop runaway automation.
   intake: { tokens: 30, windowSeconds: 3600 },
+  // per Terra user_id — wearables sync frequently (intraday body/daily/activity
+  // pushes), so this is generous; it only stops a runaway loop.
+  wearable_webhook: { tokens: 120, windowSeconds: 60 },
 };
 
 function upstashConfigured(): boolean {
