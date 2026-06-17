@@ -50,6 +50,12 @@ describe("requireTerraSignature", () => {
     expect(requireTerraSignature(reqWith(header()), BODY)).toBeNull();
   });
 
+  it("fail-closes (403) when the secret is unset IN production", () => {
+    vi.stubEnv("TERRA_SIGNING_SECRET", "");
+    vi.stubEnv("NODE_ENV", "production");
+    expect(requireTerraSignature(reqWith(header()), BODY)?.status).toBe(403);
+  });
+
   it("parses the signature header and rejects garbage", () => {
     expect(__test.parseSignatureHeader("t=123,v1=abc")).toEqual({ t: "123", v1: "abc" });
     expect(__test.parseSignatureHeader("garbage")).toBeNull();

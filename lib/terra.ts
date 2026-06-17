@@ -60,11 +60,14 @@ export function requireTerraSignature(req: Request, rawBody: string): Response |
   const isProd = process.env.NODE_ENV === "production";
 
   if (!secret) {
-    if (isProd && terraConfigured()) {
+    // Fail-closed in production: a PUBLIC webhook must never process unsigned
+    // requests in prod — whether Terra is misconfigured or simply not set up yet.
+    // The skip path exists only for local-dev tunnels (non-production).
+    if (isProd) {
       logger.error("TERRA_SIGNING_SECRET unset in production — rejecting wearable webhook.");
       return Response.json({ error: "Webhook not configured" }, { status: 403 });
     }
-    logger.warn("Terra signature validation skipped (TERRA_SIGNING_SECRET unset).");
+    logger.warn("Terra signature validation skipped (TERRA_SIGNING_SECRET unset, non-prod).");
     return null;
   }
 
